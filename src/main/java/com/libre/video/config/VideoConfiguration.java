@@ -1,6 +1,6 @@
 package com.libre.video.config;
 
-import com.libre.video.core.VideoDownload;
+import com.libre.video.core.download.VideoDownload;
 import com.libre.boot.autoconfigure.SpringContext;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

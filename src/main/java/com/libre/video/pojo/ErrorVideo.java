@@ -17,4 +17,6 @@ public class ErrorVideo {
     private Integer type;
 
     private String html;
+
+	private Integer requestType;
 }

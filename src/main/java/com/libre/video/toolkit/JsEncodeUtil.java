@@ -1,6 +1,5 @@
 package com.libre.video.toolkit;
 
-import com.libre.video.core.JavaScriptEncode;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import net.dreamlu.mica.core.utils.StringUtil;
@@ -38,7 +37,7 @@ public class JsEncodeUtil {
         ScriptEngine engine = manager.getEngineByName("js");
 
         try {
-            ClassPathResource resource = new ClassPathResource("md2.js");
+            ClassPathResource resource = new ClassPathResource("statics/js/md2.js");
             BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8));
             engine.eval(br);
         } catch (ScriptException e) {

@@ -1,4 +1,4 @@
-package com.libre.video.core;
+package com.libre.video.core.download;
 
 import com.libre.video.config.VideoProperties;
 import com.libre.core.toolkit.StringPool;
@@ -12,6 +12,7 @@ import net.bramp.ffmpeg.builder.FFmpegOutputBuilder;
 import net.bramp.ffmpeg.job.FFmpegJob;
 import net.bramp.ffmpeg.probe.FFmpegFormat;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
+import org.springframework.scheduling.annotation.Async;
 
 import java.io.IOException;
 
@@ -22,8 +23,7 @@ public class VideoDownload {
     private final VideoProperties properties;
     private final static String MP4_FORMAT = "mp4";
 
-
-  //  @Async("downloadExecutor")
+    @Async("downloadExecutor")
     public void encodeAndWrite(String url, String filename) throws IOException {
         FFmpeg ffmpeg = new FFmpeg(properties.getFfmpegPath() + "ffmpeg");
         FFprobe ffprobe = new FFprobe(properties.getFfmpegPath() + "ffprobe");

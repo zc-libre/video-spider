@@ -25,9 +25,6 @@ public class Video91Parse {
     @CssQuery(value = ".well", attr = "html", regex = "(?<=查看:</span>\\s+).*(?=\\s+<br>\\s+<span class=\"info\">收藏:)[^0-9]")
     private Integer lookNum;
 
-    @CssQuery(value = ".well", attr = "html", regex = "(?<=查看:</span>)(\\d*)(?=<span class=\"info\">收藏:)")
-    private String look;
-
     private Integer collectNum;
 
     private Integer type;

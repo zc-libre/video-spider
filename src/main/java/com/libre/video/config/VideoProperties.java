@@ -13,6 +13,4 @@ public class VideoProperties {
     private String mp4boxPath = "/Applications/GPAC.app/Contents/MacOS/MP4Box/";
 
     private String downloadPath = "/Users/libre/video/";
-
-    private Integer maxSaveLimit = 5;
 }

@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @Data
 @Document(indexName = "video")
 @TableName("video")
-public class Video91 {
+public class Video {
 
     @Id
     @TableId(type = IdType.INPUT)

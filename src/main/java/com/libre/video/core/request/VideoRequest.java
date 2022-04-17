@@ -1,9 +1,16 @@
 package com.libre.video.core.request;
 
-public interface VideoRequest {
+import com.libre.video.core.enums.RequestTypeEnum;
 
-    void execute(String url);
+import java.lang.annotation.*;
 
-
-    Integer parsePageSize(String html);
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+public @interface VideoRequest {
+	/**
+	 * 策略类型
+	 */
+     RequestTypeEnum value();
 }

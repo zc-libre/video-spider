@@ -1,6 +1,6 @@
-package com.libre.video.core;
+package com.libre.video.core.event;
 
-import com.libre.video.pojo.Video91;
+import com.libre.video.pojo.Video;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Video91SaveEvent {
+public class VideoSaveEvent {
 
-    private List<Video91> video91List;
+    private List<Video> videoList;
 }

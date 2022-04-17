@@ -1,6 +1,6 @@
 package com.libre.video;
 
-import com.libre.video.core.request.Video9sRequest;
+import com.libre.video.core.request.Video9SRequestStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableAspectJAutoProxy(exposeProxy = true, proxyTargetClass = true)
 public class VideoClientApplication implements ApplicationRunner {
 
-    private final Video9sRequest video9sRequest;
+    private final Video9SRequestStrategy video9sRequest;
 
     public static void main(String[] args) {
         SpringApplication.run(VideoClientApplication.class, args);

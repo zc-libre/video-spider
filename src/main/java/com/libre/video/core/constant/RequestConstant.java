@@ -1,4 +1,4 @@
-package com.libre.video.core.request;
+package com.libre.video.core.constant;
 
 public interface RequestConstant {
 

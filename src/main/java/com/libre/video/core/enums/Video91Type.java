@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum VideoType {
+public enum Video91Type {
     /**
      *  91原创
      */

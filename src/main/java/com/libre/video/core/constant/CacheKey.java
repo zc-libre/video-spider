@@ -1,4 +1,4 @@
-package com.libre.video.core;
+package com.libre.video.core.constant;
 
 public interface CacheKey {
 

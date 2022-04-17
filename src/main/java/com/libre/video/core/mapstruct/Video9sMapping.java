@@ -1,7 +1,7 @@
-package com.libre.video.service.mapstruct;
+package com.libre.video.core.mapstruct;
 
 import com.libre.core.mapstruct.BaseConvert;
-import com.libre.video.pojo.Video91;
+import com.libre.video.pojo.Video;
 import com.libre.video.pojo.dto.Video9s;
 import com.libre.video.pojo.dto.Video9sParse;
 import com.libre.video.pojo.dto.Video9sDTO;
@@ -18,5 +18,5 @@ public interface Video9sMapping extends BaseConvert<Video9sDTO, Video9s> {
 
     Video9s convertToVideo9s(Video9sParse video9sParse);
 
-    List<Video9s> convertToVideo9sList(Collection<Video91> collection);
+    List<Video9s> convertToVideo9sList(Collection<Video> collection);
 }
