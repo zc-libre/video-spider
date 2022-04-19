@@ -5,7 +5,7 @@ spring:
   application:
     name: Libre-Video
   profiles:
-    active: dev
+    active: prod
 
 mybatis-plus:
   global-config:
@@ -13,6 +13,10 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+libre:
+  xss:
+    enabled: false
 
 logging:
   file:
