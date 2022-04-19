@@ -2,6 +2,7 @@ package com.libre.video.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.collect.Lists;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.enums.RequestTypeEnum;
@@ -14,11 +15,13 @@ import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j@Service
@@ -51,8 +54,18 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public void dataSyncToElasticsearch() {
+		int batchSize = 1000;
 		List<Video> videoList = this.list();
-		videoEsRepository.saveAll(videoList);
+		List<Video> videos = Lists.newArrayList();
+		for (int i = 0; i < videoList.size(); i++) {
+			if (i != 0 && i % batchSize != 0) {
+				videos.add(videoList.get(i));
+			} else {
+				videoEsRepository.saveAll(videos);
+				videos.clear();
+			}
+		}
+		videoEsRepository.saveAll(videos);
 	}
 
 	@Override
