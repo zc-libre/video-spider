@@ -57,15 +57,18 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		int batchSize = 1000;
 		List<Video> videoList = this.list();
 		List<Video> videos = Lists.newArrayList();
+		log.info("数据同步开始, 共{}条数据：", videoList.size());
 		for (int i = 0; i < videoList.size(); i++) {
 			if (i != 0 && i % batchSize != 0) {
 				videos.add(videoList.get(i));
 			} else {
 				videoEsRepository.saveAll(videos);
+				log.info("{}条数据同步成功", i);
 				videos.clear();
 			}
 		}
 		videoEsRepository.saveAll(videos);
+		log.info("数据同步完成, 共{}条数据", videoList.size());
 	}
 
 	@Override
