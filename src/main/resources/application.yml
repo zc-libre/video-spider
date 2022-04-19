@@ -4,15 +4,8 @@ server:
 spring:
   application:
     name: Libre-Video
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false
-    username: root
-    password: 123456
-    type: com.zaxxer.hikari.HikariDataSource
-  elasticsearch:
-    uris: http://127.0.0.1:9200
-
+  profiles:
+    active: dev
 
 mybatis-plus:
   global-config:
@@ -20,11 +13,6 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
-video:
-  download-path: /Users/libre/video/
-  ffmpeg-path: /usr/local/Cellar/ffmpeg/5.0.1/bin/
-  mp4box-path: /Applications/GPAC.app/Contents/MacOS/MP4Box/
 
 logging:
   file:
