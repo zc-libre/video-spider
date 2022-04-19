@@ -1,5 +1,6 @@
 package com.libre.video.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.video.core.download.VideoDownload;
@@ -9,7 +10,7 @@ import com.libre.video.core.request.VideoRequestStrategy;
 import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
-import com.libre.video.core.dto.RequestParam;
+import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private final VideoEsRepository videoEsRepository;
 
 	@Override
-	public void request(RequestParam param) {
+	public void request(VideoRequestParam param) {
 		RequestTypeEnum requestTypeEnum = RequestTypeEnum.find(param.getRequestType());
 		Assert.notNull(requestTypeEnum, "request type must not be null");
 		log.info("start request type: {}, baseUrl: {}", requestTypeEnum.name(), requestTypeEnum.getBaseUrl());
@@ -55,12 +56,17 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	}
 
 	@Override
+	public Page<Video> findByPage() {
+		return null;
+	}
+
+	@Override
 	public List<Video> findByTitle(String title) {
 		return null;
 	}
 
 	@Override
-	public Page<Video> findByTitlePage(String title, Integer page, Integer size) {
-		return videoEsRepository.findVideosByTitleLike(title, PageRequest.of(page, size));
+	public Page<Video> findByTitlePage(String title, PageDTO<Video> page) {
+		return videoEsRepository.findVideosByTitleLike(title, PageRequest.of((int) page.getCurrent(), (int) page.getSize()));
 	}
 }

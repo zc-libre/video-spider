@@ -8,7 +8,7 @@ import com.libre.video.core.enums.ErrorRequestType;
 import com.libre.video.core.event.VideoEventPublisher;
 import com.libre.video.pojo.ErrorVideo;
 import com.libre.video.pojo.Video;
-import com.libre.video.core.dto.RequestParam;
+import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.UserAgentContext;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public abstract class AbstractVideoRequestStrategy implements VideoRequestStrate
 		this.videoService = videoService;
 	}
 
-	public abstract void execute(RequestParam requestParam);
+	public abstract void execute(VideoRequestParam requestParam);
 
 	public abstract List<Video> readVideoList(String html);
 

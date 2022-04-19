@@ -11,7 +11,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class RequestParam {
+public class VideoRequestParam {
 
 	private Integer requestType;
 

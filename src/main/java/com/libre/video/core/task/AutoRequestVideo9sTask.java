@@ -1,6 +1,6 @@
 package com.libre.video.core.task;
 
-import com.libre.video.core.dto.RequestParam;
+import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class AutoRequestVideo9sTask {
 	@Scheduled(cron = "0 0 2 * * ?")
 	public void execute() {
 		log.info("autoRequestVideo9sTask is start....");
-		videoService.request(RequestParam.builder().requestType(2).size(20).build());
+		videoService.request(VideoRequestParam.builder().requestType(2).size(20).build());
 		log.info("autoRequestVideo9sTask completed");
 	}
 }

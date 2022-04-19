@@ -6,7 +6,7 @@ import com.libre.video.core.enums.ErrorRequestType;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.Video91Type;
 import com.libre.video.pojo.Video;
-import com.libre.video.core.dto.RequestParam;
+import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.core.dto.Video91Parse;
 import com.libre.video.service.VideoService;
 import com.libre.video.core.mapstruct.Video91Mapping;
@@ -27,7 +27,6 @@ import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,7 +46,7 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
 	}
 
 	@Override
-    public void execute(RequestParam requestParam) {
+    public void execute(VideoRequestParam requestParam) {
         Video91Type[] types = Video91Type.values();
 
 		RequestTypeEnum requestTypeEnum = requestParam.getRequestTypeEnum();

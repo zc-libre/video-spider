@@ -1,6 +1,6 @@
 package com.libre.video.core.request;
 
-import com.libre.video.core.dto.RequestParam;
+import com.libre.video.core.dto.VideoRequestParam;
 
 public interface VideoRequestStrategy {
 
@@ -8,6 +8,6 @@ public interface VideoRequestStrategy {
 	 * execute spider task
 	 * @param requestParam spider website type
 	 */
-    void execute(RequestParam requestParam);
+    void execute(VideoRequestParam requestParam);
 
 }

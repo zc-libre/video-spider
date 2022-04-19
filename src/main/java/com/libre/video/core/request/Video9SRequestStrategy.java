@@ -10,7 +10,7 @@ import com.libre.video.core.constant.RequestConstant;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.ErrorRequestType;
 import com.libre.video.pojo.*;
-import com.libre.video.core.dto.RequestParam;
+import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.core.dto.Video9s;
 import com.libre.video.core.dto.Video9sDTO;
 import com.libre.video.core.dto.Video9sParse;
@@ -40,7 +40,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 	}
 
 	@Override
-    public void execute(RequestParam requestParam) {
+    public void execute(VideoRequestParam requestParam) {
         ThreadPoolTaskExecutor executor = ThreadPoolUtil.requestExecutor();
 		RequestTypeEnum requestTypeEnum = requestParam.getRequestTypeEnum();
 		String url = requestTypeEnum.getBaseUrl();
