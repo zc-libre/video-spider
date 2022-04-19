@@ -10,7 +10,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration(proxyBeanMethods = false)
 public class VideoThreadPoolConfiguration {
 
-
 	@Bean
 	public ThreadPoolTaskExecutor videoRequestExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -23,7 +22,6 @@ public class VideoThreadPoolConfiguration {
 		return executor;
 	}
 
-
     @Bean
     public ThreadPoolTaskExecutor requestExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -35,7 +33,6 @@ public class VideoThreadPoolConfiguration {
         executor.setThreadNamePrefix("request-task-");
         return executor;
     }
-
 
     @Bean
     public ThreadPoolTaskExecutor downloadExecutor() {

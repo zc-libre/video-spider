@@ -1,12 +1,13 @@
 package com.libre.video.core.request;
 
-import com.libre.video.core.enums.RequestTypeEnum;
+import com.libre.video.core.dto.RequestParam;
 
 public interface VideoRequestStrategy {
 
 	/**
 	 * execute spider task
-	 * @param requestTypeEnum spider website type
+	 * @param requestParam spider website type
 	 */
-    void execute(RequestTypeEnum requestTypeEnum);
+    void execute(RequestParam requestParam);
+
 }

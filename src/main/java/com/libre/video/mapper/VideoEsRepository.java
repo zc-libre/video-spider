@@ -1,17 +1,17 @@
 package com.libre.video.mapper;
 
 import com.libre.video.pojo.Video;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.lang.Nullable;
-
-import java.util.List;
-
-public interface VideoEsRepository extends CrudRepository<Video, Long> {
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 
 
-	List<Video> findAll();
+/**
+ * @author: Libre
+ * @Date: 2022/4/19 9:30 PM
+ */
+public interface VideoEsRepository extends ElasticsearchRepository<Video, Long> {
 
-    List<Video> findVideosByTitle(String title);
+	Page<Video> findVideosByTitleLike(String title, Pageable pageable);
 
-	List<Video> findAllByTitleLike(String title);
 }

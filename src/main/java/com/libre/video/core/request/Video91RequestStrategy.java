@@ -6,7 +6,8 @@ import com.libre.video.core.enums.ErrorRequestType;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.Video91Type;
 import com.libre.video.pojo.Video;
-import com.libre.video.pojo.dto.Video91Parse;
+import com.libre.video.core.dto.RequestParam;
+import com.libre.video.core.dto.Video91Parse;
 import com.libre.video.service.VideoService;
 import com.libre.video.core.mapstruct.Video91Mapping;
 import com.libre.video.toolkit.JsEncodeUtil;
@@ -16,7 +17,6 @@ import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.spider.DomMapper;
 import com.libre.video.toolkit.ThreadPoolUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.jsoup.nodes.Document;
@@ -27,6 +27,7 @@ import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,19 +35,25 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @VideoRequest(RequestTypeEnum.REQUEST_91)
-@RequiredArgsConstructor
 public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
 
     private final static String PARAM_CATEGORY = "category";
     private final static String PARAM_PAGE = "page";
-
     private final VideoService videoService;
 
+	public Video91RequestStrategy(VideoService videoService, VideoService videoService1) {
+		super(videoService);
+		this.videoService = videoService1;
+	}
+
 	@Override
-    public void execute(RequestTypeEnum requestTypeEnum) {
+    public void execute(RequestParam requestParam) {
         Video91Type[] types = Video91Type.values();
-        HttpUrl httpUrl = HttpUrl.get(requestTypeEnum.getBaseUrl());
+
+		RequestTypeEnum requestTypeEnum = requestParam.getRequestTypeEnum();
+		HttpUrl httpUrl = HttpUrl.get(requestTypeEnum.getBaseUrl());
         HttpUrl.Builder urlBuilder = getUrlBuilder(httpUrl);
+
         ThreadPoolTaskExecutor executor = ThreadPoolUtil.requestExecutor();
         for (Video91Type video91Type : types) {
             urlBuilder.addQueryParameter(PARAM_CATEGORY, video91Type.getName());

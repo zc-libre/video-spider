@@ -1,5 +1,6 @@
 package com.libre.video.core.download;
 
+import com.libre.core.exception.LibreException;
 import com.libre.video.config.VideoProperties;
 import com.libre.core.toolkit.StringPool;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import org.springframework.scheduling.annotation.Async;
 
 import java.io.IOException;
+import java.time.Duration;
 
 
 @Slf4j
@@ -24,29 +26,33 @@ public class VideoDownload {
     private final static String MP4_FORMAT = "mp4";
 
     @Async("downloadExecutor")
-    public void encodeAndWrite(String url, String filename) throws IOException {
-        FFmpeg ffmpeg = new FFmpeg(properties.getFfmpegPath() + "ffmpeg");
-        FFprobe ffprobe = new FFprobe(properties.getFfmpegPath() + "ffprobe");
-        //时长 s
-        FFmpegProbeResult probe = ffprobe.probe(url);
+    public void encodeAndWrite(String url, String filename)  {
+		try {
+			FFmpeg ffmpeg = new FFmpeg(properties.getFfmpegPath() + "ffmpeg");
+			FFprobe ffprobe = new FFprobe(properties.getFfmpegPath() + "ffprobe");
+			//时长 s
+			FFmpegProbeResult in = ffprobe.probe(url);
+			//封面信息保存
+			FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
+			//整体下载
+			String path = getDownPath(filename);
 
-        //封面信息保存
-        FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
-        //整体下载
-        String path = getDownPath(filename);
-        FFmpegOutputBuilder fFmpegOutputBuilder = getFfmpegOutputBuilder(url, path);
-        FFmpegBuilder builder;
-        FFmpegFormat info = probe.getFormat();
-        double duration = info.duration;
-        if (duration > 240) {
-            //大于4分钟截取前10秒
-            builder = fFmpegOutputBuilder.addExtraArgs("-ss", "00:00:10").done();
-        } else {
-            builder = fFmpegOutputBuilder.done();
-        }
-        FFmpegJob fFmpegJob = executor.createJob(builder, new VideoProgressListener(filename));
-        fFmpegJob.run();
-    }
+			FFmpegOutputBuilder fFmpegOutputBuilder = getFfmpegOutputBuilder(url, path);
+			FFmpegBuilder builder;
+			FFmpegFormat info = in.getFormat();
+			double duration = info.duration;
+			if (duration > Duration.ofMinutes(4).getSeconds()) {
+				//大于4分钟截取前10秒
+				builder = fFmpegOutputBuilder.addExtraArgs("-ss", "00:00:10").done();
+			} else {
+				builder = fFmpegOutputBuilder.done();
+			}
+			FFmpegJob fFmpegJob = executor.createJob(builder, new VideoProgressListener(filename, duration));
+			fFmpegJob.run();
+		} catch (IOException e) {
+			throw new LibreException(e);
+		}
+	}
 
     private String getDownPath(String filename) {
         return properties.getDownloadPath() + filename + StringPool.DOT + MP4_FORMAT;

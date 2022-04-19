@@ -10,13 +10,14 @@ import com.libre.video.core.constant.RequestConstant;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.ErrorRequestType;
 import com.libre.video.pojo.*;
-import com.libre.video.pojo.dto.Video9s;
-import com.libre.video.pojo.dto.Video9sDTO;
-import com.libre.video.pojo.dto.Video9sParse;
+import com.libre.video.core.dto.RequestParam;
+import com.libre.video.core.dto.Video9s;
+import com.libre.video.core.dto.Video9sDTO;
+import com.libre.video.core.dto.Video9sParse;
 import com.libre.video.core.mapstruct.Video91Mapping;
 import com.libre.video.core.mapstruct.Video9sMapping;
+import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.ThreadPoolUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -32,13 +33,17 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @VideoRequest(RequestTypeEnum.REQUEST_9S)
-@RequiredArgsConstructor
 public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 
+	public Video9SRequestStrategy(VideoService videoService) {
+		super(videoService);
+	}
+
 	@Override
-    public void execute(RequestTypeEnum requestTypeEnum) {
+    public void execute(RequestParam requestParam) {
         ThreadPoolTaskExecutor executor = ThreadPoolUtil.requestExecutor();
-        String url = requestTypeEnum.getBaseUrl();
+		RequestTypeEnum requestTypeEnum = requestParam.getRequestTypeEnum();
+		String url = requestTypeEnum.getBaseUrl();
         String html = requestAsHtml(url);
         Integer pageSize = parsePageSize(html);
 
@@ -49,8 +54,12 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
         if (pageSize == null) {
             return;
         }
-        readVideosAndSave(html, url);
-        for (int i = pageSize; i >= 2; i--) {
+		Integer size = requestParam.getSize();
+		if (Objects.nonNull(size) && size > 2) {
+			pageSize = size;
+		}
+		readVideosAndSave(html, url);
+        for (int i = 2; i >= pageSize; i--) {
             url = requestTypeEnum.getBaseUrl() + StringPool.SLASH + i;
             String doc = requestAsHtml(url);
             if (StringUtil.isBlank(doc)) {

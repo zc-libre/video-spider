@@ -1,4 +1,4 @@
-package com.libre.video.pojo.dto;
+package com.libre.video.core.dto;
 
 import com.libre.core.time.DatePattern;
 import com.libre.spider.CssQuery;

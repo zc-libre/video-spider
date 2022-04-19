@@ -1,7 +1,7 @@
 package com.libre.video;
 
 import com.libre.spider.DomMapper;
-import com.libre.video.pojo.dto.Video91Parse;
+import com.libre.video.core.dto.Video91Parse;
 import com.libre.video.toolkit.UserAgentContext;
 import net.dreamlu.mica.http.HttpRequest;
 import org.springframework.http.HttpHeaders;

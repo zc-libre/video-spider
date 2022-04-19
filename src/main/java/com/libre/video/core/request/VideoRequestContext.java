@@ -27,5 +27,15 @@ public class VideoRequestContext  {
 		return VideoRequestStrategyContext;
 	}
 
+	public static Integer getRequestType(Class<VideoRequestStrategy> clazz) {
+		for (Map.Entry<Integer, Class<VideoRequestStrategy>> entry : VideoRequestStrategyContext.entrySet()) {
+			Class<VideoRequestStrategy> value = entry.getValue();
+			if (value.equals(clazz)) {
+				return entry.getKey();
+			}
+		}
+		return null;
+	}
+
 
 }

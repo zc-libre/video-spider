@@ -39,4 +39,6 @@ public class VideoEventListener {
         log.info("start save error video, errorType: {}", errorVideo.getType());
         errorVideoService.save(errorVideo);
     }
+
+
 }

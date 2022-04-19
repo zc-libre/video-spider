@@ -1,28 +1,19 @@
 package com.libre.video;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.request.Video9SRequestStrategy;
-import com.libre.video.mapper.VideoEsRepository;
+import com.libre.video.mapper.es.VideoEsMapper;
 import com.libre.video.pojo.Video;
-import com.libre.video.pojo.dto.Video9s;
 import com.libre.video.service.VideoService;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsAction;
-import org.elasticsearch.rest.action.admin.indices.RestUpdateSettingsAction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
-import org.springframework.data.elasticsearch.core.IndexOperations;
-import org.springframework.data.elasticsearch.core.index.Settings;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @SpringBootTest
 class VideoApplicationTests {
@@ -30,11 +21,14 @@ class VideoApplicationTests {
     VideoDownload download;
     @Autowired
 	Video9SRequestStrategy request;
-    @Autowired
-	VideoEsRepository videoEsRepository;
+  //  @Autowired
+//	VideoEsRepository videoEsRepository;
 
     @Autowired
 	VideoService videoService;
+
+	@Autowired
+	VideoEsMapper videoEsMapper;
 
     @Autowired
     ElasticsearchRestTemplate elasticsearchRestTemplate;
@@ -52,17 +46,6 @@ class VideoApplicationTests {
 		elasticsearchRestTemplate.indexOps(indexCoordinates).getSettings().put("max_result_window", 100000);
 	}
 
-    @Test
-    void findAll() {
-        Iterable<Video> all = videoEsRepository.findAll();
-        videoService.saveBatch(Lists.newArrayList(all));
-    }
-    @Test
-    void search() {
-		List<Video> all = videoEsRepository.findAllByTitleLike("黑丝袜");
-		System.out.println(all.size());
-		all.forEach(System.out::println);
-	}
 
     @Test
     void request() {
@@ -71,7 +54,6 @@ class VideoApplicationTests {
 
     @Test
     void update() {
-		List<Video> list = videoService.list();
-		elasticsearchRestTemplate.save(list);
+		System.out.println(videoEsMapper.existsIndex("video"));
 	}
 }
