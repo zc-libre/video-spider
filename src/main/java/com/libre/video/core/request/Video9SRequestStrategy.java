@@ -91,7 +91,9 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 
         for (Video9sParse video9sParse : parseMap.values()) {
             Video9s video9s = readVideo(video9sParse);
-            videos.add(video9s);
+			if (Objects.nonNull(video9s) && Objects.nonNull(video9s.getId())) {
+				videos.add(video9s);
+			}
         }
 		Video91Mapping mapping = Video91Mapping.INSTANCE;
 		return mapping.convertToVideo91List(videos);

@@ -20,7 +20,7 @@ public class Video9sDTO {
     @CssQuery(value = ".favoriteBtn > span", attr = "text", regex = "^\\d+")
     private Integer collectNum;
 
-    @CssQuery(value = "#videoShowTabAbout > div > div:nth-child(1) > div:nth-child(2)", attr = "html", regex = "(?<=</i>\\s+).*$")
+    @CssQuery(value = "#videoShowTabAbout > div > div:nth-child(1) > div:nth-child(2)", attr = "html", regex = "(?<=</i>\\s{0,10}).*$")
     @DateTimeFormat(pattern = DatePattern.NORM_DATE_PATTERN)
     private LocalDate publishTime;
 
