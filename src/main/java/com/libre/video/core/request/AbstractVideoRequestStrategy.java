@@ -2,6 +2,7 @@ package com.libre.video.core.request;
 
 import com.libre.core.random.RandomHolder;
 import com.libre.core.toolkit.CollectionUtil;
+import com.libre.core.toolkit.Exceptions;
 import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.video.core.enums.ErrorRequestType;
@@ -43,7 +44,7 @@ public abstract class AbstractVideoRequestStrategy implements VideoRequestStrate
 			VideoEventPublisher.publishVideoSaveEvent(videos);
 		} catch (Exception e) {
 			publishErrorVideo(url, html, ErrorRequestType.PARSE);
-			log.error("read or save error, url: {}",url);
+			log.error("read or save error, url: {}, message: {}",url, Exceptions.getStackTraceAsString(e));
 		}
 	}
 
