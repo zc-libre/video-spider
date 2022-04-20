@@ -93,7 +93,13 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
                 .collect(Collectors.toMap(Video9sParse::getUrl, Video9sParse -> Video9sParse, (v1, v2) -> v1));
 
         for (Video9sParse video9sParse : parseMap.values()) {
-            Video9s video9s = readVideo(video9sParse);
+			Video9s video9s = null;
+			try {
+				video9s = readVideo(video9sParse);
+			} catch (Exception e) {
+				log.error("视频数据解析错误： {}", e.getMessage());
+				publishErrorVideo(video9sParse.getUrl(), html, ErrorRequestType.PARSE);
+			}
 			if (Objects.nonNull(video9s) && Objects.nonNull(video9s.getId())) {
 				videos.add(video9s);
 			}
