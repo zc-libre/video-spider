@@ -2,6 +2,7 @@ package com.libre.video.core.request;
 
 import com.google.common.collect.Lists;
 import com.libre.core.exception.LibreException;
+import com.libre.core.time.DatePattern;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
@@ -27,6 +28,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -101,7 +104,12 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 
     private void parseVideoInfo(String html, Video9s video9s) {
         Video9sDTO video9sDTO = DomMapper.readValue(html, Video9sDTO.class);
-        BeanUtils.copyProperties(video9sDTO, video9s);
+		String publishTime = video9sDTO.getPublishTime();
+		if (StringUtil.isNotBlank(publishTime)) {
+			publishTime = StringUtil.trimWhitespace(publishTime);
+			video9s.setPublishTime(LocalDate.parse(publishTime, DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)));
+		}
+		BeanUtils.copyProperties(video9sDTO, video9s);
     }
 
     private Video9s readVideo(Video9sParse video9sParse) {
@@ -121,6 +129,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
             return null;
         }
         parseVideoInfo(body, video9s);
+		log.debug("解析到一条视频数据: {}", video9s);
         return video9s;
     }
 

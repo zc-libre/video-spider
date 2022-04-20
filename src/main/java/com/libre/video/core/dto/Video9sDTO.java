@@ -21,7 +21,6 @@ public class Video9sDTO {
     private Integer collectNum;
 
     @CssQuery(value = "#videoShowTabAbout > div > div:nth-child(1) > div:nth-child(2)", attr = "html", regex = "(?<=</i>\\s{0,10}).*$")
-    @DateTimeFormat(pattern = DatePattern.NORM_DATE_PATTERN)
-    private LocalDate publishTime;
+    private String publishTime;
 
 }
