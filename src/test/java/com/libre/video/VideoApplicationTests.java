@@ -1,10 +1,7 @@
 package com.libre.video;
 
-import com.google.common.collect.Lists;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.request.Video9SRequestStrategy;
-import com.libre.video.mapper.es.VideoEsMapper;
-import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +10,6 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 
 import java.io.IOException;
-import java.util.List;
 
 @SpringBootTest
 class VideoApplicationTests {
@@ -27,8 +23,6 @@ class VideoApplicationTests {
     @Autowired
 	VideoService videoService;
 
-	@Autowired
-	VideoEsMapper videoEsMapper;
 
     @Autowired
     ElasticsearchRestTemplate elasticsearchRestTemplate;
@@ -46,14 +40,4 @@ class VideoApplicationTests {
 		elasticsearchRestTemplate.indexOps(indexCoordinates).getSettings().put("max_result_window", 100000);
 	}
 
-
-    @Test
-    void request() {
-		videoService.request(2);
-    }
-
-    @Test
-    void update() {
-		System.out.println(videoEsMapper.existsIndex("video"));
-	}
 }
