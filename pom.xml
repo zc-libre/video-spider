@@ -106,14 +106,6 @@
             <systemPath>${project.basedir}/src/main/resources/lib/bcprov-jdk16-139.jar</systemPath>
         </dependency>
 
-        <!-- lombok dependencies should not end up on classpath -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -125,30 +117,70 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-
         <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct-processor</artifactId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.5.0.RC1</version>
         </dependency>
 
         <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct-jdk8</artifactId>
-            <version>${mapstruct.version}</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-mapstruct-binding</artifactId>
+            <version>0.2.0</version>
         </dependency>
     </dependencies>
 
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                        <!-- See https://maven.apache.org/plugins/maven-compiler-plugin/compile-mojo.html -->
+                        <!-- Classpath elements to supply as annotation processor path. If specified, the compiler   -->
+                        <!-- will detect annotation processors only in those classpath elements. If omitted, the     -->
+                        <!-- default classpath is used to detect annotation processors. The detection itself depends -->
+                        <!-- on the configuration of annotationProcessors.                                           -->
+                        <!--                                                                                         -->
+                        <!-- According to this documentation, the provided dependency processor is not considered!   -->
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>1.5.0.RC1</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>0.2.0</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <!-- 打包后的启动jar名称 -->
         <finalName>app</finalName>
         <plugins>
+
             <!-- 用于排除jar中依赖包 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -156,13 +188,6 @@
                 <version>2.6.6</version>
                 <configuration>
                     <layout>ZIP</layout>
-                    <includes>
-                        <!-- 项目启动jar包中排除依赖包 -->
-            <!--            <include>
-                            <groupId>non-exists</groupId>
-                            <artifactId>non-exists</artifactId>
-                        </include>-->
-                    </includes>
                 </configuration>
             </plugin>
 
@@ -188,18 +213,6 @@
                 </executions>
             </plugin>
 
-            <!-- maven编译 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <!-- 不同版本需要制定具体的版本进行编译 -->
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
             <!-- 打包时跳过测试 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -210,6 +223,16 @@
                 </configuration>
             </plugin>
 
+            <!-- maven编译 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
             <!-- 将项目中代码文件打成jar包 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

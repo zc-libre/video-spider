@@ -26,7 +26,7 @@
         </fileSet>
         <!-- 启动文件目录 -->
         <fileSet>
-            <directory>${basedir}/src/bin</directory>
+            <directory>${basedir}</directory>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
             <includes>

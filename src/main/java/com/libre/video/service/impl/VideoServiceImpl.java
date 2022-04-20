@@ -15,13 +15,11 @@ import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j@Service
@@ -72,7 +70,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	}
 
 	@Override
-	public Page<Video> findByPage() {
+	public Page<Video> findByPage(PageDTO<Video> page) {
 		return null;
 	}
 
