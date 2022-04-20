@@ -1,6 +1,8 @@
 package com.libre.video.core.listener;
 
+import com.libre.boot.exception.LibreErrorEvent;
 import com.libre.core.toolkit.CollectionUtil;
+import com.libre.core.toolkit.Exceptions;
 import com.libre.video.core.event.VideoSaveEvent;
 import com.libre.video.pojo.ErrorVideo;
 import com.libre.video.pojo.Video;
@@ -30,8 +32,12 @@ public class VideoEventListener {
             return;
         }
         log.info("start save videos.....");
-        videoService.saveOrUpdateBatch(videoList);
-    }
+		try {
+			videoService.saveOrUpdateBatch(videoList);
+		} catch (Exception e) {
+			log.error("保存数据失败: {}", e.getMessage());
+		}
+	}
 
     @Async("taskScheduler")
     @EventListener(ErrorVideo.class)
@@ -40,5 +46,8 @@ public class VideoEventListener {
         errorVideoService.save(errorVideo);
     }
 
-
+	@EventListener(LibreErrorEvent.class)
+	public void exceptionsEvent(LibreErrorEvent event) {
+		log.error("发生异常： {}", event.toString());
+	}
 }
