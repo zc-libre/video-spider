@@ -57,9 +57,14 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 		Integer size = requestParam.getSize();
 		if (Objects.nonNull(size) && size > 2) {
 			pageSize = size;
+			log.info("parse pageSize: {}", pageSize);
 		}
-		readVideosAndSave(html, url);
-        for (int i = 2; i >= pageSize; i--) {
+		try {
+			readVideosAndSave(html, url);
+		} catch (Exception e) {
+			log.error("save error: {}, message: {}", url, e.getMessage());
+		}
+		for (int i = 2; i >= pageSize; i--) {
             url = requestTypeEnum.getBaseUrl() + StringPool.SLASH + i;
             String doc = requestAsHtml(url);
             if (StringUtil.isBlank(doc)) {

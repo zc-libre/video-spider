@@ -43,7 +43,7 @@ public abstract class AbstractVideoRequestStrategy implements VideoRequestStrate
 			VideoEventPublisher.publishVideoSaveEvent(videos);
 		} catch (Exception e) {
 			publishErrorVideo(url, html, ErrorRequestType.PARSE);
-			log.error("read or save error, url: {}, html: {}",url, html);
+			log.error("read or save error, url: {}",url);
 		}
 	}
 
