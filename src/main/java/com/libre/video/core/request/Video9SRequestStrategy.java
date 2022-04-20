@@ -67,7 +67,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 		} catch (Exception e) {
 			log.error("save error: {}, message: {}", url, e.getMessage());
 		}
-		for (int i = 2; i >= pageSize; i++) {
+		for (int i = 2; i <= pageSize; i++) {
             url = requestTypeEnum.getBaseUrl() + StringPool.SLASH + i;
             String doc = requestAsHtml(url);
             if (StringUtil.isBlank(doc)) {
