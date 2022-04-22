@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -42,6 +43,7 @@ public abstract class AbstractVideoRequestStrategy implements VideoRequestStrate
 		try {
 			List<Video> videos = readVideoList(html);
 			VideoEventPublisher.publishVideoSaveEvent(videos);
+			TimeUnit.SECONDS.sleep(3);
 		} catch (Exception e) {
 			publishErrorVideo(url, html, ErrorRequestType.PARSE);
 			log.error("read or save error, url: {}, message: {}",url, Exceptions.getStackTraceAsString(e));
@@ -84,7 +86,7 @@ public abstract class AbstractVideoRequestStrategy implements VideoRequestStrate
 			.setHeader("X-Forwarded-For", r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256))
 			.connectTimeout(Duration.ofSeconds(5))
 			.readTimeout(Duration.ofSeconds(5));
-		//     .proxy(ip, port)
+	        //.proxy(getProxyAddress());
 	}
 
 	protected static InetSocketAddress getProxyAddress() {

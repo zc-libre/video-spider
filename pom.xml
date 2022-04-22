@@ -30,6 +30,7 @@
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -113,6 +114,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>3.0.4</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
@@ -135,6 +142,7 @@
             <artifactId>lombok-mapstruct-binding</artifactId>
             <version>0.2.0</version>
         </dependency>
+
     </dependencies>
 
 
@@ -148,13 +156,6 @@
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
-                        <!-- See https://maven.apache.org/plugins/maven-compiler-plugin/compile-mojo.html -->
-                        <!-- Classpath elements to supply as annotation processor path. If specified, the compiler   -->
-                        <!-- will detect annotation processors only in those classpath elements. If omitted, the     -->
-                        <!-- default classpath is used to detect annotation processors. The detection itself depends -->
-                        <!-- on the configuration of annotationProcessors.                                           -->
-                        <!--                                                                                         -->
-                        <!-- According to this documentation, the provided dependency processor is not considered!   -->
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.mapstruct</groupId>

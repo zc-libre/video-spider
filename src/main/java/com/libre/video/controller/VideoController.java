@@ -8,7 +8,17 @@ import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.Criteria;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/video")
@@ -16,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class VideoController {
 
 	private final VideoService videoService;
+	private final ElasticsearchRestTemplate elasticsearchRestTemplate;
 
 	@GetMapping("/list")
 	public R<Page<Video>> page(PageDTO<Video> page, @RequestParam String title) {
@@ -37,7 +48,21 @@ public class VideoController {
 
 	@GetMapping("/request")
 	public R<Boolean> request() {
-		videoService.request(VideoRequestParam.builder().requestType(2).build());
+		videoService.request(VideoRequestParam.builder().requestType(1).build());
 		return R.status(Boolean.TRUE);
+	}
+
+	@GetMapping("/query")
+	public void query() {
+		CriteriaQuery query = new CriteriaQuery(new Criteria("title").matches("黑丝"));
+		query.setPageable(PageRequest.of(1, 100, Sort.Direction.DESC, "lookNum"));
+
+		String preference = query.getPreference();
+		System.out.println(preference);
+		SearchHits<Video> search = elasticsearchRestTemplate.search(query, Video.class);
+
+
+		List<SearchHit<Video>> searchHits = search.getSearchHits();
+		List<Video> videoList = searchHits.stream().map(SearchHit::getContent).collect(Collectors.toList());
 	}
 }

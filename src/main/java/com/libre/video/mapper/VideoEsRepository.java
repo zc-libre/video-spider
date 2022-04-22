@@ -1,9 +1,13 @@
 package com.libre.video.mapper;
 
 import com.libre.video.pojo.Video;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
+
+import java.util.List;
 
 
 /**

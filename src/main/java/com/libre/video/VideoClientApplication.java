@@ -1,6 +1,7 @@
 package com.libre.video;
 
 import com.libre.video.core.request.Video9SRequestStrategy;
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -8,6 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
+@EnableEncryptableProperties
 @SpringBootApplication
 @RequiredArgsConstructor
 @EnableAspectJAutoProxy(exposeProxy = true, proxyTargetClass = true)

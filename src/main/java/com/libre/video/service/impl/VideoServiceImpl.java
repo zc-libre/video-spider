@@ -1,5 +1,6 @@
 package com.libre.video.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
@@ -13,14 +14,23 @@ import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
 import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.service.VideoService;
+import com.libre.video.toolkit.PageUtil;
+import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.query.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j@Service
 @RequiredArgsConstructor
@@ -28,6 +38,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private final VideoRequestContext videoRequestContext;
 	private final VideoDownload videoDownload;
 	private final VideoEsRepository videoEsRepository;
+	private final ElasticsearchRestTemplate elasticsearchRestTemplate;
 
 	@Override
 	public void request(VideoRequestParam param) {
@@ -52,21 +63,23 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public void dataSyncToElasticsearch() {
-		int batchSize = 1000;
-		List<Video> videoList = this.list();
-		List<Video> videos = Lists.newArrayList();
-		log.info("数据同步开始, 共{}条数据：", videoList.size());
-		for (int i = 0; i < videoList.size(); i++) {
-			if (i != 0 && i % batchSize != 0) {
-				videos.add(videoList.get(i));
-			} else {
-				videoEsRepository.saveAll(videos);
-				log.info("{}条数据同步成功", i);
-				videos.clear();
+		CompletableFuture<List<Video>> future = CompletableFuture.supplyAsync(this::list);
+		future.thenAcceptAsync((videoList) -> {
+			int batchSize = 1000;
+			log.info("数据同步开始, 共{}条数据：", videoList.size());
+			List<Video> videos = Lists.newArrayList();
+			for (int i = 0; i < videoList.size(); i++) {
+				if (i != 0 && i % batchSize != 0) {
+					videos.add(videoList.get(i));
+				} else {
+					videoEsRepository.saveAll(videos);
+					log.info("{}条数据同步成功", i);
+					videos.clear();
+				}
 			}
-		}
-		videoEsRepository.saveAll(videos);
-		log.info("数据同步完成, 共{}条数据", videoList.size());
+			videoEsRepository.saveAll(videos);
+			log.info("数据同步完成, 共{}条数据", videoList.size());
+		}, ThreadPoolUtil.requestExecutor());
 	}
 
 	@Override
@@ -81,6 +94,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public Page<Video> findByTitlePage(String title, PageDTO<Video> page) {
-		return videoEsRepository.findVideosByTitleLike(title, PageRequest.of((int) page.getCurrent(), (int) page.getSize()));
+		List<Sort.Order> orders = PageUtil.getOrders(page);
+		PageRequest pageRequest = PageRequest.of((int) page.getCurrent(), (int) page.getSize(), Sort.by(orders));
+		return videoEsRepository.findVideosByTitleLike(title, pageRequest);
 	}
 }

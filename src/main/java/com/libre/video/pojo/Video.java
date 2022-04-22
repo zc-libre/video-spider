@@ -1,8 +1,6 @@
 package com.libre.video.pojo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.libre.core.time.DatePattern;
 import lombok.Data;
@@ -11,12 +9,14 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @TableName("video")
 @Document(indexName = "video")
-public class Video {
+public class Video implements Serializable {
 
 	@Id
     @TableId(type = IdType.INPUT)
@@ -49,4 +49,12 @@ public class Video {
     @JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
 	@Field(type = FieldType.Date)
     private LocalDate publishTime;
+
+	@TableField(fill = FieldFill.INSERT_UPDATE)
+	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
+	private LocalDateTime createTime;
+
+	@TableField(fill = FieldFill.UPDATE)
+	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
+	private LocalDateTime updateTime;
 }

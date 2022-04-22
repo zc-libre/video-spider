@@ -53,7 +53,6 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
 		HttpUrl httpUrl = HttpUrl.get(requestTypeEnum.getBaseUrl());
         HttpUrl.Builder urlBuilder = getUrlBuilder(httpUrl);
 
-        ThreadPoolTaskExecutor executor = ThreadPoolUtil.requestExecutor();
         for (Video91Type video91Type : types) {
             urlBuilder.addQueryParameter(PARAM_CATEGORY, video91Type.getName());
             String url = urlBuilder.build().toString();
@@ -69,7 +68,7 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
             }
             readVideosAndSave(html, url);
 
-            for (int i = 2; i <= pageSize; i++) {
+            for (int i = pageSize; i >= 2; i--) {
                 urlBuilder.removeAllQueryParameters(PARAM_PAGE);
                 urlBuilder.addQueryParameter(PARAM_PAGE, String.valueOf(i));
                 String requestUrl = urlBuilder.build().toString();
@@ -78,10 +77,9 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
                     publishErrorVideo(urlBuilder.build().toString(), ErrorRequestType.REQUEST_PAGE);
                     continue;
                 }
-                executor.execute(() -> readVideosAndSave(doc, url));
+				readVideosAndSave(doc, url);
             }
         }
-        executor.shutdown();
         log.info("video request complete!");
     }
 
