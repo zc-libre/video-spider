@@ -46,8 +46,8 @@ public class VideoController {
 		return R.success("数据同步成功");
 	}
 
-	@GetMapping("/request/{}")
-	public R<Boolean> request(Integer requestType, Integer size) {
+	@GetMapping("/request/{requestType}")
+	public R<Boolean> request(@PathVariable Integer requestType, Integer size) {
 		videoService.request(VideoRequestParam
 			.builder()
 			.requestType(requestType)
