@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * @author Libre
@@ -20,15 +21,26 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
-        log.debug("mybatis plus start insert fill ....");
-        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        log.info("mybatis plus start insert fill ....");
+		this.strictInsertFill(metaObject, "createTime", LocalDateTime::now, LocalDateTime.class);
+		this.strictInsertFill(metaObject, "updateTime", LocalDateTime::now, LocalDateTime.class);
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
-        log.debug("mybatis plus start update fill ....");
-        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        log.info("mybatis plus start update fill ....");
+		this.strictInsertFill(metaObject, "updateTime", LocalDateTime::now, LocalDateTime.class);
     }
+
+	@Override
+	public MetaObjectHandler strictFillStrategy(MetaObject metaObject, String fieldName, Supplier<?> fieldVal) {
+		if (metaObject.getValue(fieldName) == null) {
+			Object obj = fieldVal.get();
+			if (Objects.nonNull(obj)) {
+				metaObject.setValue(fieldName, obj);
+			}
+		}
+		return this;
+	}
 
 }

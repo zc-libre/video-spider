@@ -78,6 +78,7 @@
         </dependency>
 
 
+
         <!-- https://mvnrepository.com/artifact/net.bramp.ffmpeg/ffmpeg -->
         <dependency>
             <groupId>net.bramp.ffmpeg</groupId>
@@ -142,7 +143,11 @@
             <artifactId>lombok-mapstruct-binding</artifactId>
             <version>0.2.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
+            <version>3.9.1</version>
+        </dependency>
     </dependencies>
 
 
@@ -171,6 +176,11 @@
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok-mapstruct-binding</artifactId>
                                 <version>0.2.0</version>
+                            </path>
+                            <path>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-configuration-processor</artifactId>
+                                <version>2.6.6</version>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>

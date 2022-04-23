@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -28,7 +29,7 @@ public class Video implements Serializable {
 	@Field(type = FieldType.Keyword)
     private String realUrl;
 
-	@Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
+	@Field(type = FieldType.Text, analyzer = "ik_max_word")
     private String title;
 
 	@Field(type = FieldType.Keyword)
@@ -50,11 +51,30 @@ public class Video implements Serializable {
 	@Field(type = FieldType.Date)
     private LocalDate publishTime;
 
-	@TableField(fill = FieldFill.INSERT_UPDATE)
+	@TableField(fill = FieldFill.INSERT)
+	@DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
+	@Field(type = FieldType.Date)
 	private LocalDateTime createTime;
 
 	@TableField(fill = FieldFill.UPDATE)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
+	@Field(type = FieldType.Date)
 	private LocalDateTime updateTime;
+
+	public LocalDateTime getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(LocalDateTime createTime) {
+		this.createTime = createTime;
+	}
+
+	public LocalDateTime getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(LocalDateTime updateTime) {
+		this.updateTime = updateTime;
+	}
 }

@@ -22,7 +22,7 @@ public class Video91Parse {
     @CssQuery(value = ".well", attr = "html", regex = "(?<=作者:</span>\\s+).*(?=\\s+<br>\\s+<span class=\"info\">查看:)")
     private String author;
 
-    @CssQuery(value = ".well", attr = "html", regex = "(?<=查看:</span>\\s+).*(?=\\s+<br>\\s+<span class=\"info\">收藏:)[^0-9]")
+    @CssQuery(value = ".well", attr = "html", regex = "(?<=查看:</span>\\s+).*(?=\\s+<br>\\s+<span class=\"info\">收藏:)")
     private Integer lookNum;
 
     private Integer collectNum;

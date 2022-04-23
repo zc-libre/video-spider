@@ -11,7 +11,7 @@ public enum RequestTypeEnum {
 	/**
 	 * 91pron
 	 */
-    REQUEST_91(1, "http://www.91porn.com/v.php"),
+    REQUEST_91(1, "https://91porn.com/v.php?next=watch"),
 
 	/**
 	 * 九色
