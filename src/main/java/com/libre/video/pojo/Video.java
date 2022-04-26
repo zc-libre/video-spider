@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.libre.core.time.DatePattern;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -48,33 +49,18 @@ public class Video implements Serializable {
     private Integer collectNum;
 
     @JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
-	@Field(type = FieldType.Date)
+	@Field(type = FieldType.Date, format = DateFormat.date)
     private LocalDate publishTime;
 
 	@TableField(fill = FieldFill.INSERT)
-	@DateTimeFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
-	@Field(type = FieldType.Date)
+	@Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
 	private LocalDateTime createTime;
+
 
 	@TableField(fill = FieldFill.UPDATE)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
-	@Field(type = FieldType.Date)
+	@Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
 	private LocalDateTime updateTime;
 
-	public LocalDateTime getCreateTime() {
-		return createTime;
-	}
-
-	public void setCreateTime(LocalDateTime createTime) {
-		this.createTime = createTime;
-	}
-
-	public LocalDateTime getUpdateTime() {
-		return updateTime;
-	}
-
-	public void setUpdateTime(LocalDateTime updateTime) {
-		this.updateTime = updateTime;
-	}
 }

@@ -5,14 +5,13 @@ spring:
   application:
     name: Libre-Video
   profiles:
-    active: prod
+    active: dev
 
 mybatis-plus:
   global-config:
     banner: false
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 libre:
   xss:
@@ -21,3 +20,4 @@ libre:
 logging:
   file:
     name: "./logs/app.log"
+
