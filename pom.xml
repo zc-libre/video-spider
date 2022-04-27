@@ -61,10 +61,10 @@
             <artifactId>libre-redis-boot-starter</artifactId>
         </dependency>
 
+
         <dependency>
-            <groupId>com.libre</groupId>
-            <artifactId>libre-elasticsearch-boot-starter</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
         </dependency>
 
         <dependency>
