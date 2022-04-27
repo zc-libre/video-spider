@@ -54,13 +54,13 @@ public class Video implements Serializable {
 
 	@TableField(fill = FieldFill.INSERT)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
-	@Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
+	@Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
 	private LocalDateTime createTime;
 
 
 	@TableField(fill = FieldFill.UPDATE)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
-	@Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
+	@Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
 	private LocalDateTime updateTime;
 
 }
