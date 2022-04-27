@@ -1,6 +1,5 @@
 package com.libre.video;
 
-import com.libre.elasticsearch.configuration.EsMapper;
 import com.libre.video.core.request.Video9SRequestStrategy;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +9,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
-@EsMapper(basePackages = "com.libre.**.mapper")
 @EnableEncryptableProperties
 @SpringBootApplication
 @RequiredArgsConstructor
