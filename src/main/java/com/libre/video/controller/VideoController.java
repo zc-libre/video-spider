@@ -42,6 +42,12 @@ public class VideoController {
 		return R.data(Boolean.TRUE);
 	}
 
+	@PostMapping
+	public R<Boolean> watch(String url, Long id) {
+		videoService.requestAndDownload(url, id);
+		return R.data(Boolean.TRUE);
+	}
+
 	@GetMapping("/sync")
 	public R<Boolean> sync() {
 		videoService.dataSyncToElasticsearch();;

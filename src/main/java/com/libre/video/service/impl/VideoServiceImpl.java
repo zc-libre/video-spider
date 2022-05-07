@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.enums.RequestTypeEnum;
@@ -41,9 +42,6 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private final VideoDownload videoDownload;
 	private final VideoEsRepository videoEsRepository;
 
-	private final Video9SRequestStrategy video9SRequestStrategy;
-	private final ElasticsearchRestTemplate elasticsearchRestTemplate;
-
 	@Override
 	public void request(VideoRequestParam param) {
 		RequestTypeEnum requestTypeEnum = RequestTypeEnum.find(param.getRequestType());
@@ -67,6 +65,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public void requestAndDownload(String url, Long id) {
+		Video9SRequestStrategy video9SRequestStrategy = SpringContext.getBean(Video9SRequestStrategy.class);
 		Video video = video9SRequestStrategy.watchVideo(url, id);
 		videoDownload.encodeAndWrite(video.getRealUrl(), video.getTitle());
 	}
