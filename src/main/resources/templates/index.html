@@ -10,19 +10,41 @@
     <!-- import JavaScript -->
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
 </head>
+<style>
+    html{
+        padding: 0;
+        bottom: 0;
+    }
+
+    .search{
+        display: flex;
+        margin-left: 800px;
+
+        width: 400px;
+        margin-top: 100px;
+        margin-bottom: 200px;
+    }
+</style>
 <body>
 <div id="app">
- <div>
+ <div >
+     <div class="search">
+         <el-input v-model="title" placeholder="请输入内容"></el-input>
+         <el-button type="primary" @click="getVideoList">搜索</el-button>
+     </div>
     <div >
         <el-row :gutter="20" >
             <el-col :span="8" v-for="(item, index) in videoList" :key="index">
               <div style="margin-bottom: 20px">
-                  <el-card :body-style="{ padding: '0px' }">
-                      <img :src="item.image" class="image">
+                  <el-card :body-style="{ padding: '0px' }" >
+                      <img :src="item.image" class="image" style="width: 500px;height: 400px">
                       <div style="padding: 14px;">
                           <el-link type="info" @click="open(item.url)">{{item.title}}</el-link>
-
+                      </div>
+                      <div>
+                          <span>发布时间: {{item.publishTime}}</span>
                       </div>
                   </el-card>
               </div>
@@ -66,7 +88,7 @@
             currentDate: new Date(),
             page: 1,
             size: 20,
-            title: undefined,
+            title: null,
             total: 0,
             videoList: []
         },
@@ -82,6 +104,9 @@
                 let formData = new FormData();
                 formData.append('current', this.page);
                 formData.append('size', this.size);
+            if (this.title !== null) {
+                formData.append('title', this.title)
+            }
                 // 发送 POST 请求
              request.post("/list", formData).then(res => {
                  this.videoList = res.data.data.content
@@ -101,4 +126,5 @@
         }
     })
 </script>
+
 </html>

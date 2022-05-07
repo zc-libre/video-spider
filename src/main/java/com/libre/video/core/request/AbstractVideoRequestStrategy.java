@@ -42,6 +42,7 @@ public abstract class AbstractVideoRequestStrategy implements VideoRequestStrate
 	protected void readVideosAndSave(String html, String url) {
 		try {
 			List<Video> videos = readVideoList(html);
+			videos.forEach(video -> video.setRealUrl(null));
 			VideoEventPublisher.publishVideoSaveEvent(videos);
 			TimeUnit.SECONDS.sleep(3);
 		} catch (Exception e) {
