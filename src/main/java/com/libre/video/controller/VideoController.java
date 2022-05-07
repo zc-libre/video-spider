@@ -3,6 +3,7 @@ package com.libre.video.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.google.common.collect.Lists;
 import com.libre.core.result.R;
+import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class VideoController {
 
 	private final VideoService videoService;
+
 	private final ElasticsearchRestTemplate elasticsearchRestTemplate;
 
 	@GetMapping("/list")

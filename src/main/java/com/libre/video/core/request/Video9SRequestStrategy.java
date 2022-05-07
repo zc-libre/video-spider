@@ -20,6 +20,7 @@ import com.libre.video.core.mapstruct.Video9sMapping;
 import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.extern.slf4j.Slf4j;
+import net.dreamlu.mica.http.HttpRequest;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
@@ -80,6 +81,16 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
         executor.shutdown();
         log.info("video request complete!");
     }
+
+
+	public Video watchVideo(String url, Long id) {
+		String html = requestAsHtml(url);
+		List<Video> videoList = readVideoList(html);
+		if (CollectionUtil.isEmpty(videoList)) {
+			throw new LibreException("视频获取失败");
+		}
+		return videoList.stream().filter(v -> v.getId().equals(id)).findFirst().orElseThrow(() -> new LibreException("该视频不存在"));
+	}
 
     @Override
     public List<Video> readVideoList(String html) {

@@ -3,10 +3,12 @@ package com.libre.video.service.impl;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.enums.RequestTypeEnum;
+import com.libre.video.core.request.Video9SRequestStrategy;
 import com.libre.video.core.request.VideoRequestContext;
 import com.libre.video.core.request.VideoRequestStrategy;
 import com.libre.video.mapper.VideoEsRepository;
@@ -38,6 +40,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private final VideoRequestContext videoRequestContext;
 	private final VideoDownload videoDownload;
 	private final VideoEsRepository videoEsRepository;
+
+	private final Video9SRequestStrategy video9SRequestStrategy;
 	private final ElasticsearchRestTemplate elasticsearchRestTemplate;
 
 	@Override
@@ -59,6 +63,12 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		for (Video video : videoList) {
 			videoDownload.encodeAndWrite(video.getRealUrl(), video.getTitle());
 		}
+	}
+
+	@Override
+	public void requestAndDownload(String url, Long id) {
+		Video video = video9SRequestStrategy.watchVideo(url, id);
+		videoDownload.encodeAndWrite(video.getRealUrl(), video.getTitle());
 	}
 
 	@Override
