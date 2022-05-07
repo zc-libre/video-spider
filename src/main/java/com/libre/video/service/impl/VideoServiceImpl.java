@@ -1,6 +1,7 @@
 package com.libre.video.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.ImmutableList;
@@ -30,6 +31,7 @@ import org.springframework.data.elasticsearch.core.query.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -64,10 +66,10 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	}
 
 	@Override
-	public void requestAndDownload(String url, Long id) {
+	public void requestAndDownload(String url) {
 		Video9SRequestStrategy video9SRequestStrategy = SpringContext.getBean(Video9SRequestStrategy.class);
-		Video video = video9SRequestStrategy.watchVideo(url, id);
-		videoDownload.encodeAndWrite(video.getRealUrl(), video.getTitle());
+		Video video = video9SRequestStrategy.readVideo(url);
+		videoDownload.encodeAndWrite(video.getRealUrl(), String.valueOf(Clock.systemDefaultZone().millis()));
 	}
 
 	@Override

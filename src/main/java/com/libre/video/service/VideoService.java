@@ -21,7 +21,7 @@ public interface VideoService extends IService<Video> {
 
 	void dataSyncToElasticsearch();
 
-	void requestAndDownload(String url, Long id);
+	void requestAndDownload(String url);
 
 	Page<Video> findByPage(PageDTO<Video> page);
 

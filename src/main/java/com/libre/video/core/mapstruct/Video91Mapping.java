@@ -16,4 +16,6 @@ public interface Video91Mapping extends BaseConvert<Video91Parse, Video> {
     Video91Mapping INSTANCE = Mappers.getMapper(Video91Mapping.class);
 
     List<Video> convertToVideo91List(Collection<Video9s> collection);
+
+	Video convertToVideo91(Video9s video9s);
 }

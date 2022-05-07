@@ -43,8 +43,8 @@ public class VideoController {
 	}
 
 	@PostMapping
-	public R<Boolean> watch(String url, Long id) {
-		videoService.requestAndDownload(url, id);
+	public R<Boolean> watch(String url) {
+		videoService.requestAndDownload(url);
 		return R.data(Boolean.TRUE);
 	}
 

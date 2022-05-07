@@ -83,15 +83,6 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
     }
 
 
-	public Video watchVideo(String url, Long id) {
-		String html = requestAsHtml(url);
-		List<Video> videoList = readVideoList(html);
-		if (CollectionUtil.isEmpty(videoList)) {
-			throw new LibreException("视频获取失败");
-		}
-		return videoList.stream().filter(v -> v.getId().equals(id)).findFirst().orElseThrow(() -> new LibreException("该视频不存在"));
-	}
-
     @Override
     public List<Video> readVideoList(String html) {
         List<Video9sParse> parseList = DomMapper.readList(html, Video9sParse.class);
@@ -128,6 +119,18 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 		}
 		BeanUtils.copyProperties(video9sDTO, video9s);
     }
+
+	public Video readVideo(String url) {
+		String body = requestAsHtml(url);
+		if (StringUtil.isBlank(body)) {
+			return null;
+		}
+		Video9s video9s = new Video9s();
+		parseVideoInfo(body, video9s);
+		log.debug("解析到一条视频数据: {}", video9s);
+		Video91Mapping mapping = Video91Mapping.INSTANCE;
+		return mapping.convertToVideo91(video9s);
+	}
 
     private Video9s readVideo(Video9sParse video9sParse) {
 		Video9sMapping mapping = Video9sMapping.INSTANCE;
