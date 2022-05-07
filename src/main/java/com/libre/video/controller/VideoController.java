@@ -6,6 +6,7 @@ import com.libre.core.result.R;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.dto.VideoRequestParam;
 import com.libre.video.pojo.Video;
+import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,11 +31,12 @@ public class VideoController {
 
 	private final ElasticsearchRestTemplate elasticsearchRestTemplate;
 
-	@GetMapping("/list")
-	public R<Page<Video>> page(PageDTO<Video> page, @RequestParam String title) {
-		Page<Video> videoPage = videoService.findByTitlePage(title, page);
+	@PostMapping("/list")
+	public R<Page<Video>> page(PageDTO<Video> page, VideoQuery videoQuery) {
+		Page<Video> videoPage = videoService.findByPage(page, videoQuery);
 		return R.data(videoPage);
 	}
+
 
 	@GetMapping("/download/{id}")
 	public R<Boolean> download(@PathVariable Long id) {
@@ -54,8 +56,8 @@ public class VideoController {
 		return R.success("数据同步成功");
 	}
 
-	@GetMapping("/request/{requestType}/{size}")
-	public R<Boolean> request(@PathVariable Integer requestType, @PathVariable Integer size) {
+	@GetMapping("/request/{requestType}")
+	public R<Boolean> request(@PathVariable Integer requestType, Integer size) {
 		videoService.request(VideoRequestParam
 			.builder()
 			.requestType(requestType)

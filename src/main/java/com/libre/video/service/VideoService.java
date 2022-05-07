@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.libre.video.pojo.Video;
 import com.libre.video.core.dto.VideoRequestParam;
+import com.libre.video.pojo.dto.VideoQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Async;
 
@@ -23,7 +24,7 @@ public interface VideoService extends IService<Video> {
 
 	void requestAndDownload(String url);
 
-	Page<Video> findByPage(PageDTO<Video> page);
+	Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery);
 
 	List<Video> findByTitle(String title);
 

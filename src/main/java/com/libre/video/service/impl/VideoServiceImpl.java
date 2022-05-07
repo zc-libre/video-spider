@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.toolkit.CollectionUtil;
+import com.libre.core.toolkit.StringUtil;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.request.Video9SRequestStrategy;
@@ -17,25 +18,31 @@ import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
 import com.libre.video.core.dto.VideoRequestParam;
+import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.PageUtil;
 import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
-import org.springframework.data.elasticsearch.core.query.Order;
+import org.springframework.data.elasticsearch.core.*;
+import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Slf4j@Service
 @RequiredArgsConstructor
@@ -43,6 +50,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private final VideoRequestContext videoRequestContext;
 	private final VideoDownload videoDownload;
 	private final VideoEsRepository videoEsRepository;
+
+	private final ElasticsearchOperations elasticsearchOperations;
 
 	@Override
 	public void request(VideoRequestParam param) {
@@ -73,6 +82,45 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
+	public Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery) {
+		List<Sort.Order> orders = getOrders(page);
+		PageRequest pageRequest = PageRequest.of((int) page.getCurrent(), (int) page.getSize());
+		pageRequest.withSort(Sort.by(orders));
+		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder().withPageable(pageRequest);
+
+		String title = videoQuery.getTitle();
+		if (StringUtil.isNotBlank(title)) {
+			nativeSearchQueryBuilder
+				.withQuery(QueryBuilders.matchQuery("title", title));
+		}
+
+		NativeSearchQuery query = nativeSearchQueryBuilder.build();
+		SearchHits<Video> hits = elasticsearchOperations.search(query, Video.class);
+		SearchPage<Video> searchPage = SearchHitSupport.searchPageFor(hits, query.getPageable());
+		return (Page<Video>) SearchHitSupport.unwrapSearchHits(searchPage);
+	}
+
+	private List<Sort.Order> getOrders(PageDTO<Video> page) {
+		List<Sort.Order> orders = Lists.newArrayList();
+		List<OrderItem> orderItems = page.getOrders();
+        if (CollectionUtil.isEmpty(orderItems)) {
+			Sort.Order createTime = Order.by("createTime").with(Sort.Direction.DESC);
+			orders.add(createTime);
+		}
+		for (OrderItem orderItem : orderItems) {
+			String column = orderItem.getColumn();
+			boolean asc = orderItem.isAsc();
+			Sort.Order order = Order.by(column);
+			if (!asc) {
+				order.with(Sort.Direction.DESC);
+			}
+			orders.add(order);
+		}
+		return orders;
+	}
+
+	@Override
 	public void dataSyncToElasticsearch() {
 		CompletableFuture<List<Video>> future = CompletableFuture.supplyAsync(this::list);
 		future.thenAcceptAsync((videoList) -> {
@@ -93,10 +141,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		}, ThreadPoolUtil.requestExecutor());
 	}
 
-	@Override
-	public Page<Video> findByPage(PageDTO<Video> page) {
-		return null;
-	}
+
 
 	@Override
 	public List<Video> findByTitle(String title) {
