@@ -18,49 +18,50 @@
         <lombok.version>1.18.22</lombok.version>
         <mapstruct.version>1.5.0.RC1</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-        <libre.version>1.0.4-SNAPSHOT</libre.version>
+        <libre.version>1.0.5</libre.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.libre</groupId>
+                <groupId>com.zclibre</groupId>
                 <artifactId>libre-dependencies</artifactId>
                 <version>${libre.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
-
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.6.7</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
 
     <dependencies>
+
         <dependency>
-            <groupId>com.libre</groupId>
+            <groupId>com.zclibre</groupId>
             <artifactId>libre-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.libre</groupId>
+            <groupId>com.zclibre</groupId>
             <artifactId>libre-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.libre</groupId>
+            <groupId>com.zclibre</groupId>
             <artifactId>libre-spider</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>com.libre</groupId>
+            <groupId>com.zclibre</groupId>
             <artifactId>libre-mybatis-boot-starter</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>com.libre</groupId>
-            <artifactId>libre-redis-boot-starter</artifactId>
-        </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
