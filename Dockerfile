@@ -9,6 +9,7 @@ WORKDIR /libre
 ADD app-app.tar.gz /libre
 
 ENV TZ=Asia/Shanghai JAVA_OPTS="-Xms128m -Xmx256m"
+ENV LANG C.UTF-8
 
 EXPOSE 9870
 
