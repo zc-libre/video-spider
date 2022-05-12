@@ -69,6 +69,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 			Mono<String> res = request(requestUrl);
 			try {
 				String html = res.block();
+				log.debug("html: {}", html);
 				readVideoListAsync(html);
 			} catch (Exception e) {
 				log.error(e.getMessage());
