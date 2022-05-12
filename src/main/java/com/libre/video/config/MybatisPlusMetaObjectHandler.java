@@ -27,18 +27,6 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void updateFill(MetaObject metaObject) {
-		this.strictInsertFill(metaObject, "updateTime", LocalDateTime::now, LocalDateTime.class);
+		this.strictUpdateFill(metaObject, "updateTime", LocalDateTime::now, LocalDateTime.class);
     }
-
-	@Override
-	public MetaObjectHandler strictFillStrategy(MetaObject metaObject, String fieldName, Supplier<?> fieldVal) {
-		if (metaObject.getValue(fieldName) == null) {
-			Object obj = fieldVal.get();
-			if (Objects.nonNull(obj)) {
-				metaObject.setValue(fieldName, obj);
-			}
-		}
-		return this;
-	}
-
 }
