@@ -76,6 +76,7 @@ public abstract class AbstractVideoRequestStrategy implements VideoRequestStrate
 		log.info("start request url: {}", url);
 		return webClient.get()
 			.uri(url)
+			.header(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9,en;q=0.8")
 			.retrieve()
 			.bodyToMono(String.class)
 			.doOnError(e -> log.error("request error, url: {},message: {}", url, e.getMessage()))
