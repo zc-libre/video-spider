@@ -62,7 +62,7 @@ public class WebClientConfiguration {
 		LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
 		headers.add(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
 		headers.add(HttpHeaders.USER_AGENT, UserAgentContext.getUserAgent());
-		headers.add(HttpHeaders.ACCEPT_LANGUAGE, "zh-cn,zh;q=0.5");
+		headers.add(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9,en;q=0.8");
 		headers.add("Connection", "keep-alive");
 		headers.add("X-Forwarded-For", r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256));
 		return headers;
