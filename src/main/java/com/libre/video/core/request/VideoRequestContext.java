@@ -2,10 +2,7 @@ package com.libre.video.core.request;
 
 import com.google.common.collect.Maps;
 import com.libre.boot.autoconfigure.SpringContext;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import com.libre.video.core.request.strategy.VideoRequestStrategy;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

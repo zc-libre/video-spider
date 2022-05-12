@@ -1,22 +1,32 @@
 package com.libre.video.core.event;
 
+import com.libre.video.pojo.BaAvVideo;
 import com.libre.video.pojo.ErrorVideo;
 import com.libre.video.pojo.Video;
 import com.libre.boot.autoconfigure.SpringContext;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.Assert;
 
 import java.util.List;
 
 public class VideoEventPublisher {
+	private static final ApplicationContext applicationContext;
 
+	static {
+		 applicationContext = SpringContext.getContext();
+		Assert.notNull(applicationContext, "applicationContext must not null");
+	}
     public static void publishVideoSaveEvent(List<Video> videoList) {
         VideoSaveEvent videoSaveEvent = new VideoSaveEvent(videoList);
-        ApplicationContext applicationContext = SpringContext.getContext();
         applicationContext.publishEvent(videoSaveEvent);
     }
 
+	public static void publishBaAvVideoSaveEvent(List<BaAvVideo> videoList) {
+		BaAvVideoSaveEvent videoSaveEvent = new BaAvVideoSaveEvent(videoList);
+		applicationContext.publishEvent(videoSaveEvent);
+	}
+
     public static void publishErrorEvent(ErrorVideo errorVideo) {
-        ApplicationContext applicationContext = SpringContext.getContext();
         applicationContext.publishEvent(errorVideo);
     }
 }

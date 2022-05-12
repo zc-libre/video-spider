@@ -1,4 +1,4 @@
-package com.libre.video.core.dto;
+package com.libre.video.core.pojo.parse;
 
 import com.libre.spider.CssQuery;
 import lombok.Data;

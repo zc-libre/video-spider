@@ -1,6 +1,6 @@
-package com.libre.video.core.request;
+package com.libre.video.core.request.strategy;
 
-import com.libre.video.core.dto.VideoRequestParam;
+import com.libre.video.core.pojo.dto.VideoRequestParam;
 
 public interface VideoRequestStrategy {
 

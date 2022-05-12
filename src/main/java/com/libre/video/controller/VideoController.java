@@ -1,10 +1,11 @@
 package com.libre.video.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.google.common.collect.Lists;
 import com.libre.core.result.R;
 import com.libre.video.core.download.VideoDownload;
-import com.libre.video.core.dto.VideoRequestParam;
+import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.Video;
 import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.VideoService;
@@ -29,6 +30,8 @@ public class VideoController {
 
 	private final VideoService videoService;
 
+	private final VideoDownload videoDownload;
+
 	private final ElasticsearchRestTemplate elasticsearchRestTemplate;
 
 	@PostMapping("/list")
@@ -44,6 +47,12 @@ public class VideoController {
 		return R.data(Boolean.TRUE);
 	}
 
+	@PostMapping("/download")
+	public R<Boolean> downloadByUrl(String videoUrl) {
+		videoDownload.encodeAndWrite(videoUrl, IdWorker.get32UUID());
+		return R.data(Boolean.TRUE);
+	}
+
 	@PostMapping
 	public R<Boolean> watch(String url) {
 		videoService.requestAndDownload(url);
@@ -52,7 +61,7 @@ public class VideoController {
 
 	@GetMapping("/sync")
 	public R<Boolean> sync() {
-		videoService.dataSyncToElasticsearch();;
+		videoService.dataAsyncToElasticsearch();;
 		return R.success("数据同步成功");
 	}
 

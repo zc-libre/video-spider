@@ -1,4 +1,4 @@
-package com.libre.video.core.dto;
+package com.libre.video.core.pojo.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.libre.core.time.DatePattern;

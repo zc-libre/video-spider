@@ -1,4 +1,4 @@
-package com.libre.video.core.request;
+package com.libre.video.core.request.strategy;
 
 import com.google.common.collect.Lists;
 import com.libre.core.exception.LibreException;
@@ -10,17 +10,17 @@ import com.libre.spider.DomMapper;
 import com.libre.video.core.constant.RequestConstant;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.ErrorRequestType;
+import com.libre.video.core.request.VideoRequest;
 import com.libre.video.pojo.*;
-import com.libre.video.core.dto.VideoRequestParam;
-import com.libre.video.core.dto.Video9s;
-import com.libre.video.core.dto.Video9sDTO;
-import com.libre.video.core.dto.Video9sParse;
+import com.libre.video.core.pojo.dto.VideoRequestParam;
+import com.libre.video.core.pojo.dto.Video9s;
+import com.libre.video.core.pojo.dto.Video9sDTO;
+import com.libre.video.core.pojo.parse.Video9sParse;
 import com.libre.video.core.mapstruct.Video91Mapping;
 import com.libre.video.core.mapstruct.Video9sMapping;
 import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.extern.slf4j.Slf4j;
-import net.dreamlu.mica.http.HttpRequest;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;

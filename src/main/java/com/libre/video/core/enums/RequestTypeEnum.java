@@ -16,7 +16,12 @@ public enum RequestTypeEnum {
 	/**
 	 * 九色
 	 */
-    REQUEST_9S(2, "https://xn--sjqr38j.com/video/category/latest")
+    REQUEST_9S(2, "https://xn--sjqr38j.com/video/category/latest"),
+
+	/**
+	 * baav
+	 */
+	REQUEST_BA_AV(3, "https://www.baav.xyz")
 	;
 
 	private final int type;

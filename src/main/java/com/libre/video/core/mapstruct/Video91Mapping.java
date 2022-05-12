@@ -2,8 +2,8 @@ package com.libre.video.core.mapstruct;
 
 import com.libre.core.mapstruct.BaseConvert;
 import com.libre.video.pojo.Video;
-import com.libre.video.core.dto.Video91Parse;
-import com.libre.video.core.dto.Video9s;
+import com.libre.video.core.pojo.parse.Video91Parse;
+import com.libre.video.core.pojo.dto.Video9s;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

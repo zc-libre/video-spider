@@ -1,6 +1,6 @@
 package com.libre.video;
 
-import com.libre.video.core.request.Video9SRequestStrategy;
+import com.libre.video.core.request.strategy.Video9SRequestStrategy;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;

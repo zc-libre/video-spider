@@ -1,4 +1,4 @@
-package com.libre.video.core.dto;
+package com.libre.video.core.pojo.dto;
 
 import com.libre.core.time.DatePattern;
 import com.libre.spider.CssQuery;
@@ -22,5 +22,4 @@ public class Video9sDTO {
 
     @CssQuery(value = "#videoShowTabAbout > div > div:nth-child(1) > div:nth-child(2)", attr = "html", regex = "(?<=</i>\\s{0,10}).*$")
     private String publishTime;
-
 }

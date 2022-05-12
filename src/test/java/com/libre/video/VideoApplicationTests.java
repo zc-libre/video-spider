@@ -1,7 +1,8 @@
 package com.libre.video;
 
 import com.libre.video.core.download.VideoDownload;
-import com.libre.video.core.request.Video9SRequestStrategy;
+import com.libre.video.core.request.strategy.Video9SRequestStrategy;
+import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

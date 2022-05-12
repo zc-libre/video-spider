@@ -1,6 +1,6 @@
 package com.libre.video.core.task;
 
-import com.libre.video.core.dto.VideoRequestParam;
+import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -3,7 +3,7 @@ package com.libre.video.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.libre.video.pojo.Video;
-import com.libre.video.core.dto.VideoRequestParam;
+import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.dto.VideoQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Async;
@@ -20,7 +20,7 @@ public interface VideoService extends IService<Video> {
      */
     void download(List<Long> ids);
 
-	void dataSyncToElasticsearch();
+	void dataAsyncToElasticsearch();
 
 	void requestAndDownload(String url);
 

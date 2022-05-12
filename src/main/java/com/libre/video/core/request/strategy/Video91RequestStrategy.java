@@ -1,26 +1,23 @@
-package com.libre.video.core.request;
+package com.libre.video.core.request.strategy;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.ThreadUtil;
-import com.libre.video.core.dto.Video91DTO;
+import com.libre.video.core.pojo.dto.Video91DTO;
 import com.libre.video.core.enums.ErrorRequestType;
 import com.libre.video.core.enums.RequestTypeEnum;
-import com.libre.video.core.enums.Video91Type;
+import com.libre.video.core.request.VideoRequest;
 import com.libre.video.pojo.Video;
-import com.libre.video.core.dto.VideoRequestParam;
-import com.libre.video.core.dto.Video91Parse;
+import com.libre.video.core.pojo.dto.VideoRequestParam;
+import com.libre.video.core.pojo.parse.Video91Parse;
 import com.libre.video.service.VideoService;
 import com.libre.video.core.mapstruct.Video91Mapping;
 import com.libre.video.toolkit.JsEncodeUtil;
 import com.google.common.collect.Lists;
 import com.libre.core.toolkit.CollectionUtil;
-import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.spider.DomMapper;
 import com.libre.video.toolkit.RegexUtil;
-import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.jsoup.nodes.Document;
@@ -29,7 +26,6 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -151,12 +147,6 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
 			return null;
 		}
 		String body = requestAsHtml(url);
-	/*	try {
-			TimeUnit.SECONDS.sleep(3);
-		} catch (InterruptedException e) {
-			log.error(e.getMessage());
-		}*/
-
 		if (StringUtil.isBlank(body)) {
 			return null;
 		}

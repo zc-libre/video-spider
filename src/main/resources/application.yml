@@ -10,6 +10,9 @@ spring:
 mybatis-plus:
   global-config:
     banner: false
+    db-config:
+      insert-strategy: not_empty
+      update-strategy: not_empty
   configuration:
     map-underscore-to-camel-case: true
 

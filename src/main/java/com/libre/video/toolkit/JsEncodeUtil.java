@@ -37,7 +37,7 @@ public class JsEncodeUtil {
         ScriptEngine engine = manager.getEngineByName("js");
 
         try {
-            ClassPathResource resource = new ClassPathResource("statics/js/md2.js");
+            ClassPathResource resource = new ClassPathResource("static/js/md2.js");
             BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8));
             engine.eval(br);
         } catch (ScriptException e) {

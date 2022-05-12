@@ -3,9 +3,12 @@ package com.libre.video.core.listener;
 import com.libre.boot.exception.LibreErrorEvent;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.Exceptions;
+import com.libre.video.core.event.BaAvVideoSaveEvent;
 import com.libre.video.core.event.VideoSaveEvent;
+import com.libre.video.pojo.BaAvVideo;
 import com.libre.video.pojo.ErrorVideo;
 import com.libre.video.pojo.Video;
+import com.libre.video.service.BaAvVideoService;
 import com.libre.video.service.ErrorVideoService;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ import java.util.List;
 public class VideoEventListener {
 
     private final VideoService videoService;
+	private final BaAvVideoService baAvVideoService;
     private final ErrorVideoService errorVideoService;
 
     @Async("taskScheduler")
@@ -39,6 +43,21 @@ public class VideoEventListener {
 		}
 	}
 
+	@Async("taskScheduler")
+	@EventListener(BaAvVideoSaveEvent.class)
+	public void onSaveBaAvEvent(BaAvVideoSaveEvent baAvVideoSaveEvent) {
+		List<BaAvVideo> videoList = baAvVideoSaveEvent.getVideoList();
+		if (CollectionUtil.isEmpty(videoList)) {
+			return;
+		}
+		log.info("start save videos.....");
+		try {
+			baAvVideoService.saveOrUpdateBatch(videoList);
+		} catch (Exception e) {
+			log.error("保存数据失败: {}", e.getMessage());
+		}
+	}
+
     @Async("taskScheduler")
     @EventListener(ErrorVideo.class)
     public void onErrorEvent(ErrorVideo errorVideo) {
@@ -46,8 +65,5 @@ public class VideoEventListener {
         errorVideoService.save(errorVideo);
     }
 
-	@EventListener(LibreErrorEvent.class)
-	public void exceptionsEvent(LibreErrorEvent event) {
-		log.error("发生异常： {}", event.toString());
-	}
+
 }
