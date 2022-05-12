@@ -27,6 +27,7 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -40,11 +41,9 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
 
 	private final static String PARAM_CATEGORY = "category";
 	private final static String PARAM_PAGE = "page";
-	private final VideoService videoService;
 
-	public Video91RequestStrategy(VideoService videoService, VideoService videoService1) {
-		super(videoService);
-		this.videoService = videoService1;
+	public Video91RequestStrategy(VideoService videoService,WebClient webClient) {
+		super(videoService, webClient);
 	}
 
 	@Override

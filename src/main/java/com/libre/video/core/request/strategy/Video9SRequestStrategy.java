@@ -28,6 +28,7 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -39,8 +40,8 @@ import java.util.stream.Collectors;
 @VideoRequest(RequestTypeEnum.REQUEST_9S)
 public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 
-	public Video9SRequestStrategy(VideoService videoService) {
-		super(videoService);
+	public Video9SRequestStrategy(VideoService videoService, WebClient webClient) {
+		super(videoService, webClient);
 	}
 
 	@Override

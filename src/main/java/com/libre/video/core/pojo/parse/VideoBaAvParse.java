@@ -23,10 +23,10 @@ public class VideoBaAvParse {
 	@CssQuery(value = "a > li.image > span.note", attr = "text")
 	private String duration;
 
-	@CssQuery(value = ".view", attr = "html", regex = "(?<=<u><i class=\"icon icon-eye-open\"></i>\\s+).*(?=\\</u> <u><i)")
+	@CssQuery(value = ".view", attr = "html", regex = "(?<=<u><i class=\"icon icon-eye-open\"></i>\\s{1,50}).*(?=\\</u> <u><i)")
 	private String lookNum;
 
-	@CssQuery(value = ".view", attr = "html", regex = "(?<=<i class=\"icon icon-time\"></i>\\s+).*(?=</span>)")
+	@CssQuery(value = ".view", attr = "html", regex = "(?<=<i class=\"icon icon-time\"></i>\\s{1,50}).*(?=</span>)")
 	private String publishTime;
 
 }

@@ -19,9 +19,13 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -31,15 +35,19 @@ import java.util.Random;
 public abstract class AbstractVideoRequestStrategy implements VideoRequestStrategy, InitializingBean {
 
 	protected final VideoService videoService;
+	protected final WebClient webClient;
 	protected Map<String , String> headers = Maps.newHashMap();
 
-	public AbstractVideoRequestStrategy(VideoService videoService) {
+	public AbstractVideoRequestStrategy(VideoService videoService, WebClient webClient) {
 		this.videoService = videoService;
+		this.webClient = webClient;
 	}
 
 	public abstract void execute(VideoRequestParam requestParam);
 
-	public abstract List<Video> readVideoList(String html);
+	public List<Video> readVideoList(String html) {
+		return Collections.emptyList();
+	};
 
 	protected void readVideosAndSave(String html, String url) {
 		try {
@@ -62,6 +70,21 @@ public abstract class AbstractVideoRequestStrategy implements VideoRequestStrate
 		errorVideo.setHtml(html);
 
 		VideoEventPublisher.publishErrorEvent(errorVideo);
+	}
+
+	protected Mono<String> request(String url) {
+		log.info("start request url: {}", url);
+		return webClient.get()
+			.uri(url)
+			.retrieve()
+			.bodyToMono(String.class)
+			.doOnError(e -> log.error("request error, url: {},message: {}", url, e.getMessage()))
+			.retry(3);
+	}
+
+	protected String buildUrl(String urlTemplate, Map<String, Object> params) {
+		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
+		return uriBuilderFactory.uriString(urlTemplate).build(params).toString();
 	}
 
 	@Retryable

@@ -24,7 +24,6 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -42,8 +41,6 @@ import java.util.Optional;
 @VideoRequest(RequestTypeEnum.REQUEST_BA_AV)
 public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 
-	private final WebClient webClient;
-
 	private String baseUrl;
 
 	private String urlTemplate;
@@ -52,8 +49,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 
 
 	public VideoBaAvRequestStrategy(VideoService videoService, WebClient webClient) {
-		super(videoService);
-		this.webClient = webClient;
+		super(videoService, webClient);
 	}
 
 	@Override
@@ -69,7 +65,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 		Map<String, Object> params = Maps.newHashMap();
 		for (int i = 2; i <= pageSize; i++) {
 			params.put("page", i);
-			String requestUrl = buildUrl(params);
+			String requestUrl = buildUrl(urlTemplate, params);
 			Mono<String> res = request(requestUrl);
 			try {
 				String html = res.block();
@@ -80,11 +76,6 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 		}
 	}
 
-
-	@Override
-	public List<Video> readVideoList(String html) {
-		return null;
-	}
 
 	public void readVideoListAsync(String html) {
 		if (StringUtil.isBlank(html)) {
@@ -174,19 +165,6 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 	}
 
 
-	private Mono<String> request(String url) {
-		log.info("start request url: {}", url);
-		return webClient.get()
-			.uri(url)
-			.retrieve()
-			.bodyToMono(String.class)
-			.doOnError(e -> log.error("request error, url: {},message: {}", url, e.getMessage()))
-			.retry(3);
-	}
 
-	private String buildUrl(Map<String, Object> params) {
-		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory();
-		return uriBuilderFactory.uriString(urlTemplate).build(params).toString();
-	}
 
 }
