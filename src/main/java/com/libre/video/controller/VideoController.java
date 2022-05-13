@@ -2,13 +2,18 @@ package com.libre.video.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.libre.core.exception.LibreException;
 import com.libre.core.result.R;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.mapstruct.VideoBaAvMapping;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
+import com.libre.video.mapper.UserMapper;
 import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.pojo.BaAvVideo;
+import com.libre.video.pojo.User;
 import com.libre.video.pojo.Video;
 import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.BaAvVideoService;
@@ -17,6 +22,7 @@ import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.cursor.Cursor;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -28,7 +34,10 @@ import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,8 +50,6 @@ import java.util.stream.Collectors;
 public class VideoController {
 
 	private final VideoService videoService;
-	private final BaAvVideoService baAvVideoService;
-	private final VideoEsRepository videoEsRepository;
 	private final VideoDownload videoDownload;
 	private final ElasticsearchRestTemplate elasticsearchRestTemplate;
 

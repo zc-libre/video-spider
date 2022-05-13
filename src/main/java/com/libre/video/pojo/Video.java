@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 
 @Data
 @TableName("video")
-@Document(indexName = "video")
+@Document(indexName = "video", createIndex = false)
 public class Video implements Serializable {
 
 	@Id
