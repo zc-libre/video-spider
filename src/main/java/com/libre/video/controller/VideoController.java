@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.libre.core.exception.LibreException;
 import com.libre.core.result.R;
+import com.libre.core.toolkit.StringUtil;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.mapstruct.VideoBaAvMapping;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
@@ -18,9 +19,12 @@ import com.libre.video.pojo.Video;
 import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.BaAvVideoService;
 import com.libre.video.service.VideoService;
+import com.libre.video.toolkit.RegexUtil;
 import com.libre.video.toolkit.ThreadPoolUtil;
+import com.libre.video.toolkit.UserAgentContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.dreamlu.mica.http.HttpRequest;
 import org.apache.ibatis.cursor.Cursor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.data.domain.Page;
@@ -31,6 +35,7 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.Criteria;
 import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.http.HttpHeaders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,9 +78,18 @@ public class VideoController {
 	}
 
 	@PostMapping
-	public R<Boolean> watch(String url) {
-		videoService.requestAndDownload(url);
-		return R.data(Boolean.TRUE);
+	public R<String> watch(String url) {
+		String html = HttpRequest.get(url)
+			.setHeader(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+			.setHeader(HttpHeaders.USER_AGENT, UserAgentContext.getUserAgent())
+			.setHeader(HttpHeaders.ACCEPT_LANGUAGE, "zh-cn,zh;q=0.5")
+			.execute().asString();
+		String videoUrl = RegexUtil.matchM3u8Url(html);
+		if (StringUtil.isBlank(videoUrl)) {
+			throw new LibreException("url 获取失败");
+		}
+		videoDownload.encodeAndWrite(videoUrl, System.currentTimeMillis() + "");
+		return R.data(videoUrl);
 	}
 
 	@Transactional

@@ -98,9 +98,12 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		List<Sort.Order> orders = Lists.newArrayList();
 		List<OrderItem> orderItems = page.getOrders();
         if (CollectionUtil.isEmpty(orderItems)) {
-			Sort.Order createTime = Order.by("createTime").with(Sort.Direction.DESC);
+			Sort.Order createTime = Order.by("publishTime").with(Sort.Direction.DESC);
+			Sort.Order lookNum = Order.by("lookNum").with(Sort.Direction.DESC);
 			orders.add(createTime);
+			orders.add(lookNum);
 		}
+
 		for (OrderItem orderItem : orderItems) {
 			String column = orderItem.getColumn();
 			boolean asc = orderItem.isAsc();
