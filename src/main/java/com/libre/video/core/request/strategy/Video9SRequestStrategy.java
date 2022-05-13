@@ -9,7 +9,7 @@ import com.libre.core.toolkit.StringUtil;
 import com.libre.spider.DomMapper;
 import com.libre.video.core.constant.RequestConstant;
 import com.libre.video.core.enums.RequestTypeEnum;
-import com.libre.video.core.enums.ErrorRequestType;
+import com.libre.video.core.event.VideoEventPublisher;
 import com.libre.video.core.request.VideoRequest;
 import com.libre.video.pojo.*;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
@@ -19,26 +19,29 @@ import com.libre.video.core.pojo.parse.Video9sParse;
 import com.libre.video.core.mapstruct.Video91Mapping;
 import com.libre.video.core.mapstruct.Video9sMapping;
 import com.libre.video.service.VideoService;
-import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @VideoRequest(RequestTypeEnum.REQUEST_9S)
-public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
+public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9sParse> {
+
+	private String baseUrl;
+
+	private final List<Video> videoList = Lists.newCopyOnWriteArrayList();
 
 	public Video9SRequestStrategy(VideoService videoService, WebClient webClient) {
 		super(videoService, webClient);
@@ -46,115 +49,83 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
 
 	@Override
     public void execute(VideoRequestParam requestParam) {
-        ThreadPoolTaskExecutor executor = ThreadPoolUtil.requestExecutor();
-		RequestTypeEnum requestTypeEnum = requestParam.getRequestTypeEnum();
-		String url = requestTypeEnum.getBaseUrl();
-        String html = requestAsHtml(url);
-        Integer pageSize = parsePageSize(html);
-
-        if (StringUtil.isBlank(html)) {
-            publishErrorVideo(url,ErrorRequestType.REQUEST_CATEGORY);
-            return;
-        }
-        if (pageSize == null) {
-            return;
-        }
-		Integer size = requestParam.getSize();
-		if (Objects.nonNull(size) && size > 2) {
-			pageSize = size;
-			log.info("parse pageSize: {}", pageSize);
-		}
-		try {
-			readVideosAndSave(html, url);
-		} catch (Exception e) {
-			log.error("save error: {}, message: {}", url, e.getMessage());
-		}
-		for (int i = 2; i <= pageSize; i++) {
-            url = requestTypeEnum.getBaseUrl() + StringPool.SLASH + i;
-            String doc = requestAsHtml(url);
-            if (StringUtil.isBlank(doc)) {
-                publishErrorVideo(url, ErrorRequestType.REQUEST_PAGE);
-                continue;
-            }
-            String requestVideoUrl = url;
-            executor.execute(() -> readVideosAndSave(doc, requestVideoUrl));
-        }
-        executor.shutdown();
-        log.info("video request complete!");
+		Mono<String> request = request(baseUrl);
+		String html = request.block();
+		Integer pageSize = parsePageSize(html);
+		Optional.ofNullable(pageSize).orElseThrow(() -> new LibreException("解析页码失败"));
+		pageSize = Optional.ofNullable(requestParam.getSize()).orElse(pageSize);
+		readVideoList(pageSize);
     }
 
+    public void readVideoList(Integer pageSize) {
+		for (int i = 1; i <= pageSize; i++) {
+			String requestVideoUrl = baseUrl + StringPool.SLASH + i;
+			Mono<String> mono = request(requestVideoUrl);
+			String body = mono.block();
+			List<Video9sParse> parseList = parsePage(body);
+			if (CollectionUtil.isEmpty(parseList)) {
+				log.error("parseList is empty");
+				continue;
+			}
+			readAndSave(parseList);
 
-    @Override
-    public List<Video> readVideoList(String html) {
-        List<Video9sParse> parseList = DomMapper.readList(html, Video9sParse.class);
-        if (CollectionUtil.isEmpty(parseList)) {
-            throw new LibreException("html parse error");
-        }
-        List<Video9s> videos = Lists.newArrayList();
-        Map<String, Video9sParse> parseMap = parseList.stream()
-                .filter(video91Parse -> StringUtil.isNotBlank(video91Parse.getUrl()))
-                .collect(Collectors.toMap(Video9sParse::getUrl, Video9sParse -> Video9sParse, (v1, v2) -> v1));
+		}
+		log.info("video request complete!");
+    }
 
-        for (Video9sParse video9sParse : parseMap.values()) {
-			Video9s video9s = null;
+	protected void readAndSave(List<Video9sParse> parseList) {
+		parseList.forEach(video9sParse -> {
 			try {
-				video9s = readVideo(video9sParse);
+				read(video9sParse);
 			} catch (Exception e) {
 				log.error("视频数据解析错误： {}", e.getMessage());
-				publishErrorVideo(video9sParse.getUrl(), html, ErrorRequestType.PARSE);
 			}
-			if (Objects.nonNull(video9s) && Objects.nonNull(video9s.getId())) {
-				videos.add(video9s);
-			}
-        }
-		Video91Mapping mapping = Video91Mapping.INSTANCE;
-		return mapping.convertToVideo91List(videos);
-    }
+		});
 
-    private void parseVideoInfo(String html, Video9s video9s) {
-        Video9sDTO video9sDTO = DomMapper.readValue(html, Video9sDTO.class);
+		List<Video> list = Lists.newArrayList();
+		list.addAll(videoList);
+		VideoEventPublisher.publishVideoSaveEvent(list);
+		videoList.clear();
+	}
+
+	protected List<Video9sParse> parsePage(String html) {
+		return DomMapper.readList(html, Video9sParse.class);
+	}
+
+	private void read(Video9sParse video9sParse) {
+		Video9sMapping mapping = Video9sMapping.INSTANCE;
+		Video9s video9s = mapping.convertToVideo9s(video9sParse);
+        String url = video9sParse.getUrl();
+        if (StringUtil.isBlank(url)) {
+            return;
+        }
+        if (StringUtil.isNotBlank(url)) {
+            url =  RequestConstant.REQUEST_9S_BASE_URL + url;
+            video9s.setUrl(url);
+        }
+		Mono<String> request = request(url);
+		request.subscribe(body -> {
+			if (StringUtil.isBlank(body)) {
+				return;
+			}
+			parseVideoInfo(body, video9s);
+			log.debug("解析到一条视频数据: {}", video9s);
+			Video91Mapping video91Mapping = Video91Mapping.INSTANCE;
+			Video video = video91Mapping.convertToVideo91(video9s);
+			videoList.add(video);
+		});
+
+    }
+	private void parseVideoInfo(String html, Video9s video9s) {
+		Video9sDTO video9sDTO = DomMapper.readValue(html, Video9sDTO.class);
 		String publishTime = video9sDTO.getPublishTime();
 		if (StringUtil.isNotBlank(publishTime)) {
 			publishTime = StringUtil.trimWhitespace(publishTime);
 			video9s.setPublishTime(LocalDate.parse(publishTime, DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)));
 		}
 		BeanUtils.copyProperties(video9sDTO, video9s);
-    }
-
-	public Video readVideo(String url) {
-		String body = requestAsHtml(url);
-		if (StringUtil.isBlank(body)) {
-			return null;
-		}
-		Video9s video9s = new Video9s();
-		parseVideoInfo(body, video9s);
-		log.debug("解析到一条视频数据: {}", video9s);
-		Video91Mapping mapping = Video91Mapping.INSTANCE;
-		return mapping.convertToVideo91(video9s);
 	}
-
-    private Video9s readVideo(Video9sParse video9sParse) {
-		Video9sMapping mapping = Video9sMapping.INSTANCE;
-		Video9s video9s = mapping.convertToVideo9s(video9sParse);
-        String url = video9sParse.getUrl();
-        if (StringUtil.isBlank(url)) {
-            return null;
-        }
-        if (StringUtil.isNotBlank(url)) {
-            url =  RequestConstant.REQUEST_9S_BASE_URL + url;
-            video9s.setUrl(url);
-        }
-
-        String body = requestAsHtml(url);
-        if (StringUtil.isBlank(body)) {
-            return null;
-        }
-        parseVideoInfo(body, video9s);
-		log.debug("解析到一条视频数据: {}", video9s);
-        return video9s;
-    }
-
-    private Integer parsePageSize(String html) {
+    public Integer parsePageSize(String html) {
         Document document = Parser.parse(html, "");
         Elements elements = document.getElementsByClass("pagination");
         if (elements.isEmpty()) {
@@ -176,4 +147,13 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy {
         return Integer.parseInt(text);
     }
 
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
+		VideoRequest videoRequest = this.getClass().getAnnotation(VideoRequest.class);
+		RequestTypeEnum requestTypeEnum = videoRequest.value();
+		Assert.notNull(requestTypeEnum, "requestTypeEnum must not be null");
+		baseUrl = requestTypeEnum.getBaseUrl();
+
+	}
 }

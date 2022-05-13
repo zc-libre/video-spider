@@ -26,12 +26,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 
 /**
@@ -41,19 +36,16 @@ import java.util.Optional;
 @Slf4j
 @Component
 @VideoRequest(RequestTypeEnum.REQUEST_BA_AV)
-public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
+public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<VideoBaAvParse>  {
 
 	private String baseUrl;
-
 	private String urlTemplate;
-
 	private final List<BaAvVideo> videoList = Lists.newCopyOnWriteArrayList();
-
 
 	public VideoBaAvRequestStrategy(VideoService videoService, WebClient webClient) {
 		super(videoService, webClient);
-	}
 
+	}
 	@Override
 	public void execute(VideoRequestParam requestParam) {
 		String url = baseUrl + "/300.html";
@@ -64,39 +56,41 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 		}
 		Integer pageSize = parsePageSize(body);
 		Optional.ofNullable(pageSize).orElseThrow(() -> new LibreException("解析页码失败"));
-		Map<String, Object> params = Maps.newHashMap();
-		for (int i = 2; i <= pageSize; i++) {
-			params.put("page", i);
-			String requestUrl = buildUrl(urlTemplate, params);
-			Mono<String> res = request(requestUrl);
-			try {
-				String html = res.block();
-				log.debug("html: {}", html);
-				readVideoListAsync(html);
-			} catch (Exception e) {
-				log.error(e.getMessage());
-			}
-		}
+		readVideoList(pageSize);
+		log.info("request complete!");
 	}
 
 
-	public void readVideoListAsync(String html) {
+	protected void readVideoList(Integer pageSize) {
+		Map<String, Object> params = Maps.newHashMap();
+		for (int i = 1; i <= pageSize; i++) {
+			params.put("page", i);
+			String requestUrl = buildUrl(urlTemplate, params);
+			Mono<String> res = request(requestUrl);
+			String html = res.block();
+			List<VideoBaAvParse> videoBaAvParses = parsePage(html);
+			if (CollectionUtil.isEmpty(videoBaAvParses)) {
+				log.error("parseList is empty");
+				continue;
+			}
+			readAndSave(videoBaAvParses);
+		}
+	}
+
+	protected List<VideoBaAvParse> parsePage(String html) {
 		if (StringUtil.isBlank(html)) {
 			log.error("html is blank");
-			return;
+			return Collections.emptyList();
 		}
-		List<VideoBaAvParse> parseList = DomMapper.readList(html, VideoBaAvParse.class);
-		if (CollectionUtil.isEmpty(parseList)) {
-			log.error("parseList is empty");
-			return;
+		return DomMapper.readList(html, VideoBaAvParse.class);
+	}
+
+	public void readAndSave(List<VideoBaAvParse> videoBaAvParses) {
+		try {
+			videoBaAvParses.forEach(this::readVideo);
+		} catch (Exception e) {
+			log.error("parse video error, {}", e.getMessage());
 		}
-		parseList.forEach(videoBaAvParse -> {
-			try {
-				this.readVideo(videoBaAvParse);
-			} catch (Exception e) {
-				log.error("parse video error, {}", e.getMessage());
-			}
-		});
 		List<BaAvVideo> list = Lists.newArrayList();
 		list.addAll(videoList);
 		VideoEventPublisher.publishBaAvVideoSaveEvent(list);
@@ -119,8 +113,8 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 		});
 	}
 
-
-	private Integer parsePageSize(String body) {
+	@Override
+	public Integer parsePageSize(String body) {
 		Document document = DomMapper.readDocument(body);
 		if (Objects.isNull(document)) {
 			return null;
@@ -145,7 +139,6 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 		return null;
 	}
 
-
 	private Long parseId(String url) {
 		int start = url.indexOf(StringPool.SLASH) + 1;
 		int end = url.indexOf(".html");
@@ -156,7 +149,6 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 		return Long.parseLong(idStr);
 	}
 
-
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
@@ -166,8 +158,5 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy {
 		baseUrl = requestTypeEnum.getBaseUrl();
 		urlTemplate = baseUrl + "/300-{page}.html";
 	}
-
-
-
 
 }

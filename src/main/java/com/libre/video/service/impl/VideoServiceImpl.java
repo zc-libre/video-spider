@@ -71,9 +71,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public void requestAndDownload(String url) {
-		Video9SRequestStrategy video9SRequestStrategy = SpringContext.getBean(Video9SRequestStrategy.class);
-		Video video = video9SRequestStrategy.readVideo(url);
-		videoDownload.encodeAndWrite(video.getRealUrl(), String.valueOf(Clock.systemDefaultZone().millis()));
+
 	}
 
 	@Override

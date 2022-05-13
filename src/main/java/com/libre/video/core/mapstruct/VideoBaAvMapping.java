@@ -21,6 +21,9 @@ public interface VideoBaAvMapping extends BaseConvert<VideoBaAvParse, BaAvVideo>
 	@Override
 	BaAvVideo sourceToTarget(VideoBaAvParse videoBaAvParse);
 
-	List<Video> convertToVideList(Collection<BaAvVideo> baAvVideos);
+	@Mapping(source = "time", target = "publishTime")
+	Video convertToVide(BaAvVideo baAvVideos);
 
+	@Mapping(source = "time", target = "publishTime")
+	List<Video> convertToVideList(List<BaAvVideo> baAvVideoList);
 }

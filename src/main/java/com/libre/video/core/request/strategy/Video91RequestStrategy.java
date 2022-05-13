@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @VideoRequest(RequestTypeEnum.REQUEST_91)
-public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
+public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91Parse> {
 
 	private final static String PARAM_CATEGORY = "category";
 	private final static String PARAM_PAGE = "page";
@@ -48,20 +48,12 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
 
 	@Override
 	public void execute(VideoRequestParam requestParam) {
-		//   Video91Type[] types = Video91Type.values();
 		RequestTypeEnum requestTypeEnum = requestParam.getRequestTypeEnum();
 		HttpUrl httpUrl = HttpUrl.get(requestTypeEnum.getBaseUrl());
 		HttpUrl.Builder urlBuilder = getUrlBuilder(httpUrl);
 		String url = urlBuilder.build().toString();
 		String html = requestAsHtml(url);
-
 		Integer pageSize = Optional.ofNullable(requestParam.getSize()).orElseGet(() -> parsePageSize(html));
-
-		if (pageSize == null) {
-			log.error("parse page error");
-			return;
-		}
-
 		log.info("parse pageSize is: {}", pageSize);
 		readVideosAndSave(html, url);
 
@@ -202,6 +194,21 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy {
 			return null;
 		}
 		return Integer.parseInt(text);
+	}
+
+	@Override
+	protected void readVideoList(Integer pageSize) {
+
+	}
+
+	@Override
+	protected List<Video91Parse> parsePage(String html) {
+		return null;
+	}
+
+	@Override
+	protected void readAndSave(List<Video91Parse> parseList) {
+
 	}
 
 }

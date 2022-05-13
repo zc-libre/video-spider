@@ -8,9 +8,10 @@ import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.video.core.enums.ErrorRequestType;
 import com.libre.video.core.event.VideoEventPublisher;
+import com.libre.video.core.pojo.parse.Video9sParse;
+import com.libre.video.core.pojo.parse.VideoBaAvParse;
 import com.libre.video.pojo.ErrorVideo;
 import com.libre.video.pojo.Video;
-import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.UserAgentContext;
 import lombok.extern.slf4j.Slf4j;
@@ -32,22 +33,47 @@ import java.util.Random;
 
 @Slf4j
 @Component
-public abstract class AbstractVideoRequestStrategy implements VideoRequestStrategy, InitializingBean {
+public abstract class AbstractVideoRequestStrategy<P> implements VideoRequestStrategy, InitializingBean {
 
 	protected final VideoService videoService;
 	protected final WebClient webClient;
-	protected Map<String , String> headers = Maps.newHashMap();
+	protected Map<String, String> headers = Maps.newHashMap();
 
 	public AbstractVideoRequestStrategy(VideoService videoService, WebClient webClient) {
 		this.videoService = videoService;
 		this.webClient = webClient;
 	}
 
-	public abstract void execute(VideoRequestParam requestParam);
+	/**
+	 * 解析页码
+	 * @param body html
+	 * @return 页码
+	 */
+	protected abstract Integer parsePageSize(String body);
+
+	/**
+	 * 读取所有视频
+	 * @param pageSize 页数
+	 */
+	protected abstract void readVideoList(Integer pageSize);
+
+	/**
+	 * 分页解析
+	 * @param html /
+	 * @return /
+	 */
+	protected abstract List<P> parsePage(String html);
+
+	/**
+	 * 读取视频信息并存储
+	 * @param parseList /
+	 */
+	protected abstract void readAndSave(List<P> parseList);
+
 
 	public List<Video> readVideoList(String html) {
 		return Collections.emptyList();
-	};
+	}
 
 	protected void readVideosAndSave(String html, String url) {
 		try {

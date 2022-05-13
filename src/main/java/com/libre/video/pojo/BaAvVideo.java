@@ -45,7 +45,7 @@ public class BaAvVideo  {
 	private LocalDate time;
 
 
-	@TableField(fill = FieldFill.INSERT_UPDATE)
+	@TableField(fill = FieldFill.INSERT)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
 	private LocalDateTime createTime;
 
