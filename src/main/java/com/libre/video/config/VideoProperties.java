@@ -8,9 +8,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "video")
 public class VideoProperties {
 
-    private String ffmpegPath = "/usr/local/Cellar/ffmpeg/5.0.1/bin/";
+    private String ffmpegPath;
 
-    private String mp4boxPath = "/Applications/GPAC.app/Contents/MacOS/MP4Box/";
+    private String mp4boxPath;
 
-    private String downloadPath = "/Users/libre/video/";
+    private String downloadPath;
 }

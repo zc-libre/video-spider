@@ -50,7 +50,7 @@ public class VideoDownload {
 			FFmpegJob fFmpegJob = executor.createJob(builder, new VideoProgressListener(filename, duration));
 			fFmpegJob.run();
 		} catch (IOException e) {
-			throw new LibreException(e);
+			throw new LibreException(e.getMessage());
 		}
 	}
 
