@@ -1,6 +1,7 @@
 package com.libre.video.core.download;
 
 import com.libre.core.exception.LibreException;
+import com.libre.core.toolkit.StringUtil;
 import com.libre.video.config.VideoProperties;
 import com.libre.core.toolkit.StringPool;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,14 @@ public class VideoDownload {
     @Async("downloadExecutor")
     public void encodeAndWrite(String url, String filename)  {
 		try {
-			FFmpeg ffmpeg = new FFmpeg(properties.getFfmpegPath() + "ffmpeg");
+			String ffmpegPath;
+
+			if (StringUtil.isBlank(properties.getFfmpegPath())) {
+				ffmpegPath = "ffmpeg";
+			} else {
+				 ffmpegPath = properties.getFfmpegPath() + "ffmpeg";
+			}
+			FFmpeg ffmpeg = new FFmpeg(ffmpegPath);
 			FFprobe ffprobe = new FFprobe(properties.getFfmpegPath() + "ffprobe");
 			//时长 s
 			FFmpegProbeResult in = ffprobe.probe(url);
