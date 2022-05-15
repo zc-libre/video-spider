@@ -11,7 +11,7 @@
     <description>Video91 spider</description>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>1.8</java.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
 
@@ -42,7 +42,6 @@
 
 
     <dependencies>
-
         <dependency>
             <groupId>com.zclibre</groupId>
             <artifactId>libre-core</artifactId>
@@ -64,6 +63,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.zclibre</groupId>
+            <artifactId>libre-oss-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
@@ -71,6 +75,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
         <dependency>
@@ -84,19 +93,11 @@
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
 
-
-
         <!-- https://mvnrepository.com/artifact/net.bramp.ffmpeg/ffmpeg -->
         <dependency>
             <groupId>net.bramp.ffmpeg</groupId>
             <artifactId>ffmpeg</artifactId>
             <version>0.7.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.dreamlu</groupId>
-            <artifactId>mica-http</artifactId>
-            <version>2.6.6</version>
         </dependency>
 
         <dependency>
@@ -140,14 +141,12 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
-            <version>1.5.0.RC1</version>
         </dependency>
 
         <dependency>
@@ -170,10 +169,10 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.8.5</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.mapstruct</groupId>
@@ -219,7 +218,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.1.2</version>
                 <executions>
                     <execution>
                         <phase>prepare-package</phase>
@@ -253,38 +252,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
-            <!-- 将项目中代码文件打成jar包 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <excludes>
-                        <!-- 打包后的jar包中不包括配置文件 -->
-                        <!-- 通常是指classpath下目录下的文件，这样可以避免编写时的找不到相应文件 -->
-                        <exclude>*.xml</exclude>
-                        <exclude>*.properties</exclude>
-                        <exclude>*.yml</exclude>
-                    </excludes>
-                    <archive>
-                        <manifest>
-                            <!-- 项目启动类 -->
-                            <mainClass>com.libre.video.VideoClientApplication</mainClass>
-                            <!-- 依赖的jar的目录前缀 -->
-                            <classpathPrefix>../lib/</classpathPrefix>
-                            <addClasspath>true</addClasspath>
-                        </manifest>
-                        <!-- 将config目录加入classpath目录 -->
-                        <manifestEntries>
-                            <Class-Path>../config/</Class-Path>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
+
 
             <!-- 打包插件 -->
             <plugin>
