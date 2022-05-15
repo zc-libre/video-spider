@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: Libre-Video
+    name: video-spider
   profiles:
     active: prod
   servlet:
@@ -15,18 +15,54 @@ mybatis-plus:
   global-config:
     banner: false
     db-config:
-      insert-strategy: not_empty
-      update-strategy: not_empty
+      id-type: assign_id
+      insert-strategy: not_null
+      update-strategy: not_null
+      table-underline: true
   configuration:
     map-underscore-to-camel-case: true
+    cache-enabled: false
+
+jasypt:
+  encryptor:
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+    password: 504879189zc..
 
 libre:
-  xss:
-    enabled: false
+  oss:
+    endpoint: http://101.42.252.139:9000
+    access-key: libre
+    secret-key: ENC(ETJLWDpbHdoI+lsUrh8QAlt7DUJvEVpz)
 
-logging:
-  file:
-    name: "./logs/app.log"
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    url: jdbc:p6spy:mysql://101.42.252.139:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false
+    username: root
+    password: ENC(pS3X2GTc99Gw5vhMMZWmHzdvtRRHO1o3)
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      connection-test-query: SELECT 1 FROM DUAL
+      connection-timeout: 30000
+      maximum-pool-size: 5
+      max-lifetime: 1800000
+      minimum-idle: 1
+
+  elasticsearch:
+    uris: http://101.42.252.139:9200
+    username: elastic
+    password: ENC(hoWyhk+6Fzt7jqzr0DmeH3SP3Y/5hEMK)
+    connection-timeout: 10s
+
+video:
+  download-path: /Users/libre/video/
+  ffmpeg-path: /usr/local/Cellar/ffmpeg/5.0.1/bin/
+  mp4box-path: /Applications/GPAC.app/Contents/MacOS/MP4Box/
 
 ---
 spring:

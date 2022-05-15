@@ -3,7 +3,6 @@
     <!-- 可自定义，这里指定的是项目环境 -->
     <!-- xxx.tar.gz  -->
     <id>app</id>
-
     <!-- 打包的类型，如果有N个，将会打N个类型的包 -->
     <formats>
         <format>tar.gz</format>
@@ -19,20 +18,39 @@
             <outputDirectory>config</outputDirectory>
             <fileMode>0644</fileMode>
             <includes>
-                <include>**.yml</include>
+                <include>*.yml</include>
                 <include>*.xml</include>
                 <include>*.properties</include>
             </includes>
         </fileSet>
+        <!-- 静态资源 -->
+        <fileSet>
+            <directory>${project.build.directory}/classes/static</directory>
+            <outputDirectory>/static</outputDirectory>
+            <includes>
+                <include>**/*.js</include>
+                <include>**/*.css</include>
+                <include>**/*.html</include>
+            </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}/classes/templates</directory>
+            <outputDirectory>/templates</outputDirectory>
+            <includes>
+                <include>**/*.html</include>
+            </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
         <!-- 启动文件目录 -->
         <fileSet>
-            <directory>${basedir}</directory>
+            <directory>${pom.basedir}</directory>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
             <includes>
                 <include>**.sh</include>
                 <include>**.bat</include>
-                <include>Dockerfile</include>
+                <include>*Dockerfile</include>
             </includes>
         </fileSet>
     </fileSets>
