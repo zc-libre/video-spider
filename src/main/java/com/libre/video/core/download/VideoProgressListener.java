@@ -1,28 +1,36 @@
 package com.libre.video.core.download;
 
+import com.libre.video.constant.SystemConstants;
+import com.libre.video.core.event.VideoDownloadEvent;
+import com.libre.video.core.event.VideoEventPublisher;
+import com.libre.video.core.websocker.VideoDownloadMessage;
+import com.libre.video.core.websocker.WebSocketServer;
+import com.libre.video.pojo.Video;
 import lombok.extern.slf4j.Slf4j;
 import net.bramp.ffmpeg.FFmpegUtils;
 import net.bramp.ffmpeg.progress.Progress;
 import net.bramp.ffmpeg.progress.ProgressListener;
 
+import java.io.IOException;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class VideoProgressListener implements ProgressListener {
+	private final WebSocketServer webSocketServer;
+	private final double durationNs;
+	private final Video video;
 
-    private final String fileName;
-	private final Double duration;
-	private final double duration_ns;
-	public VideoProgressListener(String fileName, Double duration) {
-		this.fileName = fileName;
-		this.duration = duration;
-		this.duration_ns = duration * Duration.ofSeconds(1).toNanos();
+	public VideoProgressListener(Video video, Double duration, WebSocketServer webSocketServer) {
+		this.durationNs = duration * Duration.ofSeconds(1).toNanos();
+		this.webSocketServer = webSocketServer;
+		this.video = video;
 	}
 
 	@Override
-    public void progress(Progress progress) {
-		double percentage = progress.out_time_ns / duration_ns;
+	public void progress(Progress progress) {
+		double percentage = progress.out_time_ns / durationNs;
 		// Print out interesting information about the progress
 		log.info(String.format(
 			"[%.0f%%] status:%s frame:%d time:%s ms fps:%.0f speed:%.2fx",
@@ -33,5 +41,33 @@ public class VideoProgressListener implements ProgressListener {
 			progress.fps.doubleValue(),
 			progress.speed
 		));
-    }
+
+		notifyDownloadProgress(progress, percentage);
+
+		notifyDownloadComplete(progress.isEnd());
+ 	}
+
+
+	private void notifyDownloadProgress(Progress progress, double percentage) {
+		if (Objects.nonNull(video)) {
+			VideoDownloadMessage message = new VideoDownloadMessage();
+			message.setVideoId(video.getId());
+			message.setPercentage(String.format("%.2f", percentage * 100));
+			message.setEnd(progress.isEnd());
+			message.setType(1);
+			message.setVideo(video);
+			try {
+				webSocketServer.sendInfo(message, SystemConstants.WEBSOCKET_ENDPOINT);
+			} catch (IOException e) {
+				log.error(e.getMessage());
+			}
+		}
+	}
+
+	public void notifyDownloadComplete(boolean isEnd) {
+		if (isEnd) {
+			VideoEventPublisher.publishVideoDownloadEvent(new VideoDownloadEvent(true, video));
+		}
+	}
+
 }

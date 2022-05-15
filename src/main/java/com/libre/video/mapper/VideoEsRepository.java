@@ -14,4 +14,5 @@ public interface VideoEsRepository extends ElasticsearchRepository<Video, Long> 
 
 	Page<Video> findVideosByTitleLike(String title, Pageable pageable);
 
+	Video findByRealUrl(String url);
 }

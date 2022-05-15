@@ -1,12 +1,18 @@
 package com.libre.video.core.request.strategy;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.google.common.collect.Maps;
 import com.libre.core.exception.LibreException;
+import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.ThreadUtil;
-import com.libre.video.core.pojo.dto.Video91DTO;
+import com.libre.video.core.event.VideoEventPublisher;
+import com.libre.video.core.mapstruct.VideoBaAvMapping;
+import com.libre.video.core.pojo.parse.Video91DetailParse;
 import com.libre.video.core.enums.ErrorRequestType;
 import com.libre.video.core.enums.RequestTypeEnum;
+import com.libre.video.core.pojo.parse.VideoBaAvParse;
 import com.libre.video.core.request.VideoRequest;
+import com.libre.video.pojo.BaAvVideo;
 import com.libre.video.pojo.Video;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.core.pojo.parse.Video91Parse;
@@ -19,7 +25,6 @@ import com.libre.core.toolkit.StringUtil;
 import com.libre.spider.DomMapper;
 import com.libre.video.toolkit.RegexUtil;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.HttpUrl;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -27,79 +32,82 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @VideoRequest(RequestTypeEnum.REQUEST_91)
 public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91Parse> {
 
-	private final static String PARAM_CATEGORY = "category";
+	private String baseUrl;
+	private Integer requestType;
+	private String urlTemplate;
 	private final static String PARAM_PAGE = "page";
+	private final List<Video> videoList = Lists.newCopyOnWriteArrayList();
 
-	public Video91RequestStrategy(VideoService videoService,WebClient webClient) {
+	public Video91RequestStrategy(VideoService videoService, WebClient webClient) {
 		super(videoService, webClient);
 	}
 
 	@Override
 	public void execute(VideoRequestParam requestParam) {
-		RequestTypeEnum requestTypeEnum = requestParam.getRequestTypeEnum();
-		HttpUrl httpUrl = HttpUrl.get(requestTypeEnum.getBaseUrl());
-		HttpUrl.Builder urlBuilder = getUrlBuilder(httpUrl);
-		String url = urlBuilder.build().toString();
-		String html = requestAsHtml(url);
-		Integer pageSize = Optional.ofNullable(requestParam.getSize()).orElseGet(() -> parsePageSize(html));
-		log.info("parse pageSize is: {}", pageSize);
-		readVideosAndSave(html, url);
+		Mono<String> mono = request(baseUrl);
+		String html = mono.block();
+		Integer pageSize = parsePageSize(html);
+		Optional.ofNullable(pageSize).orElseThrow(() -> new LibreException("解析页码失败"));
+		readVideoList(pageSize);
+		log.info("video request complete!");
+	}
 
-		for (int i = 2; i <= pageSize; i++) {
-			urlBuilder.removeAllQueryParameters(PARAM_PAGE);
-			urlBuilder.addQueryParameter(PARAM_PAGE, String.valueOf(i));
-			String requestUrl = urlBuilder.build().toString();
-			String doc = requestAsHtml(requestUrl);
-			if (StringUtil.isBlank(doc)) {
-				publishErrorVideo(urlBuilder.build().toString(), ErrorRequestType.REQUEST_PAGE);
+	@Override
+	protected void readVideoList(Integer pageSize) {
+		for (int i = 1; i <= pageSize; i++) {
+			Map<String, Object> params = Maps.newHashMap();
+			params.put(PARAM_PAGE, i);
+			String requestUrl = buildUrl(urlTemplate, params);
+			Mono<String> mono = request(requestUrl);
+			String html = mono.block();
+			List<Video91Parse> video91Parses = parsePage(html);
+			if (CollectionUtil.isEmpty(video91Parses)) {
+				log.error("parseList is empty");
 				continue;
 			}
-			readVideosAndSave(doc, url);
-			ThreadUtil.sleep(TimeUnit.SECONDS, 3);
+			readAndSave(video91Parses);
 		}
-
-		log.info("video request complete!");
+		ThreadUtil.sleep(TimeUnit.SECONDS, 3);
 	}
 
 
 	@Override
-	public List<Video> readVideoList(String html) {
-		List<Video91Parse> introductionList = DomMapper.readList(html, Video91Parse.class);
-		if (CollectionUtil.isEmpty(introductionList)) {
-			throw new LibreException("html parse error");
+	protected List<Video91Parse> parsePage(String html) {
+		if (StringUtil.isBlank(html)) {
+			log.error("html is blank");
+			return Collections.emptyList();
 		}
-		List<Video> videos = Lists.newArrayList();
-		Map<String, Video91Parse> videoIntroductionMap = introductionList.stream()
-			.filter(video91Parse -> StringUtil.isNotBlank(video91Parse.getUrl()))
-			.collect(Collectors.toMap(Video91Parse::getUrl, video91Parse -> video91Parse, (v1, v2) -> v1));
-
-		for (Video91Parse video91Parse : videoIntroductionMap.values()) {
+		List<Video91Parse> video91Parses = DomMapper.readList(html, Video91Parse.class);
+		for (Video91Parse video91Parse : video91Parses) {
 			parseVideoInfo(html, video91Parse);
-			Video video = readVideo(video91Parse);
-			if (Objects.isNull(video)) {
-				publishErrorVideo(video91Parse.getUrl(), html, ErrorRequestType.PARSE);
-			}
-			videos.add(video);
 		}
-		return videos;
+		return video91Parses;
 	}
 
-	private HttpUrl.Builder getUrlBuilder(HttpUrl httpUrl) {
-		return httpUrl.newBuilder()
-			.addQueryParameter("viewtype", "basic")
-			.addQueryParameter(PARAM_PAGE, "1");
+	@Override
+	protected void readAndSave(List<Video91Parse> parseList) {
+		try {
+			parseList.forEach(this::readVideo);
+		} catch (Exception e) {
+			log.error("parse video error, {}", e.getMessage());
+		}
+		List<Video> list = Lists.newArrayList();
+		list.addAll(videoList);
+		VideoEventPublisher.publishVideoSaveEvent(list);
+		videoList.clear();
 	}
 
 	private void parseVideoInfo(String html, Video91Parse video91Parse) {
@@ -132,34 +140,38 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 		}
 	}
 
-	public Video readVideo(Video91Parse video91Parse) {
+	public void readVideo(Video91Parse video91Parse) {
 		String url = video91Parse.getUrl();
 		if (StringUtil.isBlank(url)) {
-			return null;
+			return;
 		}
-		String body = requestAsHtml(url);
+		Mono<String> mono = request(url);
+		String body = mono.block();
+
 		if (StringUtil.isBlank(body)) {
-			return null;
+			return;
 		}
 		String realUrl = JsEncodeUtil.encodeRealVideoUrl(body);
 		log.info("realVideoUrl: {}", realUrl);
 		if (StringUtil.isBlank(realUrl)) {
-			return null;
+			return;
 		}
 		Video91Mapping mapping = Video91Mapping.INSTANCE;
 		Video video = mapping.sourceToTarget(video91Parse);
-		Video91DTO video91DTO = null;
+		Video91DetailParse video91DetailParse = null;
 		try {
-			video91DTO = DomMapper.readValue(body, Video91DTO.class);
+			video91DetailParse = DomMapper.readValue(body, Video91DetailParse.class);
 		} catch (Exception e) {
 			log.error("read bean error, e: {}", e.getMessage());
 		}
 		long id = parseVideoId(realUrl);
-		video.setId(id);
+		video.setVideoId(id);
+		video.setVideoWebsite(requestType);
 		video.setRealUrl(realUrl);
-		Optional.ofNullable(video91DTO).ifPresent(dto -> video.setPublishTime(dto.getPublishTime()));
+		Optional.ofNullable(video91DetailParse).ifPresent(dto -> video.setPublishTime(dto.getPublishTime()));
 		video.setUpdateTime(LocalDateTime.now());
-		return video;
+		videoList.add(video);
+		ThreadUtil.sleep(TimeUnit.SECONDS, 5);
 	}
 
 	private static long parseVideoId(String realUrl) {
@@ -174,6 +186,7 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 	}
 
 
+	@Override
 	public Integer parsePageSize(String html) {
 		Document document = DomMapper.readDocument(html);
 		Elements elements = document.getElementsByClass("pagingnav");
@@ -197,18 +210,14 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 	}
 
 	@Override
-	protected void readVideoList(Integer pageSize) {
-
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
+		super.afterPropertiesSet();
+		VideoRequest videoRequest = this.getClass().getAnnotation(VideoRequest.class);
+		RequestTypeEnum requestTypeEnum = videoRequest.value();
+		Assert.notNull(requestTypeEnum, "requestTypeEnum must not be null");
+		baseUrl = requestTypeEnum.getBaseUrl();
+		requestType = requestTypeEnum.getType();
+		urlTemplate = baseUrl + StringPool.AMPERSAND + PARAM_PAGE + StringPool.EQUALS + "{page}";
 	}
-
-	@Override
-	protected List<Video91Parse> parsePage(String html) {
-		return null;
-	}
-
-	@Override
-	protected void readAndSave(List<Video91Parse> parseList) {
-
-	}
-
 }

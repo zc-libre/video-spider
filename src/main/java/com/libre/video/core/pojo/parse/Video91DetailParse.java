@@ -1,6 +1,5 @@
-package com.libre.video.core.pojo.dto;
+package com.libre.video.core.pojo.parse;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.libre.core.time.DatePattern;
 import com.libre.spider.CssQuery;
 import lombok.Data;
@@ -14,7 +13,7 @@ import java.time.LocalDate;
  */
 @Data
 @CssQuery("#videodetails-content")
-public class Video91DTO {
+public class Video91DetailParse {
 
 	@DateTimeFormat(pattern = DatePattern.NORM_DATE_PATTERN)
 	@CssQuery(value = "div:nth-child(1) > span.title-yakov", attr = "text")

@@ -35,21 +35,21 @@ public class WebClientConfiguration {
 		ReactorResourceFactory reactorResourceFactory = new ReactorResourceFactory();
 		reactorResourceFactory.setUseGlobalResources(false);
 		reactorResourceFactory.setConnectionProvider(ConnectionProvider.create("reactive-pool", 1000));
-		reactorResourceFactory.setLoopResources(LoopResources.create("reactive-loop",1000, true ));
+		reactorResourceFactory.setLoopResources(LoopResources.create("reactive-loop", 1000, true));
 		return reactorResourceFactory;
 	}
 
 
 	@Bean
 	public WebClient webClient(ReactorResourceFactory reactorResourceFactory) {
-		Function<HttpClient, HttpClient> mapper = client -> client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
-				.doOnConnected(conn -> conn
-					.addHandlerLast(new ReadTimeoutHandler(100))
-					.addHandlerLast(new WriteTimeoutHandler(100)))
-				.responseTimeout(Duration.ofSeconds(100));
+		Function<HttpClient, HttpClient> mapper = client -> client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 100000)
+			.doOnConnected(conn -> conn
+				.addHandlerLast(new ReadTimeoutHandler(10))
+				.addHandlerLast(new WriteTimeoutHandler(10)))
+			.proxyWithSystemProperties()
+			.responseTimeout(Duration.ofSeconds(10));
 
-		ClientHttpConnector connector =
-			new ReactorClientHttpConnector(reactorResourceFactory, mapper);
+		ClientHttpConnector connector = new ReactorClientHttpConnector(reactorResourceFactory, mapper);
 
 		return WebClient.builder()
 			.clientConnector(connector)

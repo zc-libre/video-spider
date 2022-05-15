@@ -9,7 +9,6 @@ import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -21,8 +20,11 @@ import java.time.LocalDateTime;
 public class Video implements Serializable {
 
 	@Id
-    @TableId(type = IdType.INPUT)
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
+
+	@Field(type = FieldType.Keyword)
+	private Long videoId;
 
 	@Field(type = FieldType.Keyword)
     private String url;
@@ -47,6 +49,10 @@ public class Video implements Serializable {
 
 	@Field(type = FieldType.Integer)
     private Integer collectNum;
+
+	private String videoPath;
+
+	private Integer videoWebsite;
 
     @JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
 	@Field(type = FieldType.Date, format = DateFormat.date)

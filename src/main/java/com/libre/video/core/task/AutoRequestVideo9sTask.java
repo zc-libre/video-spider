@@ -18,10 +18,10 @@ public class AutoRequestVideo9sTask {
 
 	private final VideoService videoService;
 
-	@Scheduled(cron = "0 0 2 * * ?")
+	@Scheduled(cron = "0 0 3 * * ?")
 	public void execute() {
 		log.info("autoRequestVideo9sTask is start....");
-		videoService.request(VideoRequestParam.builder().requestType(2).size(20).build());
-		log.info("autoRequestVideo9sTask completed");
+		videoService.request(VideoRequestParam.builder().requestType(2).build());
+		videoService.request(VideoRequestParam.builder().requestType(3).build());
 	}
 }

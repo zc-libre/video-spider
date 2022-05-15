@@ -20,9 +20,6 @@ public class VideoConfiguration {
         return new SpringContext();
     }
 
-    @Bean
-    public VideoDownload videoDownload(VideoProperties properties) {
-        return new VideoDownload(properties);
-    }
+
 
 }

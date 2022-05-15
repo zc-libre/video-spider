@@ -16,17 +16,17 @@ public class VideoEventPublisher {
 		 applicationContext = SpringContext.getContext();
 		Assert.notNull(applicationContext, "applicationContext must not null");
 	}
+
     public static void publishVideoSaveEvent(List<Video> videoList) {
         VideoSaveEvent videoSaveEvent = new VideoSaveEvent(videoList);
         applicationContext.publishEvent(videoSaveEvent);
     }
 
-	public static void publishBaAvVideoSaveEvent(List<BaAvVideo> videoList) {
-		BaAvVideoSaveEvent videoSaveEvent = new BaAvVideoSaveEvent(videoList);
-		applicationContext.publishEvent(videoSaveEvent);
-	}
-
     public static void publishErrorEvent(ErrorVideo errorVideo) {
         applicationContext.publishEvent(errorVideo);
     }
+
+	public static void publishVideoDownloadEvent(VideoDownloadEvent downloadEvent) {
+		applicationContext.publishEvent(downloadEvent);
+	}
 }

@@ -17,10 +17,12 @@ import com.libre.video.pojo.BaAvVideo;
 import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.RegexUtil;
+import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -40,6 +42,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 
 	private String baseUrl;
 	private String urlTemplate;
+	private Integer requestType;
 	private final List<BaAvVideo> videoList = Lists.newCopyOnWriteArrayList();
 
 	public VideoBaAvRequestStrategy(VideoService videoService, WebClient webClient) {
@@ -63,8 +66,10 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 
 	protected void readVideoList(Integer pageSize) {
 		Map<String, Object> params = Maps.newHashMap();
-		for (int i = 1; i <= pageSize; i++) {
-			params.put("page", i);
+		int mid = pageSize / 2;
+		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
+		for (int x = 1; x <= pageSize; x++) {
+			params.put("page", x);
 			String requestUrl = buildUrl(urlTemplate, params);
 			Mono<String> res = request(requestUrl);
 			String html = res.block();
@@ -75,6 +80,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 			}
 			readAndSave(videoBaAvParses);
 		}
+
 	}
 
 	protected List<VideoBaAvParse> parsePage(String html) {
@@ -93,7 +99,10 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 		}
 		List<BaAvVideo> list = Lists.newArrayList();
 		list.addAll(videoList);
-		VideoEventPublisher.publishBaAvVideoSaveEvent(list);
+		VideoBaAvMapping mapping = VideoBaAvMapping.INSTANCE;
+		List<Video> videos = mapping.convertToVideList(list);
+		videos.forEach(video -> video.setVideoWebsite(requestType));
+		VideoEventPublisher.publishVideoSaveEvent(videos);
 		videoList.clear();
 	}
 
@@ -106,7 +115,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 			VideoBaAvMapping mapping = VideoBaAvMapping.INSTANCE;
 			BaAvVideo video = mapping.sourceToTarget(parse);
 			Long id = parseId(url);
-			video.setId(id);
+			video.setVideoId(id);
 			video.setUrl(baseUrl + url);
 			video.setRealUrl(realUrl);
 			videoList.add(video);
@@ -157,6 +166,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 		Assert.notNull(requestTypeEnum, "requestTypeEnum must not be null");
 		baseUrl = requestTypeEnum.getBaseUrl();
 		urlTemplate = baseUrl + "/300-{page}.html";
+		requestType = requestTypeEnum.getType();
 	}
 
 }

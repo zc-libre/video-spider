@@ -18,11 +18,9 @@ import java.util.Objects;
  * @Date: 2022/5/12 2:35 AM
  */
 @Data
-@TableName("ba_av_video")
 public class BaAvVideo  {
 
-	@TableId(type = IdType.INPUT)
-	private Long id;
+	private Long videoId;
 
 	private String url;
 

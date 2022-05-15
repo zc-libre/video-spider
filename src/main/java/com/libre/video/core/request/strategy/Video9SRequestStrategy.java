@@ -13,8 +13,8 @@ import com.libre.video.core.event.VideoEventPublisher;
 import com.libre.video.core.request.VideoRequest;
 import com.libre.video.pojo.*;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
-import com.libre.video.core.pojo.dto.Video9s;
 import com.libre.video.core.pojo.dto.Video9sDTO;
+import com.libre.video.core.pojo.parse.Video9sDetailParse;
 import com.libre.video.core.pojo.parse.Video9sParse;
 import com.libre.video.core.mapstruct.Video91Mapping;
 import com.libre.video.core.mapstruct.Video9sMapping;
@@ -40,7 +40,6 @@ import java.util.*;
 public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9sParse> {
 
 	private String baseUrl;
-
 	private final List<Video> videoList = Lists.newCopyOnWriteArrayList();
 
 	public Video9SRequestStrategy(VideoService videoService, WebClient webClient) {
@@ -57,6 +56,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 		readVideoList(pageSize);
     }
 
+	@Override
     public void readVideoList(Integer pageSize) {
 		for (int i = 1; i <= pageSize; i++) {
 			String requestVideoUrl = baseUrl + StringPool.SLASH + i;
@@ -68,11 +68,11 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 				continue;
 			}
 			readAndSave(parseList);
-
 		}
 		log.info("video request complete!");
     }
 
+	@Override
 	protected void readAndSave(List<Video9sParse> parseList) {
 		parseList.forEach(video9sParse -> {
 			try {
@@ -88,64 +88,32 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 		videoList.clear();
 	}
 
+	@Override
 	protected List<Video9sParse> parsePage(String html) {
 		return DomMapper.readList(html, Video9sParse.class);
 	}
-
-	private void read(Video9sParse video9sParse) {
-		Video9sMapping mapping = Video9sMapping.INSTANCE;
-		Video9s video9s = mapping.convertToVideo9s(video9sParse);
-        String url = video9sParse.getUrl();
-        if (StringUtil.isBlank(url)) {
-            return;
-        }
-        if (StringUtil.isNotBlank(url)) {
-            url =  RequestConstant.REQUEST_9S_BASE_URL + url;
-            video9s.setUrl(url);
-        }
-		Mono<String> request = request(url);
-		request.subscribe(body -> {
-			if (StringUtil.isBlank(body)) {
-				return;
-			}
-			parseVideoInfo(body, video9s);
-			log.debug("解析到一条视频数据: {}", video9s);
-			Video91Mapping video91Mapping = Video91Mapping.INSTANCE;
-			Video video = video91Mapping.convertToVideo91(video9s);
-			videoList.add(video);
-		});
-
-    }
-	private void parseVideoInfo(String html, Video9s video9s) {
-		Video9sDTO video9sDTO = DomMapper.readValue(html, Video9sDTO.class);
-		String publishTime = video9sDTO.getPublishTime();
-		if (StringUtil.isNotBlank(publishTime)) {
-			publishTime = StringUtil.trimWhitespace(publishTime);
-			video9s.setPublishTime(LocalDate.parse(publishTime, DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)));
+	@Override
+	public Integer parsePageSize(String html) {
+		Document document = Parser.parse(html, "");
+		Elements elements = document.getElementsByClass("pagination");
+		if (elements.isEmpty()) {
+			return null;
 		}
-		BeanUtils.copyProperties(video9sDTO, video9s);
+		Element pagination = elements.get(0);
+		if (Objects.isNull(pagination)) {
+			return null;
+		}
+		Elements allPage = pagination.getAllElements();
+		Element page = allPage.get(8);
+		if (Objects.isNull(page)) {
+			return null;
+		}
+		String text = page.ownText();
+		if (StringUtil.isBlank(text)) {
+			return null;
+		}
+		return Integer.parseInt(text);
 	}
-    public Integer parsePageSize(String html) {
-        Document document = Parser.parse(html, "");
-        Elements elements = document.getElementsByClass("pagination");
-        if (elements.isEmpty()) {
-            return null;
-        }
-        Element pagination = elements.get(0);
-        if (Objects.isNull(pagination)) {
-            return null;
-        }
-        Elements allPage = pagination.getAllElements();
-        Element page = allPage.get(8);
-        if (Objects.isNull(page)) {
-            return null;
-        }
-        String text = page.ownText();
-        if (StringUtil.isBlank(text)) {
-            return null;
-        }
-        return Integer.parseInt(text);
-    }
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -156,4 +124,39 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 		baseUrl = requestTypeEnum.getBaseUrl();
 
 	}
+
+	private void read(Video9sParse video9sParse) {
+		Video9sMapping mapping = Video9sMapping.INSTANCE;
+		Video9sDTO video9SDTO = mapping.convertToVideo9s(video9sParse);
+        String url = video9sParse.getUrl();
+        if (StringUtil.isBlank(url)) {
+            return;
+        }
+        if (StringUtil.isNotBlank(url)) {
+            url =  RequestConstant.REQUEST_9S_BASE_URL + url;
+            video9SDTO.setUrl(url);
+        }
+		Mono<String> request = request(url);
+		request.subscribe(body -> {
+			if (StringUtil.isBlank(body)) {
+				return;
+			}
+			parseVideoInfo(body, video9SDTO);
+			log.debug("解析到一条视频数据: {}", video9SDTO);
+			Video91Mapping video91Mapping = Video91Mapping.INSTANCE;
+			Video video = video91Mapping.convertToVideo91(video9SDTO);
+			videoList.add(video);
+		});
+
+    }
+	private void parseVideoInfo(String html, Video9sDTO video9SDTO) {
+		Video9sDetailParse video9SDetailParse = DomMapper.readValue(html, Video9sDetailParse.class);
+		String publishTime = video9SDetailParse.getPublishTime();
+		if (StringUtil.isNotBlank(publishTime)) {
+			publishTime = StringUtil.trimWhitespace(publishTime);
+			video9SDTO.setPublishTime(LocalDate.parse(publishTime, DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)));
+		}
+		BeanUtils.copyProperties(video9SDetailParse, video9SDTO);
+	}
+
 }
