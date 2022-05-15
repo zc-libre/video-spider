@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.libre.video.pojo.Video;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.dto.VideoQuery;
-import org.apache.ibatis.cursor.Cursor;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Async;
 
@@ -13,22 +12,36 @@ import java.util.List;
 
 public interface VideoService extends IService<Video> {
 
+	/**
+	 * 爬取视频
+	 * @param param /
+	 */
 	@Async("videoRequestExecutor")
 	void request(VideoRequestParam param);
+
+	/**
+	 * 同步数据至elasticsearch
+	 */
+	void syncToElasticsearch();
+
     /**
-     * 下载视频
+     * 通过视频id下载视频
      * @param ids id集合
      */
     void download(List<Long> ids);
 
-	void dataAsyncToElasticsearch();
+	/**
+	 * 下载视频并存储至oss
+	 * @param video video
+	 */
+	void saveVideoToOss(Video video);
 
-	void requestAndDownload(String url);
-
+	/**
+	 * es分页查询视频
+	 * @param page 分页参数
+	 * @param videoQuery 查询参数
+	 * @return list
+	 */
 	Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery);
-
-	List<Video> findByTitle(String title);
-
-	Page<Video> findByTitlePage(String title, PageDTO<Video> page);
 
 }
