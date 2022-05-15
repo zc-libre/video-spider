@@ -6,6 +6,10 @@ spring:
     name: Libre-Video
   profiles:
     active: prod
+  servlet:
+    multipart:
+      max-file-size: 1GB
+      max-request-size: 1GB
 
 mybatis-plus:
   global-config:
@@ -24,3 +28,29 @@ logging:
   file:
     name: "./logs/app.log"
 
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://101.42.252.139:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false
+    username: root
+    password: ENC(pS3X2GTc99Gw5vhMMZWmHzdvtRRHO1o3)
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      connection-test-query: SELECT 1 FROM DUAL
+      connection-timeout: 30000
+      maximum-pool-size: 5
+      max-lifetime: 1800000
+      minimum-idle: 1
+  elasticsearch:
+    uris: http://101.42.252.139:9200
+    username: elastic
+    password: ENC(hoWyhk+6Fzt7jqzr0DmeH3SP3Y/5hEMK)
+
+video:
+  download-path: /libre/video/
+  ffmpeg-path: /usr/bin/
+  mp4box-path: /libre/gpac/gpac_public/bin/gcc/MP4Box/
