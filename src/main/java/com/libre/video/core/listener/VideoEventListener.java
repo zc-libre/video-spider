@@ -60,7 +60,7 @@ public class VideoEventListener {
 		errorVideoService.save(errorVideo);
 	}
 
-	@Async
+	@Async("downloadExecutor")
 	@EventListener(VideoDownloadEvent.class)
 	public void onDownloadEvent(VideoDownloadEvent downloadEvent) {
 		videoService.saveVideoToOss(downloadEvent.getVideo());

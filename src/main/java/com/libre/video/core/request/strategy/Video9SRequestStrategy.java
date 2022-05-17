@@ -40,6 +40,7 @@ import java.util.*;
 public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9sParse> {
 
 	private String baseUrl;
+	private Integer requestType;
 	private final List<Video> videoList = Lists.newCopyOnWriteArrayList();
 
 	public Video9SRequestStrategy(VideoService videoService, WebClient webClient) {
@@ -84,6 +85,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 
 		List<Video> list = Lists.newArrayList();
 		list.addAll(videoList);
+		list.forEach(video -> video.setVideoWebsite(requestType));
 		VideoEventPublisher.publishVideoSaveEvent(list);
 		videoList.clear();
 	}
@@ -122,6 +124,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 		RequestTypeEnum requestTypeEnum = videoRequest.value();
 		Assert.notNull(requestTypeEnum, "requestTypeEnum must not be null");
 		baseUrl = requestTypeEnum.getBaseUrl();
+		requestType = requestTypeEnum.getType();
 
 	}
 

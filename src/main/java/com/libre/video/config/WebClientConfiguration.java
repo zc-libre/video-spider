@@ -32,16 +32,21 @@ public class WebClientConfiguration {
 
 	@Bean
 	public ReactorResourceFactory reactorResourceFactory() {
+		ConnectionProvider connectionProvider = ConnectionProvider.builder("reactive-pool")
+			.maxConnections(1000)
+			.pendingAcquireMaxCount(2000)
+			.build();
 		ReactorResourceFactory reactorResourceFactory = new ReactorResourceFactory();
 		reactorResourceFactory.setUseGlobalResources(false);
-		reactorResourceFactory.setConnectionProvider(ConnectionProvider.create("reactive-pool", 1000));
-		reactorResourceFactory.setLoopResources(LoopResources.create("reactive-loop", 1000, true));
+		reactorResourceFactory.setConnectionProvider(connectionProvider);
+		reactorResourceFactory.setLoopResources(LoopResources.create("reactive-loop"));
 		return reactorResourceFactory;
 	}
 
 
 	@Bean
 	public WebClient webClient(ReactorResourceFactory reactorResourceFactory) {
+
 		Function<HttpClient, HttpClient> mapper = client -> client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 100000)
 			.doOnConnected(conn -> conn
 				.addHandlerLast(new ReadTimeoutHandler(10))
@@ -53,6 +58,7 @@ public class WebClientConfiguration {
 
 		return WebClient.builder()
 			.clientConnector(connector)
+			.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024))
 			.defaultHeaders(httpHeaders -> httpHeaders.addAll(httpHeaders()))
 			.build();
 	}

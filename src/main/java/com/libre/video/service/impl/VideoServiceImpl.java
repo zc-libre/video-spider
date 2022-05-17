@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.StringUtil;
@@ -12,12 +11,10 @@ import com.libre.oss.support.OssTemplate;
 import com.libre.video.constant.SystemConstants;
 import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.enums.RequestTypeEnum;
-import com.libre.video.core.mapstruct.VideoBaAvMapping;
 import com.libre.video.core.request.VideoRequestContext;
 import com.libre.video.core.request.strategy.VideoRequestStrategy;
 import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.mapper.VideoMapper;
-import com.libre.video.pojo.BaAvVideo;
 import com.libre.video.pojo.Video;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.dto.VideoQuery;
@@ -73,15 +70,22 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void saveVideoToOss(Video video) {
-		String videoPath = VideoFileUtils.getVideoPath(video.getTitle());
-		if (!VideoFileUtils.videoExist(videoPath)) {
+		String videoTempPath = VideoFileUtils.getVideoTempPath(video.getTitle());
+		if (!VideoFileUtils.videoExist(videoTempPath)) {
             throw new LibreException(String.format("视频不存在, videoId: %s, videoTitle: %s", video.getId(), video.getTitle()));
 		}
-		saveToOss(video, videoPath);
+		saveToOss(video, videoTempPath);
 		String videoUrl = ossTemplate.getObjectURL(SystemConstants.VIDEO_BUCKET_NAME, video.getTitle());
+		videoUrl = VideoFileUtils.decode(videoUrl);
+		if (StringUtil.isBlank(videoUrl)) {
+			throw new LibreException(String.format("视频链接获取失败, videoId: %s, videoTitle: %s", video.getId(), video.getTitle()));
+		}
+
+		log.info("video save success, url: {}", videoUrl);
 		video.setVideoPath(videoUrl);
 		this.updateById(video);
 		videoEsRepository.save(video);
+		VideoFileUtils.deleteTempVideo(videoTempPath);
 	}
 
 	@Override
@@ -145,13 +149,12 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			}
 			videoEsRepository.saveAll(videos);
 			log.info("数据同步完成, 共{}条数据", videoList.size());
-		}, ThreadPoolUtil.requestExecutor());
+		});
 	}
 
 	private void saveToOss(Video video, String videoPath) {
-
 		try (InputStream inputStream = Files.newInputStream(Paths.get(videoPath))){
-			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, video.getTitle(), inputStream);
+			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, VideoFileUtils.getVideoName(video.getTitle()),inputStream);
 		} catch (IOException e) {
 			throw new LibreException("文件下载失败: " + e.getMessage());
 		}

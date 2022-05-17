@@ -13,8 +13,8 @@ public class VideoThreadPoolConfiguration {
 	@Bean
 	public ThreadPoolTaskExecutor videoRequestExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(10);
-		executor.setMaxPoolSize(20);
+		executor.setCorePoolSize(4);
+		executor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);
 		executor.setQueueCapacity(50);
 		executor.setKeepAliveSeconds(60);
 		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
@@ -22,24 +22,13 @@ public class VideoThreadPoolConfiguration {
 		return executor;
 	}
 
-    @Bean
-    public ThreadPoolTaskExecutor requestExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(100);
-        executor.setMaxPoolSize(200);
-        executor.setQueueCapacity(300);
-        executor.setKeepAliveSeconds(50);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setThreadNamePrefix("request-task-");
-        return executor;
-    }
 
     @Bean
     public ThreadPoolTaskExecutor downloadExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(10);
+        executor.setCorePoolSize(20);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(40);
         executor.setKeepAliveSeconds(60);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setThreadNamePrefix("download-task-");

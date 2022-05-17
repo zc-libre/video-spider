@@ -66,8 +66,6 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 
 	protected void readVideoList(Integer pageSize) {
 		Map<String, Object> params = Maps.newHashMap();
-		int mid = pageSize / 2;
-		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
 		for (int x = 1; x <= pageSize; x++) {
 			params.put("page", x);
 			String requestUrl = buildUrl(urlTemplate, params);

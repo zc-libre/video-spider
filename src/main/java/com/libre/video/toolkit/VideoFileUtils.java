@@ -1,10 +1,17 @@
 package com.libre.video.toolkit;
 
 import com.libre.boot.autoconfigure.SpringContext;
+import com.libre.core.exception.LibreException;
+import com.libre.core.toolkit.Exceptions;
 import com.libre.video.config.VideoProperties;
 import lombok.experimental.UtilityClass;
+import org.apache.http.util.TextUtils;
 import org.springframework.util.Assert;
 
+import java.io.*;
+import java.net.URLDecoder;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,12 +30,81 @@ public class VideoFileUtils {
 		Assert.notNull(properties, "VideoProperties must not be null");
 	}
 
-	public static String getVideoPath(String videoName) {
+	public static String getVideoTempPath(String videoName) {
 		return properties.getDownloadPath() + videoName + ".mp4";
+	}
+
+	public static String getVideoName(String videoName) {
+		return videoName + ".mp4";
 	}
 
 	public static boolean videoExist(String path) {
 		Path videoPath = Paths.get(path);
 		return Files.exists(videoPath);
+	}
+
+	public static void deleteTempVideo(String path) {
+		Path videoPath = Paths.get(path);
+		try {
+			Files.delete(videoPath);
+		} catch (IOException e) {
+			throw new LibreException(String.format("文件删除失败, %s", e.getMessage()));
+		}
+	}
+
+	public static String decode(String videoUrl) {
+		String url;
+		try {
+			url = URLDecoder.decode(videoUrl, StandardCharsets.UTF_8.name());
+		} catch (Exception e) {
+			throw Exceptions.unchecked(e);
+		}
+		return url;
+	}
+
+	public static boolean mergeFiles(String[] filePaths, String resultPath) {
+		if (filePaths == null || filePaths.length < 1 || TextUtils.isEmpty(resultPath)) {
+			return false;
+		}
+		if (filePaths.length == 1) {
+			return new File(filePaths[0]).renameTo(new File(resultPath));
+		}
+
+		File[] files = new File[filePaths.length];
+		for (int i = 0; i < filePaths.length; i++) {
+			files[i] = new File(filePaths[i]);
+			if (TextUtils.isEmpty(filePaths[i]) || !files[i].exists() || !files[i].isFile()) {
+				return false;
+			}
+		}
+
+		File resultFile = new File(resultPath);
+
+		try (FileOutputStream outputStream = new FileOutputStream(resultFile, true)){
+			FileChannel resultFileChannel = outputStream.getChannel();
+			for (String filePath : filePaths) {
+				try (FileInputStream fileInputStream = new FileInputStream(filePath)){
+					FileChannel blk = fileInputStream.getChannel();
+					resultFileChannel.transferFrom(blk, resultFileChannel.size(), blk.size());
+					blk.close();
+				} catch (IOException e) {
+					throw new LibreException(e);
+				}
+			}
+			resultFileChannel.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		for (String filePath : filePaths) {
+			try {
+				Files.delete(Paths.get(filePath));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		return true;
 	}
 }

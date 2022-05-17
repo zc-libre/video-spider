@@ -8,14 +8,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @UtilityClass
 public class ThreadPoolUtil {
 
-
 	public static ThreadPoolTaskExecutor videoRequestExecutor() {
 		return SpringContext.getBean("videoRequestExecutor");
 	}
 
-    public static ThreadPoolTaskExecutor requestExecutor() {
-        return SpringContext.getBean("requestExecutor");
-    }
 
     public static ThreadPoolTaskExecutor downloadExecutor() {
         return SpringContext.getBean("downloadExecutor");

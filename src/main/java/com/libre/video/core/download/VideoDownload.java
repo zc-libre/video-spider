@@ -32,16 +32,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Component
 public class VideoDownload {
-    private final VideoProperties properties;
-	private final VideoEsRepository videoEsRepository;
+
+	private final VideoProperties properties;
+	private final VideoMapper videoMapper;
 	private final WebSocketServer webSocketServer;
-    private final static String MP4_FORMAT = "mp4";
+	private final static String MP4_FORMAT = "mp4";
 
 	@Async("downloadExecutor")
 	public void encodeAndWrite(Long videoId) {
 		try {
-			Optional<Video> optional = videoEsRepository.findById(videoId);
-			optional.ifPresent(this::encodeAndWrite);
+			Video video = Optional.ofNullable(videoMapper.selectById(videoId))
+				.orElseThrow(() -> new LibreException(String.format("视频不存在,videoId: %d", videoId)));
+			this.encodeAndWrite(video);
 		} catch (Exception e) {
 			VideoDownloadMessage message = new VideoDownloadMessage();
 			message.setVideoId(videoId);
@@ -55,50 +57,38 @@ public class VideoDownload {
 		}
 	}
 
-    public void encodeAndWrite(Video video)  {
+	public void encodeAndWrite(Video video) {
 		try {
-			String ffmpegPath;
-			if (StringUtil.isBlank(properties.getFfmpegPath())) {
-				ffmpegPath = "ffmpeg";
-			} else {
-				 ffmpegPath = properties.getFfmpegPath() + "ffmpeg";
-			}
-			FFmpeg ffmpeg = new FFmpeg(ffmpegPath);
+			FFmpeg ffmpeg = new FFmpeg(properties.getFfmpegPath() + "ffmpeg");
 			FFprobe ffprobe = new FFprobe(properties.getFfmpegPath() + "ffprobe");
 			//时长 s
-			FFmpegProbeResult in = ffprobe.probe(video.getRealUrl());
+			String videoPath = video.getVideoPath();
+			FFmpegProbeResult in = ffprobe.probe(videoPath);
 			//封面信息保存
 			FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
 			//整体下载
 			String path = getDownPath(video.getTitle());
 
-			FFmpegOutputBuilder fFmpegOutputBuilder = getFfmpegOutputBuilder(video.getRealUrl(), path);
-			FFmpegBuilder builder;
+			FFmpegOutputBuilder fFmpegOutputBuilder = getFfmpegOutputBuilder(videoPath, path);
+			FFmpegBuilder builder = fFmpegOutputBuilder.done();
 			FFmpegFormat info = in.getFormat();
-			double duration = info.duration;
-			if (duration > Duration.ofMinutes(4).getSeconds()) {
-				//大于4分钟截取前10秒
-				builder = fFmpegOutputBuilder.addExtraArgs("-ss", "00:00:10").done();
-			} else {
-				builder = fFmpegOutputBuilder.done();
-			}
-			FFmpegJob fFmpegJob = executor.createJob(builder, new VideoProgressListener(video, duration, webSocketServer));
+			FFmpegJob fFmpegJob = executor.createJob(builder, new VideoProgressListener(video, info.duration, webSocketServer));
 			fFmpegJob.run();
 		} catch (Exception e) {
 			throw new LibreException(e.getMessage());
 		}
 	}
 
-    private String getDownPath(String filename) {
-        return properties.getDownloadPath() + filename + StringPool.DOT + MP4_FORMAT;
-    }
+	private String getDownPath(String filename) {
+		return properties.getDownloadPath() + filename + StringPool.DOT + MP4_FORMAT;
+	}
 
-    private FFmpegOutputBuilder getFfmpegOutputBuilder(String url, String path) {
-        return new FFmpegBuilder()
-                .overrideOutputFiles(true)
-                .setInput(url)
-                .addOutput(path)
-                .setFormat(MP4_FORMAT)
-                .addExtraArgs("-c:v", "libx264", "-crf", "22", "-threads", "4");
-    }
+	private FFmpegOutputBuilder getFfmpegOutputBuilder(String url, String path) {
+		return new FFmpegBuilder()
+			.overrideOutputFiles(true)
+			.setInput(url)
+			.addOutput(path)
+			.setFormat(MP4_FORMAT)
+			.addExtraArgs("-allowed_extensions", "ALL", "-c", "copy", "-threads", String.valueOf(Runtime.getRuntime().availableProcessors() * 2), "-preset", "ultrafast");
+	}
 }
