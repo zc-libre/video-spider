@@ -5,11 +5,13 @@ spring:
   application:
     name: video-spider
   profiles:
-    active: prod
+    active: dev
   servlet:
     multipart:
       max-file-size: 1GB
       max-request-size: 1GB
+  codec:
+    max-in-memory-size: 100MB
 
 mybatis-plus:
   global-config:
