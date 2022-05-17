@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.libre</groupId>
-    <artifactId>Video91</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>Video91</name>
+    <artifactId>video-spider</artifactId>
+    <version>1.0.0</version>
+    <name>video-spider</name>
     <description>Video91 spider</description>
 
     <properties>
