@@ -1,35 +1,27 @@
 package com.libre.video.core.download;
 
-import com.google.common.collect.Maps;
-import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.StringPool;
 import com.libre.video.config.VideoProperties;
+import com.libre.video.core.event.VideoDownloadEvent;
+import com.libre.video.core.event.VideoEventPublisher;
 import com.libre.video.pojo.Video;
-import com.libre.video.toolkit.ThreadPoolUtil;
 import com.libre.video.toolkit.VideoFileUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,9 +37,9 @@ public class M3u8Download {
 	private final static String MU38_SUFFIX = ".m3u8";
 	private final WebClient webClient;
 	private final VideoProperties videoProperties;
-	private final VideoDownload videoDownload;
+	private final VideoEncode videoEncode;
 
-
+	@Async("downloadExecutor")
 	public void download(Video video) {
 		String url = video.getRealUrl();
 		String downloadPath = videoProperties.getDownloadPath();
@@ -62,7 +54,6 @@ public class M3u8Download {
 			}
 		}
 
-
 		Mono<Resource> mono = webClient.get()
 			.uri(url)
 			.accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -71,37 +62,30 @@ public class M3u8Download {
 		Resource resource = mono.block();
 		Optional.ofNullable(resource).orElseThrow(() -> new LibreException("resource is empty"));
 
+
 		List<String> lines;
+		String fileName = url.substring(url.lastIndexOf(StringPool.SLASH) + 1);
+		String m3u8File = tempDir + File.separator + fileName;
+		Path outputPath = Paths.get(m3u8File);
 		try (InputStream inputStream = resource.getInputStream()) {
-			String fileName = url.substring(url.lastIndexOf(StringPool.SLASH) + 1);
-			String filePath = tempDir + File.separator + fileName;
-			Path outputPath = Paths.get(filePath);
 			Files.copy(inputStream, outputPath, StandardCopyOption.REPLACE_EXISTING);
 			lines = Files.readAllLines(outputPath);
 		} catch (IOException e) {
 			throw new LibreException(e);
 		}
 
-		String baseUrl = url.substring(0, url.lastIndexOf(StringPool.SLASH));
-		Set<String> tsSet = lines.stream().filter(line -> line.contains("ts")).collect(Collectors.toSet());
+		downloadTsFiles(url, tempDir, lines);
 
-		String[] urls = tsSet.toArray(new String[0]);
-		downloadTsFiles(tempDir, baseUrl, urls);
+		video.setVideoPath(m3u8File);
+		VideoEventPublisher.publishVideoDownloadEvent(new VideoDownloadEvent(true, video));
 
-		List<String> fileList = tsSet.stream().sorted().collect(Collectors.toList());
-		String[] paths = new String[fileList.size()];
-		for (int i = 0; i < fileList.size(); i++) {
-			paths[i] = tempDir + File.separator + fileList.get(i);
-			log.info(paths[i]);
-		}
-		String videoPath = downloadPath + video.getId() + MU38_SUFFIX;
-		VideoFileUtils.mergeFiles(paths, videoPath);
-		log.info("合并完成");
-		video.setVideoPath(videoPath);
-		videoDownload.encodeAndWrite(video);
+		//extracted(video, downloadPath, tsSet);
 	}
 
-	private void downloadTsFiles(String fullDir, String baseUrl, String[] urls) {
+	private void downloadTsFiles(String url, String tempDir, List<String> lines) {
+		String baseUrl = url.substring(0, url.lastIndexOf(StringPool.SLASH));
+		Set<String> tsSet = lines.stream().filter(line -> line.contains("ts")).collect(Collectors.toSet());
+		String[] urls = tsSet.toArray(new String[0]);
 		Flux.just(urls)
 			.flatMap(ts -> webClient.get()
 				.uri(baseUrl + File.separator + ts)
@@ -112,7 +96,7 @@ public class M3u8Download {
 				.doOnError(e -> log.error("请求异常"))
 				.publishOn(Schedulers.boundedElastic())
 				.map(res -> {
-					String tsPath = fullDir + File.separator + ts;
+					String tsPath = tempDir + File.separator + ts;
 					log.info("正在下载： {}", tsPath);
 					try (InputStream in = res.getInputStream()) {
 						Path path = Paths.get(tsPath);
@@ -126,9 +110,20 @@ public class M3u8Download {
 			.collectList()
 			.doOnNext(list -> log.info("Received all messages"))
 			.block();
-
 		log.info("所有请求完成, 开始合并ts");
 	}
+
+	private void extracted(Video video, String downloadPath, Set<String> tsSet) {
+		List<String> fileList = tsSet.stream().sorted().collect(Collectors.toList());
+		String[] paths = new String[fileList.size()];
+		String videoPath = downloadPath + video.getId() + MU38_SUFFIX;
+		VideoFileUtils.mergeFiles(paths, videoPath);
+		log.info("合并完成");
+		video.setVideoPath(videoPath);
+		videoEncode.encodeAndWrite(video);
+	}
+
+
 }
 
 //	for (String ts : tsSet) {

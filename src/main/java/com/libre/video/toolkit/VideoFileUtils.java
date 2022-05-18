@@ -3,10 +3,13 @@ package com.libre.video.toolkit;
 import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.Exceptions;
+import com.libre.core.toolkit.StringUtil;
 import com.libre.video.config.VideoProperties;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.util.TextUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 import java.io.*;
 import java.net.URLDecoder;
@@ -20,6 +23,7 @@ import java.nio.file.Paths;
  * @author: Libre
  * @Date: 2022/5/15 9:12 AM
  */
+@Slf4j
 @UtilityClass
 public class VideoFileUtils {
 
@@ -31,7 +35,11 @@ public class VideoFileUtils {
 	}
 
 	public static String getVideoTempPath(String videoName) {
-		return properties.getDownloadPath() + videoName + ".mp4";
+		return properties.getDownloadPath() + videoName;
+	}
+
+	public static String getVideoM3u8TempPath(Long videoId) {
+		return properties.getDownloadPath() + videoId + "index.m3u8";
 	}
 
 	public static String getVideoName(String videoName) {
@@ -63,7 +71,7 @@ public class VideoFileUtils {
 	}
 
 	public static boolean mergeFiles(String[] filePaths, String resultPath) {
-		if (filePaths == null || filePaths.length < 1 || TextUtils.isEmpty(resultPath)) {
+		if (ObjectUtils.isEmpty(filePaths) || StringUtil.isBlank(resultPath)) {
 			return false;
 		}
 		if (filePaths.length == 1) {
@@ -73,7 +81,7 @@ public class VideoFileUtils {
 		File[] files = new File[filePaths.length];
 		for (int i = 0; i < filePaths.length; i++) {
 			files[i] = new File(filePaths[i]);
-			if (TextUtils.isEmpty(filePaths[i]) || !files[i].exists() || !files[i].isFile()) {
+			if (StringUtil.isBlank(filePaths[i]) || !files[i].exists() || !files[i].isFile()) {
 				return false;
 			}
 		}
@@ -84,16 +92,16 @@ public class VideoFileUtils {
 			FileChannel resultFileChannel = outputStream.getChannel();
 			for (String filePath : filePaths) {
 				try (FileInputStream fileInputStream = new FileInputStream(filePath)){
-					FileChannel blk = fileInputStream.getChannel();
-					resultFileChannel.transferFrom(blk, resultFileChannel.size(), blk.size());
-					blk.close();
+					FileChannel channel = fileInputStream.getChannel();
+					resultFileChannel.transferFrom(channel, resultFileChannel.size(), channel.size());
+					channel.close();
 				} catch (IOException e) {
 					throw new LibreException(e);
 				}
 			}
 			resultFileChannel.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error(e.getMessage());
 			return false;
 		}
 

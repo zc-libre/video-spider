@@ -9,7 +9,7 @@ import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.oss.support.OssTemplate;
 import com.libre.video.constant.SystemConstants;
-import com.libre.video.core.download.VideoDownload;
+import com.libre.video.core.download.VideoEncode;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.request.VideoRequestContext;
 import com.libre.video.core.request.strategy.VideoRequestStrategy;
@@ -19,7 +19,6 @@ import com.libre.video.pojo.Video;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.VideoService;
-import com.libre.video.toolkit.ThreadPoolUtil;
 import com.libre.video.toolkit.VideoFileUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements VideoService {
 	private final VideoRequestContext videoRequestContext;
-	private final VideoDownload videoDownload;
+	private final VideoEncode videoEncode;
 	private final VideoEsRepository videoEsRepository;
 	private final ElasticsearchOperations elasticsearchOperations;
 	private final OssTemplate ossTemplate;
@@ -63,19 +62,22 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	@Transactional(rollbackFor = Exception.class)
 	public void download(List<Long> ids) {
 		for (Long id : ids) {
-			videoDownload.encodeAndWrite(id);
+			videoEncode.encodeAndWrite(id);
 		}
 	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void saveVideoToOss(Video video) {
-		String videoTempPath = VideoFileUtils.getVideoTempPath(video.getTitle());
+
+		String videoName = video.getId() + "index.m3u8";
+		String videoTempPath = VideoFileUtils.getVideoTempPath(videoName);
 		if (!VideoFileUtils.videoExist(videoTempPath)) {
             throw new LibreException(String.format("视频不存在, videoId: %s, videoTitle: %s", video.getId(), video.getTitle()));
 		}
 		saveToOss(video, videoTempPath);
 		String videoUrl = ossTemplate.getObjectURL(SystemConstants.VIDEO_BUCKET_NAME, video.getTitle());
+		log.info("videoUrl: {}", videoUrl);
 		videoUrl = VideoFileUtils.decode(videoUrl);
 		if (StringUtil.isBlank(videoUrl)) {
 			throw new LibreException(String.format("视频链接获取失败, videoId: %s, videoTitle: %s", video.getId(), video.getTitle()));

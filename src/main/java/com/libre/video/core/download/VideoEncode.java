@@ -1,13 +1,11 @@
 package com.libre.video.core.download;
 
 import com.libre.core.exception.LibreException;
-import com.libre.core.toolkit.StringUtil;
 import com.libre.video.config.VideoProperties;
 import com.libre.core.toolkit.StringPool;
 import com.libre.video.constant.SystemConstants;
 import com.libre.video.core.websocker.VideoDownloadMessage;
 import com.libre.video.core.websocker.WebSocketServer;
-import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +22,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Optional;
 
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class VideoDownload {
+public class VideoEncode {
 
 	private final VideoProperties properties;
 	private final VideoMapper videoMapper;
