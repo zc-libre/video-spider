@@ -112,6 +112,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 		String title = videoQuery.getTitle();
 		if (StringUtil.isNotBlank(title)) {
+			nativeSearchQueryBuilder.withQuery(QueryBuilders.matchPhraseQuery("title", title));
 			nativeSearchQueryBuilder.withQuery(QueryBuilders.matchQuery("title", title));
 		}
 		nativeSearchQueryBuilder.withPageable(pageRequest);
@@ -142,11 +143,11 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		List<OrderItem> orderItems = page.getOrders();
 		if (CollectionUtil.isEmpty(orderItems)) {
 
-			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort("publishTime").sortMode(SortMode.MEDIAN).order(SortOrder.DESC);
+			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort("publishTime").order(SortOrder.DESC);
 			sortBuilders.add(fieldSortBuilder);
 
-			ScoreSortBuilder scoreSortBuilder = SortBuilders.scoreSort();
-			sortBuilders.add(scoreSortBuilder);
+//			ScoreSortBuilder scoreSortBuilder = SortBuilders.scoreSort().order(SortOrder.DESC);
+//			sortBuilders.add(scoreSortBuilder);
 		}
 
 		for (OrderItem orderItem : orderItems) {

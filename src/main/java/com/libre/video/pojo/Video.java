@@ -2,6 +2,11 @@ package com.libre.video.pojo;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.NumberDeserializers;
+import com.fasterxml.jackson.databind.ser.std.NumberSerializers;
+import com.fasterxml.jackson.databind.ser.std.StringSerializer;
 import com.libre.core.time.DatePattern;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -20,6 +25,7 @@ import java.time.LocalDateTime;
 public class Video implements Serializable {
 
 	@Id
+	@Field(type = FieldType.Keyword)
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
@@ -32,7 +38,7 @@ public class Video implements Serializable {
 	@Field(type = FieldType.Keyword)
     private String realUrl;
 
-	@Field(type = FieldType.Text, analyzer = "ik_max_word")
+	@Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
     private String title;
 
 	@Field(type = FieldType.Keyword)

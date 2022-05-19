@@ -24,7 +24,7 @@ public class VideoConfiguration implements WebMvcConfigurer {
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		String downloadPath = videoProperties.getDownloadPath();
 		registry.addResourceHandler(downloadPath + "**")
-			.addResourceLocations("file:" + downloadPath + "/");
+			.addResourceLocations("file:" + downloadPath);
 
 	}
 

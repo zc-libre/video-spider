@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.google.common.collect.Lists;
 import com.libre.core.result.R;
-import com.libre.video.core.download.M3u8Download;
 import com.libre.video.core.download.VideoEncode;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.Video;
@@ -15,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Slf4j
 @RestController
@@ -24,8 +22,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class VideoController {
 
 	private final VideoService videoService;
+
 	private final VideoEncode videoEncode;
-	private final WebClient webClient;
 
 	@PostMapping("/list")
 	public R<Page<Video>> page(PageDTO<Video> page, VideoQuery videoQuery) {
@@ -35,7 +33,7 @@ public class VideoController {
 
 	@GetMapping("/watch/{videoId}")
 	public void watch(@PathVariable Long videoId) {
-	     videoService.watch(videoId);
+		videoService.watch(videoId);
 	}
 
 	@GetMapping("/download/{id}")
@@ -53,7 +51,6 @@ public class VideoController {
 		return R.data(Boolean.TRUE);
 	}
 
-
 	@Transactional
 	@GetMapping("/sync")
 	public R<Boolean> sync() {
@@ -63,11 +60,7 @@ public class VideoController {
 
 	@GetMapping("/request/{requestType}")
 	public R<Boolean> request(@PathVariable Integer requestType, Integer size) {
-		videoService.request(VideoRequestParam
-			.builder()
-			.requestType(requestType)
-			.size(size)
-			.build());
+		videoService.request(VideoRequestParam.builder().requestType(requestType).size(size).build());
 		return R.status(Boolean.TRUE);
 	}
 

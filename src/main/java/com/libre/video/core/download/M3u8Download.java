@@ -74,13 +74,12 @@ public class M3u8Download {
 	@Async("downloadExecutor")
 	public void downloadM3u8FileToLocal(InputStream inputStream, Video video) {
 		String tempDir = createDirectory(video.getId());
-		String m3u8FileName = tempDir + File.separator + video.getId() + "index.m3u8";
+		String m3u8FileName = tempDir + File.separator +  "index.m3u8";
 		Path m3u8FilePath = Paths.get(m3u8FileName);
-		List<String> lines = copyM3u8File(inputStream, m3u8FilePath);
-
-		if (CollectionUtil.isEmpty(lines)) {
+		if (Files.exists(m3u8FilePath)) {
 			return;
 		}
+		List<String> lines = copyM3u8File(inputStream, m3u8FilePath);
 		lines = lines.stream().filter(line -> line.endsWith(TS_SUFFIX)).collect(Collectors.toList());
 		String realUrl = video.getRealUrl();
 		String baseUrl = realUrl.substring(0, realUrl.lastIndexOf(StringPool.SLASH));
