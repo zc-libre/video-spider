@@ -2,6 +2,7 @@ package com.libre.video.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.pojo.Video;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.dto.VideoQuery;
@@ -32,9 +33,9 @@ public interface VideoService extends IService<Video> {
 
 	/**
 	 * 下载视频并存储至oss
-	 * @param video video
+	 * @param videoUploadEvent video
 	 */
-	void saveVideoToOss(Video video);
+	void saveVideoToOss(VideoUploadEvent videoUploadEvent);
 
 	/**
 	 * es分页查询视频
@@ -44,4 +45,6 @@ public interface VideoService extends IService<Video> {
 	 */
 	Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery);
 
+
+    void watch(Long videoId);
 }

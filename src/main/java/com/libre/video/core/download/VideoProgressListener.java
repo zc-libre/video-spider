@@ -1,8 +1,6 @@
 package com.libre.video.core.download;
 
 import com.libre.video.constant.SystemConstants;
-import com.libre.video.core.event.VideoDownloadEvent;
-import com.libre.video.core.event.VideoEventPublisher;
 import com.libre.video.core.websocker.VideoDownloadMessage;
 import com.libre.video.core.websocker.WebSocketServer;
 import com.libre.video.pojo.Video;
@@ -44,7 +42,6 @@ public class VideoProgressListener implements ProgressListener {
 
 		notifyDownloadProgress(progress, percentage);
 
-		notifyDownloadComplete(progress.isEnd());
  	}
 
 
@@ -64,10 +61,6 @@ public class VideoProgressListener implements ProgressListener {
 		}
 	}
 
-	public void notifyDownloadComplete(boolean isEnd) {
-		if (isEnd) {
-			VideoEventPublisher.publishVideoDownloadEvent(new VideoDownloadEvent(true, video));
-		}
-	}
+
 
 }

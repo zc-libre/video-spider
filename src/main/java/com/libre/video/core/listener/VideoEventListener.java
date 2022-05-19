@@ -4,7 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.Exceptions;
 import com.libre.core.toolkit.StreamUtils;
-import com.libre.video.core.event.VideoDownloadEvent;
+import com.libre.video.core.download.M3u8Download;
+import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.core.event.VideoSaveEvent;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.ErrorVideo;
@@ -35,6 +36,7 @@ public class VideoEventListener {
 	private final VideoService videoService;
 	private final SqlSessionTemplate sqlSessionTemplate;
 	private final ErrorVideoService errorVideoService;
+	private final M3u8Download download;
 
 	@Async("taskScheduler")
 	@EventListener(VideoSaveEvent.class)
@@ -51,6 +53,10 @@ public class VideoEventListener {
 		} catch (Exception e) {
 			log.error("保存数据失败: {}", Exceptions.getStackTraceAsString(e));
 		}
+
+		for (Video video : videoList) {
+			download.download(video);
+		}
 	}
 
 	@Async("taskScheduler")
@@ -61,9 +67,9 @@ public class VideoEventListener {
 	}
 
 	@Async("downloadExecutor")
-	@EventListener(VideoDownloadEvent.class)
-	public void onDownloadEvent(VideoDownloadEvent downloadEvent) {
-		videoService.saveVideoToOss(downloadEvent.getVideo());
+	@EventListener(VideoUploadEvent.class)
+	public void onDownloadEvent(VideoUploadEvent downloadEvent) {
+		videoService.saveVideoToOss(downloadEvent);
 	}
 
 	@Transactional(rollbackFor = Exception.class)

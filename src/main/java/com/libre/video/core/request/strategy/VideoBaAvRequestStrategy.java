@@ -51,7 +51,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 	}
 	@Override
 	public void execute(VideoRequestParam requestParam) {
-		String url = baseUrl + "/300.html";
+		String url = baseUrl + "/list/300.html";
 		Mono<String> mono = request(url);
 		String body = mono.block();
 		if (StringUtil.isBlank(body)) {
@@ -163,7 +163,7 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 		RequestTypeEnum requestTypeEnum = videoRequest.value();
 		Assert.notNull(requestTypeEnum, "requestTypeEnum must not be null");
 		baseUrl = requestTypeEnum.getBaseUrl();
-		urlTemplate = baseUrl + "/300-{page}.html";
+		urlTemplate = baseUrl + "/list/300-{page}.html";
 		requestType = requestTypeEnum.getType();
 	}
 

@@ -3,6 +3,7 @@ package com.libre.video.core.event;
 import com.libre.video.pojo.Video;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.core.io.Resource;
 
 /**
  * @author: Libre
@@ -10,9 +11,11 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class VideoDownloadEvent  {
+public class VideoUploadEvent {
 
 	private Boolean end;
 
 	private Video video;
+
+	private Resource resource;
 }

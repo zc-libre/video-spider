@@ -1,6 +1,5 @@
 package com.libre.video.core.event;
 
-import com.libre.video.pojo.BaAvVideo;
 import com.libre.video.pojo.ErrorVideo;
 import com.libre.video.pojo.Video;
 import com.libre.boot.autoconfigure.SpringContext;
@@ -26,7 +25,7 @@ public class VideoEventPublisher {
         applicationContext.publishEvent(errorVideo);
     }
 
-	public static void publishVideoDownloadEvent(VideoDownloadEvent downloadEvent) {
+	public static void publishVideoUploadEvent(VideoUploadEvent downloadEvent) {
 		applicationContext.publishEvent(downloadEvent);
 	}
 }

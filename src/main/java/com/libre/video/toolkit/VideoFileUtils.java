@@ -34,8 +34,8 @@ public class VideoFileUtils {
 		Assert.notNull(properties, "VideoProperties must not be null");
 	}
 
-	public static String getVideoTempPath(String videoName) {
-		return properties.getDownloadPath() + videoName;
+	public static String getVideoTempPath(String path) {
+		return properties.getDownloadPath() + path;
 	}
 
 	public static String getVideoM3u8TempPath(Long videoId) {

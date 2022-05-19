@@ -33,11 +33,9 @@ public class VideoController {
 		return R.data(videoPage);
 	}
 
-	private final M3u8Download m3u8Download;
 	@GetMapping("/watch/{videoId}")
 	public void watch(@PathVariable Long videoId) {
-		Video video = videoService.getById(videoId);
-		m3u8Download.download(video);
+	     videoService.watch(videoId);
 	}
 
 	@GetMapping("/download/{id}")

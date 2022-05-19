@@ -1,5 +1,8 @@
 package com.libre.video.service.impl;
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,9 +11,12 @@ import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.oss.support.OssTemplate;
+import com.libre.video.config.VideoProperties;
 import com.libre.video.constant.SystemConstants;
+import com.libre.video.core.download.M3u8Download;
 import com.libre.video.core.download.VideoEncode;
 import com.libre.video.core.enums.RequestTypeEnum;
+import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.core.request.VideoRequestContext;
 import com.libre.video.core.request.strategy.VideoRequestStrategy;
 import com.libre.video.mapper.VideoEsRepository;
@@ -19,10 +25,11 @@ import com.libre.video.pojo.Video;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.VideoService;
-import com.libre.video.toolkit.VideoFileUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.sort.*;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -36,17 +43,27 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements VideoService {
+
 	private final VideoRequestContext videoRequestContext;
+
 	private final VideoEncode videoEncode;
+
 	private final VideoEsRepository videoEsRepository;
+
 	private final ElasticsearchOperations elasticsearchOperations;
+
 	private final OssTemplate ossTemplate;
+
+	private final M3u8Download m3u8Download;
+
+	private final VideoProperties properties;
 
 	@Override
 	public void request(VideoRequestParam param) {
@@ -67,70 +84,81 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	}
 
 	@Override
-	@Transactional(rollbackFor = Exception.class)
-	public void saveVideoToOss(Video video) {
+	public void saveVideoToOss(VideoUploadEvent event) {
+		Video video = event.getVideo();
+		String videoPath = video.getVideoPath();
+		Resource resource = event.getResource();
 
-		String videoName = video.getId() + "index.m3u8";
-		String videoTempPath = VideoFileUtils.getVideoTempPath(videoName);
-		if (!VideoFileUtils.videoExist(videoTempPath)) {
-            throw new LibreException(String.format("视频不存在, videoId: %s, videoTitle: %s", video.getId(), video.getTitle()));
-		}
-		saveToOss(video, videoTempPath);
-		String videoUrl = ossTemplate.getObjectURL(SystemConstants.VIDEO_BUCKET_NAME, video.getTitle());
-		log.info("videoUrl: {}", videoUrl);
-		videoUrl = VideoFileUtils.decode(videoUrl);
-		if (StringUtil.isBlank(videoUrl)) {
-			throw new LibreException(String.format("视频链接获取失败, videoId: %s, videoTitle: %s", video.getId(), video.getTitle()));
-		}
+		Assert.hasText(videoPath, "video path must not be null");
+		Assert.notNull(resource, "video resource must not be null");
 
-		log.info("video save success, url: {}", videoUrl);
-		video.setVideoPath(videoUrl);
+		try (InputStream inputStream = resource.getInputStream()) {
+			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, videoPath, inputStream);
+		}
+		catch (IOException e) {
+			throw new LibreException("文件上传失败: " + e.getMessage());
+		}
+		log.info("video save success, url: {}", video.getVideoPath());
 		this.updateById(video);
-		videoEsRepository.save(video);
-		VideoFileUtils.deleteTempVideo(videoTempPath);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery) {
-		List<Sort.Order> orders = getOrders(page);
 		PageRequest pageRequest = PageRequest.of((int) page.getCurrent(), (int) page.getSize());
-		pageRequest.withSort(Sort.by(orders));
-		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder().withPageable(pageRequest);
+
+
+		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
 
 		String title = videoQuery.getTitle();
 		if (StringUtil.isNotBlank(title)) {
-			nativeSearchQueryBuilder
-				.withQuery(QueryBuilders.matchQuery("title", title));
+			nativeSearchQueryBuilder.withQuery(QueryBuilders.matchQuery("title", title));
 		}
-
+		nativeSearchQueryBuilder.withPageable(pageRequest);
+		nativeSearchQueryBuilder.withSorts(sortBuilders(page));
 		NativeSearchQuery query = nativeSearchQueryBuilder.build();
 		SearchHits<Video> hits = elasticsearchOperations.search(query, Video.class);
 		SearchPage<Video> searchPage = SearchHitSupport.searchPageFor(hits, query.getPageable());
-
 		return (Page<Video>) SearchHitSupport.unwrapSearchHits(searchPage);
 	}
 
-	private List<Sort.Order> getOrders(PageDTO<Video> page) {
-		List<Sort.Order> orders = Lists.newArrayList();
+	@Override
+	public void watch(Long videoId) {
+		Video video = Optional.ofNullable(this.getById(videoId))
+				.orElseThrow(() -> new LibreException(String.format("video not exist, videoId: %d", videoId)));
+		S3Object object;
+		try {
+			object = ossTemplate.getObject(SystemConstants.VIDEO_BUCKET_NAME, video.getVideoPath());
+		}
+		catch (Exception e) {
+			throw new LibreException(String.format("video not exist, videoId: %d", videoId));
+		}
+		S3ObjectInputStream inputStream = object.getObjectContent();
+		m3u8Download.downloadM3u8FileToLocal(inputStream.getDelegateStream(), video);
+	}
+
+	private List<SortBuilder<?>> sortBuilders(PageDTO<Video> page) {
+		List<SortBuilder<?>> sortBuilders = Lists.newArrayList();
 		List<OrderItem> orderItems = page.getOrders();
 		if (CollectionUtil.isEmpty(orderItems)) {
-			Sort.Order createTime = Order.by("publishTime").with(Sort.Direction.DESC);
-			Sort.Order lookNum = Order.by("lookNum").with(Sort.Direction.DESC);
-			orders.add(createTime);
-			orders.add(lookNum);
+
+			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort("publishTime").sortMode(SortMode.MEDIAN).order(SortOrder.DESC);
+			sortBuilders.add(fieldSortBuilder);
+
+			ScoreSortBuilder scoreSortBuilder = SortBuilders.scoreSort();
+			sortBuilders.add(scoreSortBuilder);
 		}
 
 		for (OrderItem orderItem : orderItems) {
 			String column = orderItem.getColumn();
 			boolean asc = orderItem.isAsc();
-			Sort.Order order = Order.by(column);
+			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort(column);
 			if (!asc) {
-				order.with(Sort.Direction.DESC);
+				fieldSortBuilder.order(SortOrder.DESC);
 			}
-			orders.add(order);
+			sortBuilders.add(fieldSortBuilder);
 		}
-		return orders;
+	   return sortBuilders;
 	}
 
 	@Override
@@ -143,7 +171,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			for (int i = 0; i < videoList.size(); i++) {
 				if (i != 0 && i % batchSize != 0) {
 					videos.add(videoList.get(i));
-				} else {
+				}
+				else {
 					videoEsRepository.saveAll(videos);
 					log.info("{}条数据同步成功", i);
 					videos.clear();
@@ -154,11 +183,4 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		});
 	}
 
-	private void saveToOss(Video video, String videoPath) {
-		try (InputStream inputStream = Files.newInputStream(Paths.get(videoPath))){
-			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, VideoFileUtils.getVideoName(video.getTitle()),inputStream);
-		} catch (IOException e) {
-			throw new LibreException("文件下载失败: " + e.getMessage());
-		}
-	}
 }

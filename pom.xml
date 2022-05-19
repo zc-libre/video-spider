@@ -200,10 +200,12 @@
             </plugins>
         </pluginManagement>
 
-        <!-- 打包后的启动jar名称 -->
-        <finalName>app</finalName>
         <plugins>
-
+            <plugin>
+                <groupId>io.spring.javaformat</groupId>
+                <artifactId>spring-javaformat-maven-plugin</artifactId>
+                <version>0.0.31</version>
+            </plugin>
             <!-- 用于排除jar中依赖包 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
