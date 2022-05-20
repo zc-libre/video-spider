@@ -5,7 +5,7 @@ spring:
   application:
     name: video-spider
   profiles:
-    active: prod
+    active: dev
   servlet:
     multipart:
       max-file-size: 1GB
@@ -44,7 +44,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       connection-test-query: SELECT 1 FROM DUAL
-      connection-timeout: 100000
+      connection-timeout: 1000000
       maximum-pool-size: 5
       max-lifetime: 1800000
       minimum-idle: 1
@@ -82,7 +82,7 @@ spring:
     hikari:
       connection-test-query: SELECT 1 FROM DUAL
       connection-timeout: 100000
-      maximum-pool-size: 5
+      maximum-pool-size: 500
       max-lifetime: 1800000
       minimum-idle: 1
   elasticsearch:
