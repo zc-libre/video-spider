@@ -169,6 +169,7 @@ public class M3u8Download {
 				Files.createDirectory(dirPath);
 			}
 			catch (IOException e) {
+				log.error("createDirectory error: {}", Exceptions.getStackTraceAsString(e));
 				throw new LibreException(e);
 			}
 		}
