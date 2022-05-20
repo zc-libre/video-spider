@@ -53,10 +53,6 @@ public class VideoEventListener {
 		} catch (Exception e) {
 			log.error("保存数据失败: {}", Exceptions.getStackTraceAsString(e));
 		}
-
-		for (Video video : videoList) {
-			download.download(video);
-		}
 	}
 
 	@Async("taskScheduler")
@@ -93,6 +89,7 @@ public class VideoEventListener {
 				video.setId(dbVideo.getId());
 				videoMapper.updateById(video);
 			}
+			download.download(video);
 		});
 		sqlSession.commit();
 	}
