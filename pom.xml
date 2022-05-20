@@ -258,7 +258,34 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
-
+            <!-- 将项目中代码文件打成jar包 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <excludes>
+                        <!-- 打包后的jar包中不包括配置文件 -->
+                        <!-- 通常是指classpath下目录下的文件，这样可以避免编写时的找不到相应文件 -->
+                        <exclude>*.xml</exclude>
+                        <exclude>*.properties</exclude>
+                        <exclude>*.yml</exclude>
+                    </excludes>
+                    <archive>
+                        <manifest>
+                            <!-- 项目启动类 -->
+                            <mainClass>com.libre.video.VideoClientApplication</mainClass>
+                            <!-- 依赖的jar的目录前缀 -->
+                            <classpathPrefix>../lib/</classpathPrefix>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                        <!-- 将config目录加入classpath目录 -->
+                        <manifestEntries>
+                            <Class-Path>../config/</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
 
             <!-- 打包插件 -->
             <plugin>
