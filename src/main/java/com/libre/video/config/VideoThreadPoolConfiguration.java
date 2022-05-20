@@ -13,7 +13,7 @@ public class VideoThreadPoolConfiguration {
 	@Bean
 	public ThreadPoolTaskExecutor videoRequestExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(4);
+		executor.setCorePoolSize(Runtime.getRuntime().availableProcessors() * 2);
 		executor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);
 		executor.setQueueCapacity(50);
 		executor.setKeepAliveSeconds(60);
