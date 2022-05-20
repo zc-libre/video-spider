@@ -2,6 +2,7 @@ package com.libre.video.core.download;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.StringPool;
 import com.libre.video.config.VideoProperties;
@@ -9,13 +10,13 @@ import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.event.VideoEventPublisher;
 import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.pojo.Video;
+import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.ThreadPoolUtil;
 import com.libre.video.toolkit.VideoFileUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -41,7 +42,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class M3u8Download {
 
 	private final static String MU38_SUFFIX = ".m3u8";
@@ -54,9 +54,16 @@ public class M3u8Download {
 
 	private final VideoProperties properties;
 
+	private VideoService videoService;
+
+	public M3u8Download(WebClient webClient, VideoEncode videoEncode, VideoProperties properties) {
+		this.webClient = webClient;
+		this.videoEncode = videoEncode;
+		this.properties = properties;
+	}
+
 	public void download(Video video) {
 		String url = video.getRealUrl();
-
 		Mono<Resource> mono = webClient.get().uri(url).accept(MediaType.APPLICATION_OCTET_STREAM).retrieve()
 				.bodyToMono(Resource.class);
 		Resource resource = mono.block();
@@ -65,7 +72,12 @@ public class M3u8Download {
 		String m3u8File = video.getId() + StringPool.SLASH + fileName;
 
 		video.setVideoPath(m3u8File);
-		VideoEventPublisher.publishVideoUploadEvent(new VideoUploadEvent(true, video, resource));
+
+		if (ObjectUtils.isEmpty(videoService)) {
+			ApplicationContext context = SpringContext.getContext();
+			videoService = context.getBean(VideoService.class);
+		}
+		videoService.saveVideoToOss(new VideoUploadEvent(true, video, resource));
 	}
 
 	public void downloadM3u8FileToLocal(InputStream inputStream, Video video) {
