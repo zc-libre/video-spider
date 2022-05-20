@@ -17,7 +17,7 @@ public class VideoBaAvParse {
 	@CssQuery(value = "a", attr = "href")
 	private String url;
 
-	@CssQuery(value = "a > li.image > img", attr = "src")
+	@CssQuery(value = "a > li.image > .lazy", attr = "img")
 	private String image;
 
 	@CssQuery(value = "a > li.image > span.note", attr = "text")
