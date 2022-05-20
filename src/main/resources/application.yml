@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: video-spider
-  profiles:
-    active: dev
   servlet:
     multipart:
       max-file-size: 1GB
@@ -92,3 +90,5 @@ video:
   download-path: /libre/video/
   ffmpeg-path: /usr/bin/
   mp4box-path: /libre/gpac/gpac_public/bin/gcc/MP4Box/
+
+
