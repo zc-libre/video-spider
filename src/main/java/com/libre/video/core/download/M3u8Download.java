@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
+import com.libre.core.toolkit.Exceptions;
 import com.libre.core.toolkit.StringPool;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.core.enums.RequestTypeEnum;
@@ -139,6 +140,7 @@ public class M3u8Download {
 			lines.addAll(Files.readAllLines(m3u8FilePath));
 		}
 		catch (IOException e) {
+			log.error("copy error: {}", Exceptions.getStackTraceAsString(e));
 			throw new LibreException(e);
 		}
 		finally {

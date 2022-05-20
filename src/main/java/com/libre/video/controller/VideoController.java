@@ -32,8 +32,9 @@ public class VideoController {
 	}
 
 	@GetMapping("/watch/{videoId}")
-	public void watch(@PathVariable Long videoId) {
+	public  R<Boolean> watch(@PathVariable Long videoId) {
 		videoService.watch(videoId);
+		return R.status(true);
 	}
 
 	@GetMapping("/download/{id}")
