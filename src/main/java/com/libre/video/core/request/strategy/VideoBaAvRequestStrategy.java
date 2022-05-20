@@ -116,6 +116,8 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 			video.setVideoId(id);
 			video.setUrl(baseUrl + url);
 			video.setRealUrl(realUrl);
+			String image = video.getImage();
+			video.setImage(baseUrl + image);
 			videoList.add(video);
 		});
 	}
