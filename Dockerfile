@@ -18,4 +18,4 @@ ENV LC_ALL zh_CN.UTF-8
 
 EXPOSE 9870
 
-CMD java -jar /libre/video-spider-1.0.0/boot/video-spider-1.0.0.jar $JAVA_OPTS --jasypt.encryptor.password=504879189zc..
+CMD java -jar /libre/video-spider-1.0.0/boot/video-spider-1.0.0.jar $JAVA_OPTS -Dspring.profiles.active=prod --jasypt.encryptor.password=504879189zc..
