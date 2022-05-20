@@ -6,12 +6,11 @@ VOLUME  /tmp
 
 WORKDIR /libre
 
-RUN mkdir /usr/local/jdk8
 RUN yum install kde-l10n-Chinese -y
 RUN yum install glibc-common -y
 RUN localedef -c -f UTF-8 -i zh_CN zh_CN.utf8
 
-ADD /root/app/video-spider-1.0.0-app.tar.gz /libre
+ADD video-spider-1.0.0-app.tar.gz /libre
 
 ENV TZ=Asia/Shanghai
 ENV JAVA_OPTS="-Xms128m -Xmx256m"
