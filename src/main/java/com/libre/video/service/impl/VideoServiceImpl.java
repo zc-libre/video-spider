@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
+import com.libre.core.toolkit.Exceptions;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.oss.support.OssTemplate;
 import com.libre.video.config.VideoProperties;
@@ -125,6 +126,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public void watch(Long videoId) {
+		log.info("video watch id is: {}", videoId);
 		Video video = Optional.ofNullable(this.getById(videoId))
 				.orElseThrow(() -> new LibreException(String.format("video not exist, videoId: %d", videoId)));
 		S3Object object;
@@ -132,6 +134,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			object = ossTemplate.getObject(SystemConstants.VIDEO_BUCKET_NAME, video.getVideoPath());
 		}
 		catch (Exception e) {
+			log.error("get file error: {}",Exceptions.getStackTraceAsString(e));
 			throw new LibreException(String.format("video not exist, videoId: %d", videoId));
 		}
 		log.info("file name is: {}", object.getKey());
