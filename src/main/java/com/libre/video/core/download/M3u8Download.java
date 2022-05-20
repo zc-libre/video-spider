@@ -146,6 +146,7 @@ public class M3u8Download {
 		finally {
 			Closeables.closeQuietly(inputStream);
 		}
+		log.info("video copy success, path: {}", m3u8FilePath);
 		return lines;
 	}
 

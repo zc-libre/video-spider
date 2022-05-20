@@ -134,6 +134,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		catch (Exception e) {
 			throw new LibreException(String.format("video not exist, videoId: %d", videoId));
 		}
+		log.info("file name is: {}", object.getKey());
 		S3ObjectInputStream inputStream = object.getObjectContent();
 		m3u8Download.downloadM3u8FileToLocal(inputStream.getDelegateStream(), video);
 	}
