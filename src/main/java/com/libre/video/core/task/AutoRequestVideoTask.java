@@ -23,22 +23,12 @@ public class AutoRequestVideoTask {
 
 	private final VideoService videoService;
 
-	private final M3u8Download m3u8Download;
 
 	@Scheduled(cron = "0 0 3 * * ?")
 	public void execute() {
 		log.info("autoRequestVideo9sTask is start....");
 		videoService.request(VideoRequestParam.builder().requestType(2).build());
 		videoService.request(VideoRequestParam.builder().requestType(3).build());
-	}
-
-	@Scheduled(cron = "0 0 * * * ?")
-	public void updateVideo() {
-		log.info("updateVideoTask is start....");
-		List<Video> list = videoService.list(Wrappers.<Video>lambdaQuery().isNull(Video::getVideoPath));
-		for (Video video : list) {
-			m3u8Download.download(video);
-		}
 	}
 
 }
