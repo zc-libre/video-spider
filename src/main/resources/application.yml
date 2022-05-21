@@ -8,8 +8,8 @@ spring:
     active: prod
   servlet:
     multipart:
-      max-file-size: 1GB
-      max-request-size: 1GB
+      max-file-size: 512MB
+      max-request-size: 512MB
   codec:
     max-in-memory-size: 100MB
 
@@ -66,8 +66,6 @@ video:
   ffmpeg-path: /usr/local/Cellar/ffmpeg/5.0.1/bin/
   mp4box-path: /Applications/GPAC.app/Contents/MacOS/MP4Box/
 
-
-
 ---
 spring:
   config:
@@ -75,16 +73,33 @@ spring:
       on-profile: prod
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://172.17.0.2:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false
+    url: jdbc:mysql://101.42.252.139:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false
     username: root
     password: ENC(pS3X2GTc99Gw5vhMMZWmHzdvtRRHO1o3)
-    type: com.zaxxer.hikari.HikariDataSource
-    hikari:
-      connection-test-query: SELECT 1 FROM DUAL
-      connection-timeout: 100000
-      maximum-pool-size: 500
-      max-lifetime: 1800000
-      minimum-idle: 1
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5
+      max-active: 500
+      min-idle: 50
+      max-wait: 100000
+      validation-query: select 1
+      validation-query-timeout: 2000
+      test-on-borrow: false
+      test-on-return: false
+      test-while-idle: true
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      stat-view-servlet:
+        enabled: true
+        login-username: admin
+        login-password: ENC(pS3X2GTc99Gw5vhMMZWmHzdvtRRHO1o3)
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: '*.js,*.gif,*.jpg,*.bmp,*.png,*.css,*.ico,/druid/*'
+        session-stat-enable: true
+        session-stat-max-count: 10
+
   elasticsearch:
     uris: http://172.17.0.3:9200
     username: elastic
