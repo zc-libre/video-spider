@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
+import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.Exceptions;
 import com.libre.core.toolkit.StringPool;
 import com.libre.video.config.VideoProperties;
@@ -85,10 +86,10 @@ public class M3u8Download {
 		String tempDir = createDirectory(video.getId());
 		String m3u8FileName = tempDir + File.separator + "index.m3u8";
 		Path m3u8FilePath = Paths.get(m3u8FileName);
-		if (Files.exists(m3u8FilePath)) {
+		List<String> lines = copyM3u8File(inputStream, m3u8FilePath);
+		if (CollectionUtil.isEmpty(lines)) {
 			return;
 		}
-		List<String> lines = copyM3u8File(inputStream, m3u8FilePath);
 		ThreadPoolTaskExecutor executor = ThreadPoolUtil.downloadExecutor();
 	     executor.execute(() -> {
 			 List<String> tsLines = lines.stream().filter(line -> line.endsWith(TS_SUFFIX)).collect(Collectors.toList());
@@ -135,6 +136,9 @@ public class M3u8Download {
 
 	private List<String> copyM3u8File(InputStream inputStream, Path m3u8FilePath) {
 		List<String> lines = Lists.newArrayList();
+		if (Files.exists(m3u8FilePath)) {
+			return lines;
+		}
 		try {
 			Files.copy(inputStream, m3u8FilePath);
 			lines.addAll(Files.readAllLines(m3u8FilePath));
@@ -151,8 +155,11 @@ public class M3u8Download {
 	}
 
 	private void copyTsFile(String tsPath, Resource resource) {
+		Path path = Paths.get(tsPath);
+		if (Files.exists(path)) {
+			return;
+		}
 		try (InputStream in = resource.getInputStream()) {
-			Path path = Paths.get(tsPath);
 			Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (IOException e) {

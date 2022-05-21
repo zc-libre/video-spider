@@ -87,7 +87,6 @@ public class VideoEventListener {
 				videoMapper.insert(video);
 			} else {
 				video.setId(dbVideo.getId());
-				videoMapper.updateById(video);
 			}
 			download.download(video);
 		});
