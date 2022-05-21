@@ -88,7 +88,11 @@ public class VideoEventListener {
 			} else {
 				video.setId(dbVideo.getId());
 			}
-			download.download(video);
+			try {
+				download.download(video);
+			} catch (Exception e) {
+				log.error(e.getMessage());
+			}
 		});
 		sqlSession.commit();
 	}
