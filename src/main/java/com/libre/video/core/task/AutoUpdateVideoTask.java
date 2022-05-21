@@ -25,13 +25,13 @@ public class AutoUpdateVideoTask {
 	@Scheduled(cron = "0 0 * * * ?")
 	public void updateVideo() {
 		log.info("updateVideoTask is start....");
-		try {
-			List<Video> list = videoService.list(Wrappers.<Video>lambdaQuery().isNull(Video::getVideoPath));
-			for (Video video : list) {
+		List<Video> list = videoService.list(Wrappers.<Video>lambdaQuery().isNull(Video::getVideoPath));
+		for (Video video : list) {
+			try {
 				m3u8Download.download(video);
+			} catch (Exception e) {
+				log.error("update error: {}", e.getMessage());
 			}
-		} catch (Exception e) {
-			log.error("update error: {}", e.getMessage());
 		}
 	}
 }
