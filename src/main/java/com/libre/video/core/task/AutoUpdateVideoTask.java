@@ -22,7 +22,7 @@ public class AutoUpdateVideoTask {
 	private final M3u8Download m3u8Download;
 	private final VideoService videoService;
 
-	@Scheduled(cron = "0 0 * * * ?")
+//	@Scheduled(cron = "0 0 * * * ?")
 	public void updateVideo() {
 		log.info("updateVideoTask is start....");
 		List<Video> list = videoService.list(Wrappers.<Video>lambdaQuery().isNull(Video::getVideoPath));

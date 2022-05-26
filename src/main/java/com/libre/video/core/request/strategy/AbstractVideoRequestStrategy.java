@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Mono;
@@ -29,7 +31,8 @@ public abstract class AbstractVideoRequestStrategy<P> implements VideoRequestStr
 
 	protected final VideoService videoService;
 	protected final WebClient webClient;
-	protected Map<String, String> headers = Maps.newHashMap();
+	protected  MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+	private final Random r = RandomHolder.RANDOM;
 
 	public AbstractVideoRequestStrategy(VideoService videoService, WebClient webClient) {
 		this.videoService = videoService;
@@ -77,6 +80,8 @@ public abstract class AbstractVideoRequestStrategy<P> implements VideoRequestStr
 		log.info("start request url: {}", url);
 		return webClient.get()
 			.uri(url)
+			.headers(httpHeaders -> httpHeaders.addAll(headers))
+			.header("X-Forwarded-For", r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256))
 			.retrieve()
 			.bodyToMono(String.class)
 			.doOnError(e -> log.error("request error, url: {},message: {}", url, e.getMessage()))
@@ -91,12 +96,10 @@ public abstract class AbstractVideoRequestStrategy<P> implements VideoRequestStr
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Random r = RandomHolder.RANDOM;
-		headers.put(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
-		headers.put(HttpHeaders.USER_AGENT, UserAgentContext.getUserAgent());
-		headers.put(HttpHeaders.ACCEPT_LANGUAGE, "zh-cn,zh;q=0.5");
-		headers.put("Connection", "keep-alive");
-		headers.put("X-Forwarded-For", r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256));
+		headers.add(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+		headers.add(HttpHeaders.USER_AGENT, UserAgentContext.getUserAgent());
+		headers.add(HttpHeaders.ACCEPT_LANGUAGE, "zh-cn,zh;q=0.5");
+		headers.add("Connection", "keep-alive");
 	}
 
 

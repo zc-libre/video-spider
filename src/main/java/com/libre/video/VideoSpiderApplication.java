@@ -13,12 +13,12 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @SpringBootApplication
 @RequiredArgsConstructor
 @EnableAspectJAutoProxy(exposeProxy = true, proxyTargetClass = true)
-public class VideoClientApplication implements ApplicationRunner {
+public class VideoSpiderApplication implements ApplicationRunner {
 
     private final Video9SRequestStrategy video9sRequest;
 
     public static void main(String[] args) {
-        SpringApplication.run(VideoClientApplication.class, args);
+        SpringApplication.run(VideoSpiderApplication.class, args);
     }
 
     @Override

@@ -46,9 +46,13 @@ import java.util.concurrent.TimeUnit;
 public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91Parse> {
 
 	private String baseUrl;
+
 	private Integer requestType;
+
 	private String urlTemplate;
+
 	private final static String PARAM_PAGE = "page";
+
 	private final List<Video> videoList = Lists.newCopyOnWriteArrayList();
 
 	public Video91RequestStrategy(VideoService videoService, WebClient webClient) {
@@ -67,7 +71,7 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 
 	@Override
 	protected void readVideoList(Integer pageSize) {
-		for (int i = 1; i <= pageSize; i++) {
+		for (int i = 681; i <= pageSize; i++) {
 			Map<String, Object> params = Maps.newHashMap();
 			params.put(PARAM_PAGE, i);
 			String requestUrl = buildUrl(urlTemplate, params);
@@ -80,9 +84,7 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 			}
 			readAndSave(video91Parses);
 		}
-		ThreadUtil.sleep(TimeUnit.SECONDS, 3);
 	}
-
 
 	@Override
 	protected List<Video91Parse> parsePage(String html) {
@@ -101,7 +103,8 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 	protected void readAndSave(List<Video91Parse> parseList) {
 		try {
 			parseList.forEach(this::readVideo);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.error("parse video error, {}", e.getMessage());
 		}
 		List<Video> list = Lists.newArrayList();
@@ -138,6 +141,10 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 		if (StringUtil.isNotBlank(collectText)) {
 			video91Parse.setCollectNum(Integer.parseInt(StringUtil.trimWhitespace(collectText)));
 		}
+		String author = video91Parse.getAuthor();
+		if (StringUtil.isNotBlank(author)) {
+			video91Parse.setAuthor(StringUtil.trimWhitespace(author));
+		}
 	}
 
 	public void readVideo(Video91Parse video91Parse) {
@@ -161,7 +168,8 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 		Video91DetailParse video91DetailParse = null;
 		try {
 			video91DetailParse = DomMapper.readValue(body, Video91DetailParse.class);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.error("read bean error, e: {}", e.getMessage());
 		}
 		long id = parseVideoId(realUrl);
@@ -171,20 +179,20 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 		Optional.ofNullable(video91DetailParse).ifPresent(dto -> video.setPublishTime(dto.getPublishTime()));
 		video.setUpdateTime(LocalDateTime.now());
 		videoList.add(video);
-		ThreadUtil.sleep(TimeUnit.SECONDS, 5);
+		ThreadUtil.sleep(TimeUnit.SECONDS, 3);
 	}
 
 	private static long parseVideoId(String realUrl) {
 		String regexValue = null;
 		if (realUrl.contains("mp4")) {
 			regexValue = RegexUtil.getRegexValue("(?<=/mp43/).*(?=.mp4)", 0, realUrl);
-		} else if (realUrl.contains("m3u8")) {
+		}
+		else if (realUrl.contains("m3u8")) {
 			regexValue = RegexUtil.getRegexValue("(?<=/m3u8/(\\d+)/).*(?=.m3u8)", 0, realUrl);
 		}
 		regexValue = Optional.ofNullable(regexValue).orElse(IdWorker.getIdStr());
 		return Long.parseLong(regexValue);
 	}
-
 
 	@Override
 	public Integer parsePageSize(String html) {
@@ -220,4 +228,5 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 		requestType = requestTypeEnum.getType();
 		urlTemplate = baseUrl + StringPool.AMPERSAND + PARAM_PAGE + StringPool.EQUALS + "{page}";
 	}
+
 }

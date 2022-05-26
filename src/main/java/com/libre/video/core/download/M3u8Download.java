@@ -9,7 +9,6 @@ import com.libre.core.toolkit.Exceptions;
 import com.libre.core.toolkit.StringPool;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.core.enums.RequestTypeEnum;
-import com.libre.video.core.event.VideoEventPublisher;
 import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
@@ -91,17 +90,18 @@ public class M3u8Download {
 			return;
 		}
 		ThreadPoolTaskExecutor executor = ThreadPoolUtil.downloadExecutor();
-	     executor.execute(() -> {
-			 List<String> tsLines = lines.stream().filter(line -> line.endsWith(TS_SUFFIX)).collect(Collectors.toList());
-			 String realUrl = video.getRealUrl();
-			 String baseUrl = realUrl.substring(0, realUrl.lastIndexOf(StringPool.SLASH));
-			 if (RequestTypeEnum.REQUEST_BA_AV.getType() == video.getVideoWebsite()) {
-				 downloadTsFilesAsync(baseUrl, tempDir, tsLines);
-			 }
-			 else if (RequestTypeEnum.REQUEST_9S.getType() == video.getVideoWebsite()) {
-				 downloadTsFiles(baseUrl, tempDir, tsLines);
-			 }
-		 });
+		executor.execute(() -> {
+			List<String> tsLines = lines.stream().filter(line -> line.endsWith(TS_SUFFIX)).collect(Collectors.toList());
+			String realUrl = video.getRealUrl();
+			String baseUrl = realUrl.substring(0, realUrl.lastIndexOf(StringPool.SLASH));
+			if (RequestTypeEnum.REQUEST_BA_AV.getType() == video.getVideoWebsite()
+					|| RequestTypeEnum.REQUEST_91.getType() == video.getVideoWebsite()) {
+				downloadTsFilesAsync(baseUrl, tempDir, tsLines);
+			}
+			else if (RequestTypeEnum.REQUEST_9S.getType() == video.getVideoWebsite()) {
+				downloadTsFiles(baseUrl, tempDir, tsLines);
+			}
+		});
 	}
 
 	public void downloadTsFiles(String baseUrl, String tempDir, List<String> lines) {
@@ -120,18 +120,16 @@ public class M3u8Download {
 	}
 
 	public void downloadTsFilesAsync(String baseUrl, String tempDir, List<String> lines) {
-		Flux.fromIterable(lines).flatMap(ts -> {
-			Mono<Resource> mono = webClient.get().uri(baseUrl + StringPool.SLASH + ts).accept(MediaType.APPLICATION_OCTET_STREAM)
-				.retrieve().bodyToMono(Resource.class).retry(5).doOnError(e -> log.error("请求异常"))
-				.publishOn(Schedulers.boundedElastic()).map(resource -> {
-					String tsPath = tempDir + File.separator + ts;
-					log.info("正在下载： {}", tsPath);
-					copyTsFile(tsPath, resource);
-					return resource;
-				});
-			return mono;
-		}).collectList().doOnError(e -> log.error("请求异常")).doOnNext(list -> log.info("所有请求完成")).block();
-
+		Flux.fromIterable(lines).sort()
+				.flatMap(ts -> webClient.get().uri(baseUrl + StringPool.SLASH + ts)
+						.accept(MediaType.APPLICATION_OCTET_STREAM).retrieve().bodyToMono(Resource.class).retry(5)
+						.doOnError(e -> log.error("请求异常")).publishOn(Schedulers.boundedElastic()).map(resource -> {
+							String tsPath = tempDir + File.separator + ts;
+							log.info("正在下载： {}", tsPath);
+							copyTsFile(tsPath, resource);
+							return resource;
+						}))
+				.collectList().doOnError(e -> log.error("请求异常")).doOnNext(list -> log.info("所有请求完成")).block();
 	}
 
 	private List<String> copyM3u8File(InputStream inputStream, Path m3u8FilePath) {

@@ -99,8 +99,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		catch (IOException e) {
 			throw new LibreException("文件上传失败: " + e.getMessage());
 		}
-		log.info("video save success, url: {}", video.getVideoPath());
 		this.updateById(video);
+		log.info("video save success, url: {}", video.getVideoPath());
 	}
 
 	@Override

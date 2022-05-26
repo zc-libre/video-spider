@@ -74,6 +74,9 @@ public class VideoEventListener {
 		List<Video> videos = videoService.list(Wrappers.<Video>lambdaQuery().eq(Video::getVideoWebsite, type).in(Video::getVideoId, videoIds));
 		if (CollectionUtil.isEmpty(videos)) {
 			videoService.saveBatch(videoList);
+			for (Video video : videoList) {
+				updateVideoPath(video);
+			}
 			return;
 		}
 		Map<Long, Video> videoMap = StreamUtils.map(videos, Video::getVideoId, Function.identity());
@@ -88,12 +91,16 @@ public class VideoEventListener {
 			} else {
 				video.setId(dbVideo.getId());
 			}
-			try {
-				download.download(video);
-			} catch (Exception e) {
-				log.error(e.getMessage());
-			}
+			updateVideoPath(video);
 		});
 		sqlSession.commit();
+	}
+
+	private void updateVideoPath(Video video) {
+		try {
+			download.download(video);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
 	}
 }

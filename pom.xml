@@ -282,7 +282,7 @@
                     <archive>
                         <manifest>
                             <!-- 项目启动类 -->
-                            <mainClass>com.libre.video.VideoClientApplication</mainClass>
+                            <mainClass>com.libre.video.VideoSpiderApplication</mainClass>
                             <!-- 依赖的jar的目录前缀 -->
                             <classpathPrefix>../lib/</classpathPrefix>
                             <addClasspath>true</addClasspath>

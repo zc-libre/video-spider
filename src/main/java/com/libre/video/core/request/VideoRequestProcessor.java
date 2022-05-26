@@ -26,7 +26,7 @@ public class VideoRequestProcessor implements ApplicationContextAware, Initializ
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		Map<Integer, Class<VideoRequestStrategy>> context = VideoRequestContext.getVideoRequestStrategyContext();
 		log.info("VideoRequestContext init classes: {}", context.values());
 	}
