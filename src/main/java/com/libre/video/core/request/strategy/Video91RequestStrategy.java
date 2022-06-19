@@ -71,7 +71,7 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 
 	@Override
 	protected void readVideoList(Integer pageSize) {
-		for (int i = 681; i <= pageSize; i++) {
+		for (int i = 1; i <= 10; i++) {
 			Map<String, Object> params = Maps.newHashMap();
 			params.put(PARAM_PAGE, i);
 			String requestUrl = buildUrl(urlTemplate, params);
