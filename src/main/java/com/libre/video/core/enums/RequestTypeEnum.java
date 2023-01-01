@@ -16,7 +16,7 @@ public enum RequestTypeEnum {
 	/**
 	 * 九色
 	 */
-    REQUEST_9S(2, "https://xn--sjqr38j.com/video/category/latest"),
+    REQUEST_9S(2, "https://8fp2bqr.jiuse970.com/video/category/latest"),
 
 	/**
 	 * baav

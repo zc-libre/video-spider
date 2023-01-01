@@ -34,8 +34,11 @@ import java.util.function.Function;
 public class VideoEventListener {
 
 	private final VideoService videoService;
+
 	private final SqlSessionTemplate sqlSessionTemplate;
+
 	private final ErrorVideoService errorVideoService;
+
 	private final M3u8Download download;
 
 	@Async("videoRequestExecutor")
@@ -50,7 +53,8 @@ public class VideoEventListener {
 		try {
 			Video video = videoList.get(0);
 			saveOrUpdateBatch(videoList, video.getVideoWebsite());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.error("保存数据失败: {}", Exceptions.getStackTraceAsString(e));
 		}
 	}
@@ -65,13 +69,14 @@ public class VideoEventListener {
 	@Async("downloadExecutor")
 	@EventListener(VideoUploadEvent.class)
 	public void onDownloadEvent(VideoUploadEvent downloadEvent) {
-		videoService.saveVideoToOss(downloadEvent);
+		videoService.saveVideoToLocal(downloadEvent);
 	}
 
 	@Transactional(rollbackFor = Exception.class)
 	public void saveOrUpdateBatch(List<Video> videoList, int type) {
 		List<Long> videoIds = StreamUtils.list(videoList, Video::getVideoId);
-		List<Video> videos = videoService.list(Wrappers.<Video>lambdaQuery().eq(Video::getVideoWebsite, type).in(Video::getVideoId, videoIds));
+		List<Video> videos = videoService
+				.list(Wrappers.<Video>lambdaQuery().eq(Video::getVideoWebsite, type).in(Video::getVideoId, videoIds));
 		if (CollectionUtil.isEmpty(videos)) {
 			videoService.saveBatch(videoList);
 			for (Video video : videoList) {
@@ -81,26 +86,34 @@ public class VideoEventListener {
 		}
 		Map<Long, Video> videoMap = StreamUtils.map(videos, Video::getVideoId, Function.identity());
 		SqlSessionFactory sqlSessionFactory = sqlSessionTemplate.getSqlSessionFactory();
-		SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH);
-		VideoMapper videoMapper = sqlSession.getMapper(VideoMapper.class);
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			VideoMapper videoMapper = sqlSession.getMapper(VideoMapper.class);
 
-		videoList.forEach(video -> {
-			Video dbVideo = videoMap.get(video.getVideoId());
-			if (Objects.isNull(dbVideo)) {
-				videoMapper.insert(video);
-			} else {
-				video.setId(dbVideo.getId());
-			}
-			updateVideoPath(video);
-		});
-		sqlSession.commit();
+			videoList.forEach(video -> {
+				Video dbVideo = videoMap.get(video.getVideoId());
+				if (Objects.isNull(dbVideo)) {
+					videoMapper.insert(video);
+				}
+				else {
+					video.setId(dbVideo.getId());
+				}
+				updateVideoPath(video);
+			});
+			sqlSession.commit();
+		}
+		catch (Exception e) {
+			// throw new RuntimeException(e);
+		}
+
 	}
 
 	private void updateVideoPath(Video video) {
 		try {
 			download.download(video);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.error(e.getMessage());
 		}
 	}
+
 }

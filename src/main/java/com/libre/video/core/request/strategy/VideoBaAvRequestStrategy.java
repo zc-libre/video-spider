@@ -30,7 +30,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.*;
 
-
 /**
  * @author: Libre
  * @Date: 2022/5/12 12:00 AM
@@ -38,17 +37,21 @@ import java.util.*;
 @Slf4j
 @Component
 @VideoRequest(RequestTypeEnum.REQUEST_BA_AV)
-public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<VideoBaAvParse>  {
+public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<VideoBaAvParse> {
 
 	private String baseUrl;
+
 	private String urlTemplate;
+
 	private Integer requestType;
+
 	private final List<BaAvVideo> videoList = Lists.newCopyOnWriteArrayList();
 
 	public VideoBaAvRequestStrategy(VideoService videoService, WebClient webClient) {
 		super(videoService, webClient);
 
 	}
+
 	@Override
 	public void execute(VideoRequestParam requestParam) {
 		String url = baseUrl + "/list/300.html";
@@ -62,7 +65,6 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 		readVideoList(pageSize);
 		log.info("request complete!");
 	}
-
 
 	protected void readVideoList(Integer pageSize) {
 		Map<String, Object> params = Maps.newHashMap();
@@ -92,7 +94,8 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 	public void readAndSave(List<VideoBaAvParse> videoBaAvParses) {
 		try {
 			videoBaAvParses.forEach(this::readVideo);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.error("parse video error, {}", e.getMessage());
 		}
 		List<BaAvVideo> list = Lists.newArrayList();

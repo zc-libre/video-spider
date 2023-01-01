@@ -4,6 +4,8 @@ import com.libre.video.core.download.VideoDownload;
 import com.libre.video.core.request.strategy.Video9SRequestStrategy;
 import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
+import com.libre.video.toolkit.VideoFileUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +20,10 @@ class VideoApplicationTests {
     VideoDownload download;
     @Autowired
 	Video9SRequestStrategy request;
+
+
+	@Autowired
+	M3u8Download m3u8Download;
   //  @Autowired
 //	VideoEsRepository videoEsRepository;
 

@@ -140,16 +140,15 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
             video9SDTO.setUrl(url);
         }
 		Mono<String> request = request(url);
-		request.subscribe(body -> {
-			if (StringUtil.isBlank(body)) {
-				return;
-			}
-			parseVideoInfo(body, video9SDTO);
-			log.debug("解析到一条视频数据: {}", video9SDTO);
-			Video91Mapping video91Mapping = Video91Mapping.INSTANCE;
-			Video video = video91Mapping.convertToVideo91(video9SDTO);
-			videoList.add(video);
-		});
+		String body = request.block();
+		if (StringUtil.isBlank(body)) {
+			return;
+		}
+		parseVideoInfo(body, video9SDTO);
+		log.debug("解析到一条视频数据: {}", video9SDTO);
+		Video91Mapping video91Mapping = Video91Mapping.INSTANCE;
+		Video video = video91Mapping.convertToVideo91(video9SDTO);
+		videoList.add(video);
 
     }
 	private void parseVideoInfo(String html, Video9sDTO video9SDTO) {

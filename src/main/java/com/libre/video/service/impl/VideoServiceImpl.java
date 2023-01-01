@@ -4,12 +4,14 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.Exceptions;
+import com.libre.core.toolkit.FileUtil;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.oss.support.OssTemplate;
 import com.libre.video.config.VideoProperties;
@@ -39,10 +41,10 @@ import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StreamUtils;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -84,6 +86,20 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		}
 	}
 
+	public void saveVideoToLocal(VideoUploadEvent event) {
+		Video video = event.getVideo();
+		Resource resource = event.getResource();
+		String downloadPath = properties.getDownloadPath();
+		try (InputStream in = resource.getInputStream()) {
+			Files.copy(in, Path.of(downloadPath + video.getVideoPath()), StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch (Exception e) {
+			log.error("文件拷贝失败, ",e);
+		}
+		this.updateById(video);
+		log.info("video save success, url: {}", video.getVideoPath());
+	}
+
 	@Override
 	public void saveVideoToOss(VideoUploadEvent event) {
 		Video video = event.getVideo();
@@ -107,7 +123,6 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	@SuppressWarnings("unchecked")
 	public Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery) {
 		PageRequest pageRequest = PageRequest.of((int) page.getCurrent(), (int) page.getSize());
-
 
 		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
 
@@ -134,12 +149,12 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			object = ossTemplate.getObject(SystemConstants.VIDEO_BUCKET_NAME, video.getVideoPath());
 		}
 		catch (Exception e) {
-			log.error("get file error: {}",Exceptions.getStackTraceAsString(e));
+			log.error("get file error: {}", Exceptions.getStackTraceAsString(e));
 			throw new LibreException(String.format("video not exist, videoId: %d", videoId));
 		}
 		log.info("file name is: {}", object.getKey());
 		S3ObjectInputStream inputStream = object.getObjectContent();
-		m3u8Download.downloadM3u8FileToLocal(inputStream.getDelegateStream(), video);
+		m3u8Download.downloadM3u8FileToLocal(inputStream.getDelegateStream(), video, false);
 	}
 
 	private List<SortBuilder<?>> sortBuilders(PageDTO<Video> page) {
@@ -150,8 +165,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort("publishTime").order(SortOrder.DESC);
 			sortBuilders.add(fieldSortBuilder);
 
-//			ScoreSortBuilder scoreSortBuilder = SortBuilders.scoreSort().order(SortOrder.DESC);
-//			sortBuilders.add(scoreSortBuilder);
+			// ScoreSortBuilder scoreSortBuilder =
+			// SortBuilders.scoreSort().order(SortOrder.DESC);
+			// sortBuilders.add(scoreSortBuilder);
 		}
 
 		for (OrderItem orderItem : orderItems) {
@@ -163,29 +179,24 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			}
 			sortBuilders.add(fieldSortBuilder);
 		}
-	   return sortBuilders;
+		return sortBuilders;
 	}
 
 	@Override
 	public void syncToElasticsearch() {
-		CompletableFuture<List<Video>> future = CompletableFuture.supplyAsync(this::list);
-		future.thenAcceptAsync((videoList) -> {
-			int batchSize = 1000;
-			log.info("数据同步开始, 共{}条数据：", videoList.size());
-			List<Video> videos = Lists.newArrayList();
-			for (int i = 0; i < videoList.size(); i++) {
-				if (i != 0 && i % batchSize != 0) {
-					videos.add(videoList.get(i));
-				}
-				else {
-					videoEsRepository.saveAll(videos);
-					log.info("{}条数据同步成功", i);
-					videos.clear();
-				}
-			}
-			videoEsRepository.saveAll(videos);
-			log.info("数据同步完成, 共{}条数据", videoList.size());
-		});
+		log.info("开始同步数据....");
+
+		PageDTO<Video> page = new PageDTO<>();
+		page.setCurrent(1);
+		page.setSize(500);
+		this.page(page);
+		for (long i = 2; i < page.getPages(); i++) {
+			List<Video> records = page.getRecords();
+			log.info("已经同步数据{}条", 500 * i);
+			videoEsRepository.saveAll(records);
+			page.setCurrent(i);
+			this.page(page);
+		}
 	}
 
 }

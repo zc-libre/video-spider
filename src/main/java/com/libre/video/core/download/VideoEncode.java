@@ -87,5 +87,7 @@ public class VideoEncode {
 			.addOutput(path)
 			.setFormat(MP4_FORMAT)
 			.addExtraArgs("-allowed_extensions", "ALL", "-c", "copy", "-threads", String.valueOf(Runtime.getRuntime().availableProcessors() * 2), "-preset", "ultrafast");
+		           //    .addExtraArgs("-c:v", "libx264", "-crf", "22", "-threads", "4");
+
 	}
 }
