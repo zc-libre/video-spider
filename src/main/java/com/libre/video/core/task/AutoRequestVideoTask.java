@@ -23,7 +23,7 @@ public class AutoRequestVideoTask {
 
 	private final VideoService videoService;
 
-	@Scheduled(cron = "0 0 3 * * ?")
+	//@Scheduled(cron = "0 0 3 * * ?")
 	public void execute() {
 		log.info("autoRequestVideo9sTask is start....");
 		// videoService.request(VideoRequestParam.builder().requestType(2).build());

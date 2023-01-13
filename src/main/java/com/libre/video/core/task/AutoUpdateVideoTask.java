@@ -2,13 +2,10 @@ package com.libre.video.core.task;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.libre.video.core.download.M3u8Download;
-import com.libre.video.pojo.ErrorVideo;
 import com.libre.video.pojo.Video;
-import com.libre.video.service.ErrorVideoService;
 import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -28,7 +25,7 @@ public class AutoUpdateVideoTask {
 		List<Video> list = videoService.list(Wrappers.<Video>lambdaQuery().isNull(Video::getVideoPath));
 		for (Video video : list) {
 			try {
-				m3u8Download.download(video);
+				m3u8Download.downloadAndReadM3u8File(video);
 			} catch (Exception e) {
 				log.error("update error: {}", e.getMessage());
 			}

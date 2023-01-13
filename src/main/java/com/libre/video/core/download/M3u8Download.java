@@ -1,9 +1,6 @@
 package com.libre.video.core.download;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.io.Closeables;
-import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.Exceptions;
@@ -11,21 +8,17 @@ import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.core.enums.RequestTypeEnum;
-import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.pojo.Video;
-import com.libre.video.service.VideoService;
-import com.libre.video.toolkit.ThreadPoolUtil;
 import com.libre.video.toolkit.VideoFileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.springframework.context.ApplicationContext;
+import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -39,9 +32,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -64,8 +56,6 @@ public class M3u8Download {
 
 	private final VideoProperties properties;
 
-	private VideoService videoService;
-
 	public M3u8Download(WebClient webClient, VideoEncode videoEncode, VideoProperties properties) {
 		this.webClient = webClient;
 		this.videoEncode = videoEncode;
@@ -82,34 +72,53 @@ public class M3u8Download {
 			return resource.getInputStream();
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw Exceptions.unchecked(e);
 		}
 	}
 
-	public void download(Video video) {
+	public void downloadAndReadM3u8File(Video video) throws Exception {
 		String url = video.getRealUrl();
 		Mono<Resource> mono = webClient.get().uri(url).accept(MediaType.APPLICATION_OCTET_STREAM).retrieve()
 				.bodyToMono(Resource.class);
 		Resource resource = mono.block();
-
-		String fileName = video.getId() + MU38_SUFFIX;
-		String m3u8File = video.getId() + StringPool.SLASH + fileName;
-
-		video.setVideoPath(fileName);
-
-		if (ObjectUtils.isEmpty(videoService)) {
-			ApplicationContext context = SpringContext.getContext();
-			videoService = context.getBean(VideoService.class);
+		if (Objects.isNull(resource)) {
+			log.error("m3u8文件下载失败, url: {}", url);
+			return;
 		}
-		videoService.saveVideoToLocal(new VideoUploadEvent(true, video, resource));
+		String fileName = video.getId() + MU38_SUFFIX;
+		video.setVideoPath(fileName);
+		String content = readM3u8File(resource.getInputStream(), video);
+		if (StringUtil.isBlank(content)) {
+			log.error("m3u8文件读取失败, 文件内容为空");
+			return;
+		}
+		video.setM3u8Content(content);
+		String videoTempDir = getVideoTempDir(video.getId());
+		FileUtils.deleteDirectory(new File(videoTempDir));
+	}
+
+	public String readM3u8File(InputStream inputStream, Video video) {
+		Path m3u8FilePath = buildM3u8FilePath(video);
+		return copyM3u8FileToString(inputStream, m3u8FilePath);
+	}
+
+	private Path buildM3u8FilePath(Video video) {
+		String tempDir = createDirectory(video.getId());
+		String m3u8FileName = tempDir + File.separator + "index.m3u8";
+		return Paths.get(m3u8FileName);
 	}
 
 	@Async
-	public void downloadM3u8FileToLocal(InputStream inputStream, Video video, boolean isMerge) {
+	public void downloadVideoToLocal(InputStream inputStream, Video video) {
 		String tempDir = createDirectory(video.getId());
 		String m3u8FileName = tempDir + File.separator + "index.m3u8";
 		Path m3u8FilePath = Paths.get(m3u8FileName);
 		List<String> lines = copyM3u8File(inputStream, m3u8FilePath);
+		downloadTsFilesToLocal(video, true, tempDir, m3u8FilePath, lines);
+	}
+
+	public void downloadTsFilesToLocal(Video video, boolean isMerge, String tempDir, Path m3u8FilePath,
+			List<String> lines) {
 		if (CollectionUtil.isEmpty(lines)) {
 			log.error("lines is empty");
 			return;
@@ -125,9 +134,10 @@ public class M3u8Download {
 			downloadTsFilesAsync(baseUrl, tempDir, tsLines);
 
 		}
-		else if (RequestTypeEnum.REQUEST_9S.getType() == video.getVideoWebsite()) {
-			 tsFiles = downloadTsFiles(baseUrl, tempDir, tsLines);
+		else {
+			tsFiles = downloadTsFiles(baseUrl, tempDir, tsLines);
 		}
+
 		if (isMerge) {
 			mergeTsFiles(video, tempDir, tsFiles);
 		}
@@ -141,6 +151,10 @@ public class M3u8Download {
 	}
 
 	public List<String> downloadTsFiles(String baseUrl, String tempDir, List<String> lines) {
+		if (CollectionUtils.isEmpty(lines)) {
+			throw new LibreException("lines is empty");
+		}
+
 		int i = 0;
 		List<String> tsFiles = Lists.newArrayList();
 		for (String ts : lines) {
@@ -196,6 +210,26 @@ public class M3u8Download {
 		}).collectList().doOnError(e -> log.error("请求异常")).doOnNext(list -> log.info("所有请求完成")).block();
 	}
 
+	private String copyM3u8FileToString(InputStream inputStream, Path m3u8FilePath) {
+		if (Files.exists(m3u8FilePath)) {
+			throw new LibreException("文件已经存在, m3u8FilePath: " + m3u8FilePath);
+		}
+		String content;
+		try {
+			Files.copy(inputStream, m3u8FilePath);
+			content = Files.readString(m3u8FilePath);
+		}
+		catch (IOException e) {
+			log.error("文件读取失败: ", e);
+			throw new LibreException(e);
+		}
+		finally {
+			IOUtils.closeQuietly(inputStream);
+		}
+		log.info("video copy success, path: {}", m3u8FilePath);
+		return content;
+	}
+
 	private List<String> copyM3u8File(InputStream inputStream, Path m3u8FilePath) {
 		List<String> lines = Lists.newArrayList();
 		if (Files.exists(m3u8FilePath)) {
@@ -206,11 +240,11 @@ public class M3u8Download {
 			lines.addAll(Files.readAllLines(m3u8FilePath));
 		}
 		catch (IOException e) {
-			log.error("copy error: {}", Exceptions.getStackTraceAsString(e));
+			log.error("文件读取失败: ", e);
 			throw new LibreException(e);
 		}
 		finally {
-			Closeables.closeQuietly(inputStream);
+			IOUtils.closeQuietly(inputStream);
 		}
 		log.info("video copy success, path: {}", m3u8FilePath);
 		return lines;
@@ -230,8 +264,7 @@ public class M3u8Download {
 	}
 
 	private String createDirectory(Long videoId) {
-		String downloadPath = properties.getDownloadPath();
-		String tempDir = downloadPath + videoId;
+		String tempDir = getVideoTempDir(videoId);
 		Path dirPath = Paths.get(tempDir);
 		if (!Files.exists(dirPath)) {
 			try {
@@ -243,6 +276,17 @@ public class M3u8Download {
 			}
 		}
 		return tempDir;
+	}
+
+	private String getVideoTempDir(Long videoId) {
+		String downloadPath = properties.getDownloadPath();
+		if (downloadPath.endsWith(File.separator)) {
+			return downloadPath + videoId;
+		}
+		else {
+			return downloadPath + File.separator + videoId;
+		}
+
 	}
 
 	private void mergeTsFiles(Video video, String downloadPath, List<String> tsSet) {

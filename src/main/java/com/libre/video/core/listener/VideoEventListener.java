@@ -82,13 +82,20 @@ public class VideoEventListener {
 			for (Video video : videoList) {
 				updateVideoPath(video);
 			}
+			videoService.updateBatchById(videoList);
 			return;
 		}
+
+		updateVideo(videoList, videos);
+	}
+
+
+
+	private void updateVideo(List<Video> videoList, List<Video> videos) {
 		Map<Long, Video> videoMap = StreamUtils.map(videos, Video::getVideoId, Function.identity());
 		SqlSessionFactory sqlSessionFactory = sqlSessionTemplate.getSqlSessionFactory();
 		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
 			VideoMapper videoMapper = sqlSession.getMapper(VideoMapper.class);
-
 			videoList.forEach(video -> {
 				Video dbVideo = videoMap.get(video.getVideoId());
 				if (Objects.isNull(dbVideo)) {
@@ -102,14 +109,13 @@ public class VideoEventListener {
 			sqlSession.commit();
 		}
 		catch (Exception e) {
-			// throw new RuntimeException(e);
+			log.error("更新video失败, message: {}", e.getMessage());
 		}
-
 	}
 
 	private void updateVideoPath(Video video) {
 		try {
-			download.download(video);
+			download.downloadAndReadM3u8File(video);
 		}
 		catch (Exception e) {
 			log.error(e.getMessage());

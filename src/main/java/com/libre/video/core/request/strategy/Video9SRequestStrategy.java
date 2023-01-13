@@ -47,6 +47,9 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 		super(videoService, webClient);
 	}
 
+
+
+
 	@Override
     public void execute(VideoRequestParam requestParam) {
 		Mono<String> request = request(baseUrl);
@@ -59,7 +62,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 
 	@Override
     public void readVideoList(Integer pageSize) {
-		for (int i = 1; i <= pageSize; i++) {
+		for (int i = 747; i <= pageSize; i++) {
 			String requestVideoUrl = baseUrl + StringPool.SLASH + i;
 			Mono<String> mono = request(requestVideoUrl);
 			String body = mono.block();
@@ -89,6 +92,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 		VideoEventPublisher.publishVideoSaveEvent(list);
 		videoList.clear();
 	}
+
 
 	@Override
 	protected List<Video9sParse> parsePage(String html) {
@@ -160,5 +164,6 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 		}
 		BeanUtils.copyProperties(video9SDetailParse, video9SDTO);
 	}
+
 
 }

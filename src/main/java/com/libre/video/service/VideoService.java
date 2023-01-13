@@ -49,4 +49,7 @@ public interface VideoService extends IService<Video> {
 
 
     void watch(Long videoId);
+
+    void shutdown();
+
 }

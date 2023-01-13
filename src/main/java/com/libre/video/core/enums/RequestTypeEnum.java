@@ -21,7 +21,7 @@ public enum RequestTypeEnum {
 	/**
 	 * baav
 	 */
-	REQUEST_BA_AV(3, "https://www.baav.xyz")
+	REQUEST_BA_AV(3, "https://www.tasexy.com")
 	;
 
 	private final int type;

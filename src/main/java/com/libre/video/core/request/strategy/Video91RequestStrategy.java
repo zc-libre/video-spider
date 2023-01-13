@@ -71,18 +71,23 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 
 	@Override
 	protected void readVideoList(Integer pageSize) {
-		for (int i = 1; i <= 20; i++) {
-			Map<String, Object> params = Maps.newHashMap();
-			params.put(PARAM_PAGE, i);
-			String requestUrl = buildUrl(urlTemplate, params);
-			Mono<String> mono = request(requestUrl);
-			String html = mono.block();
-			List<Video91Parse> video91Parses = parsePage(html);
-			if (CollectionUtil.isEmpty(video91Parses)) {
-				log.error("parseList is empty");
-				continue;
+		for (int i = 1220; i <= pageSize; i++) {
+			try {
+				Map<String, Object> params = Maps.newHashMap();
+				params.put(PARAM_PAGE, i);
+				String requestUrl = buildUrl(urlTemplate, params);
+				Mono<String> mono = request(requestUrl);
+				String html = mono.block();
+				List<Video91Parse> video91Parses = parsePage(html);
+				if (CollectionUtil.isEmpty(video91Parses)) {
+					log.error("parseList is empty");
+					continue;
+				}
+				readAndSave(video91Parses);
 			}
-			readAndSave(video91Parses);
+			catch (Exception e) {
+				log.error("请求失败 ", e);
+			}
 		}
 	}
 
@@ -148,38 +153,43 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 	}
 
 	public void readVideo(Video91Parse video91Parse) {
-		String url = video91Parse.getUrl();
-		if (StringUtil.isBlank(url)) {
-			return;
-		}
-		Mono<String> mono = request(url);
-		String body = mono.block();
-
-		if (StringUtil.isBlank(body)) {
-			return;
-		}
-		String realUrl = JsEncodeUtil.encodeRealVideoUrl(body);
-		log.info("realVideoUrl: {}", realUrl);
-		if (StringUtil.isBlank(realUrl)) {
-			return;
-		}
-		Video91Mapping mapping = Video91Mapping.INSTANCE;
-		Video video = mapping.sourceToTarget(video91Parse);
-		Video91DetailParse video91DetailParse = null;
 		try {
-			video91DetailParse = DomMapper.readValue(body, Video91DetailParse.class);
+			String url = video91Parse.getUrl();
+			if (StringUtil.isBlank(url)) {
+				throw new LibreException("url is blank, url: " +  url);
+			}
+			Mono<String> mono = request(url);
+			String body = mono.block();
+
+			if (StringUtil.isBlank(body)) {
+				throw new LibreException("body is blank, body: " +  body);
+			}
+			String realUrl = JsEncodeUtil.encodeRealVideoUrl(body);
+			log.info("realVideoUrl: {}", realUrl);
+			if (StringUtil.isBlank(realUrl)) {
+				throw new LibreException("realVideoUrl is blank, realVideoUrl: " +  body);
+			}
+			Video91Mapping mapping = Video91Mapping.INSTANCE;
+			Video video = mapping.sourceToTarget(video91Parse);
+			Video91DetailParse video91DetailParse = null;
+			try {
+				video91DetailParse = DomMapper.readValue(body, Video91DetailParse.class);
+			}
+			catch (Exception e) {
+				log.error("read bean error, e: {}", e.getMessage());
+			}
+			long id = parseVideoId(realUrl);
+			video.setVideoId(id);
+			video.setVideoWebsite(requestType);
+			video.setRealUrl(realUrl);
+			Optional.ofNullable(video91DetailParse).ifPresent(dto -> video.setPublishTime(dto.getPublishTime()));
+			video.setUpdateTime(LocalDateTime.now());
+			videoList.add(video);
+			ThreadUtil.sleep(TimeUnit.SECONDS, 3);
+		} catch (Exception e) {
+			log.error("解析失败,", e);
 		}
-		catch (Exception e) {
-			log.error("read bean error, e: {}", e.getMessage());
-		}
-		long id = parseVideoId(realUrl);
-		video.setVideoId(id);
-		video.setVideoWebsite(requestType);
-		video.setRealUrl(realUrl);
-		Optional.ofNullable(video91DetailParse).ifPresent(dto -> video.setPublishTime(dto.getPublishTime()));
-		video.setUpdateTime(LocalDateTime.now());
-		videoList.add(video);
-		ThreadUtil.sleep(TimeUnit.SECONDS, 3);
+
 	}
 
 	private static long parseVideoId(String realUrl) {
@@ -228,5 +238,6 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 		requestType = requestTypeEnum.getType();
 		urlTemplate = baseUrl + StringPool.AMPERSAND + PARAM_PAGE + StringPool.EQUALS + "{page}";
 	}
+
 
 }

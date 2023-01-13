@@ -72,7 +72,7 @@ public class VideoEncode {
 			FFmpegJob fFmpegJob = executor.createJob(builder, new VideoProgressListener(video, info.duration, webSocketServer));
 			fFmpegJob.run();
 		} catch (Exception e) {
-			throw new LibreException(e.getMessage());
+			throw new LibreException(e);
 		}
 	}
 

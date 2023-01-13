@@ -1,17 +1,15 @@
 package com.libre.video.service.impl;
 
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
+import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.Exceptions;
-import com.libre.core.toolkit.FileUtil;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.oss.support.OssTemplate;
 import com.libre.video.config.VideoProperties;
@@ -28,6 +26,7 @@ import com.libre.video.pojo.Video;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.VideoService;
+import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -35,19 +34,18 @@ import org.elasticsearch.search.sort.*;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.*;
 import org.springframework.data.elasticsearch.core.query.*;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.StreamUtils;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @Service
@@ -154,7 +152,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		}
 		log.info("file name is: {}", object.getKey());
 		S3ObjectInputStream inputStream = object.getObjectContent();
-		m3u8Download.downloadM3u8FileToLocal(inputStream.getDelegateStream(), video, false);
+		m3u8Download.downloadVideoToLocal(inputStream.getDelegateStream(), video);
 	}
 
 	private List<SortBuilder<?>> sortBuilders(PageDTO<Video> page) {
@@ -199,4 +197,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		}
 	}
 
+	@Override
+	public void shutdown() {
+		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
+		executor.shutdown();
+	}
 }

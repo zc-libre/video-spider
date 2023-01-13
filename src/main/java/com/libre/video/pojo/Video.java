@@ -56,6 +56,9 @@ public class Video implements Serializable {
 	@Field(type = FieldType.Integer)
     private Integer collectNum;
 
+
+	private String m3u8Content;
+
 	private String videoPath;
 
 	private Integer videoWebsite;
