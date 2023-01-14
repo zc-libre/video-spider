@@ -9,6 +9,7 @@ import com.libre.video.pojo.dto.VideoQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Async;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface VideoService extends IService<Video> {
@@ -23,6 +24,7 @@ public interface VideoService extends IService<Video> {
 	/**
 	 * 同步数据至elasticsearch
 	 */
+	@Async("videoRequestExecutor")
 	void syncToElasticsearch();
 
     /**
@@ -48,7 +50,7 @@ public interface VideoService extends IService<Video> {
 	Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery);
 
 
-    void watch(Long videoId);
+    String watch(Long videoId) throws IOException;
 
     void shutdown();
 

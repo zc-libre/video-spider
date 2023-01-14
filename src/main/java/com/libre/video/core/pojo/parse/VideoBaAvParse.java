@@ -9,7 +9,7 @@ import lombok.Data;
  */
 @Data
 @CssQuery(value = ".list_box > ul ")
-public class VideoBaAvParse {
+public class VideoBaAvParse implements VideoParse {
 
 	@CssQuery(value = "a > .title", attr = "text")
 	private String title;
@@ -23,7 +23,8 @@ public class VideoBaAvParse {
 	@CssQuery(value = "a > li.image > span.note", attr = "text")
 	private String duration;
 
-	@CssQuery(value = ".view", attr = "html", regex = "(?<=<u><i class=\"icon icon-eye-open\"></i>\\s{1,50}).*(?=\\</u> <u><i)")
+	@CssQuery(value = ".view", attr = "html",
+			regex = "(?<=<u><i class=\"icon icon-eye-open\"></i>\\s{1,50}).*(?=\\</u> <u><i)")
 	private String lookNum;
 
 	@CssQuery(value = ".view", attr = "html", regex = "(?<=<i class=\"icon icon-time\"></i>\\s{1,50}).*(?=</span>)")

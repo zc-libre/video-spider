@@ -48,8 +48,6 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 	}
 
 
-
-
 	@Override
     public void execute(VideoRequestParam requestParam) {
 		Mono<String> request = request(baseUrl);
@@ -62,7 +60,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 
 	@Override
     public void readVideoList(Integer pageSize) {
-		for (int i = 747; i <= pageSize; i++) {
+		for (int i = 1220; i <= pageSize; i++) {
 			String requestVideoUrl = baseUrl + StringPool.SLASH + i;
 			Mono<String> mono = request(requestVideoUrl);
 			String body = mono.block();
@@ -77,7 +75,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
     }
 
 	@Override
-	protected void readAndSave(List<Video9sParse> parseList) {
+	public void readAndSave(List<Video9sParse> parseList) {
 		parseList.forEach(video9sParse -> {
 			try {
 				read(video9sParse);
@@ -95,9 +93,11 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 
 
 	@Override
-	protected List<Video9sParse> parsePage(String html) {
+	public List<Video9sParse> parsePage(String html) {
 		return DomMapper.readList(html, Video9sParse.class);
 	}
+
+
 	@Override
 	public Integer parsePageSize(String html) {
 		Document document = Parser.parse(html, "");

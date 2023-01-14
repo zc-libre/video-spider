@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.libre.video.mapper.VideoMapper">
+
+    <resultMap id="base_result_map" type="com.libre.video.pojo.Video">
+        <id column="id" property="id"/>
+        <result column="video_id" property="videoId"/>
+        <result column="url" property="url"/>
+        <result column="real_url" property="realUrl"/>
+        <result column="title" property="title"/>
+        <result column="image" property="image"/>
+        <result column="duration" property="duration"/>
+        <result column="author" property="author"/>
+        <result column="look_num" property="lookNum"/>
+        <result column="collect_num" property="collectNum"/>
+        <result column="m3u8_content" property="m3u8Content"/>
+        <result column="video_path" property="videoPath"/>
+        <result column="video_website" property="videoWebsite"/>
+        <result column="publish_time" property="publishTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+
+
+    <select id="findAll"  resultMap="base_result_map">
+        SELECT id,
+               image,
+               duration,
+               title,
+               author,
+               look_num,
+               url,
+               real_url,
+               collect_num,
+               publish_time,
+               create_time,
+               update_time,
+               video_path,
+               video_id,
+               video_website,
+               m3u8_content
+        FROM video
+        ORDER BY id
+    </select>
+
+    <select id="findByBatchPage" resultType="com.libre.video.pojo.Video">
+        SELECT *
+        FROM video
+        ORDER BY id
+        LIMIT #{_skiprows}, #{_pagesize}
+    </select>
+
+</mapper>

@@ -10,17 +10,17 @@ import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.Exceptions;
+import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.oss.support.OssTemplate;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.constant.SystemConstants;
 import com.libre.video.core.download.M3u8Download;
-import com.libre.video.core.download.VideoEncode;
+import com.libre.video.core.download.VideoEncoder;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.core.request.VideoRequestContext;
 import com.libre.video.core.request.strategy.VideoRequestStrategy;
-import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
@@ -29,8 +29,16 @@ import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.*;
+import org.springframework.batch.core.*;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,9 +51,11 @@ import org.springframework.util.Assert;
 
 import java.io.*;
 import java.nio.file.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Executor;
 
 @Slf4j
 @Service
@@ -54,9 +64,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	private final VideoRequestContext videoRequestContext;
 
-	private final VideoEncode videoEncode;
-
-	private final VideoEsRepository videoEsRepository;
+	private final VideoEncoder videoEncoder;
 
 	private final ElasticsearchOperations elasticsearchOperations;
 
@@ -66,13 +74,17 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	private final VideoProperties properties;
 
+	private final JobLauncher jobLauncher;
+
+	private final VideoProperties videoProperties;
+
 	@Override
 	public void request(VideoRequestParam param) {
 		RequestTypeEnum requestTypeEnum = RequestTypeEnum.find(param.getRequestType());
 		Assert.notNull(requestTypeEnum, "request type must not be null");
 		log.info("start request type: {}, baseUrl: {}", requestTypeEnum.name(), requestTypeEnum.getBaseUrl());
 		param.setRequestTypeEnum(requestTypeEnum);
-		VideoRequestStrategy requestStrategy = videoRequestContext.getRequestStrategy(param.getRequestType());
+		VideoRequestStrategy<?> requestStrategy = videoRequestContext.getRequestStrategy(param.getRequestType());
 		requestStrategy.execute(param);
 	}
 
@@ -80,7 +92,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	@Transactional(rollbackFor = Exception.class)
 	public void download(List<Long> ids) {
 		for (Long id : ids) {
-			videoEncode.encodeAndWrite(id);
+			videoEncoder.encodeAndWrite(id);
 		}
 	}
 
@@ -92,7 +104,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			Files.copy(in, Path.of(downloadPath + video.getVideoPath()), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch (Exception e) {
-			log.error("文件拷贝失败, ",e);
+			log.error("文件拷贝失败, ", e);
 		}
 		this.updateById(video);
 		log.info("video save success, url: {}", video.getVideoPath());
@@ -138,21 +150,66 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	}
 
 	@Override
-	public void watch(Long videoId) {
+	public String watch(Long videoId) throws IOException {
 		log.info("video watch id is: {}", videoId);
 		Video video = Optional.ofNullable(this.getById(videoId))
 				.orElseThrow(() -> new LibreException(String.format("video not exist, videoId: %d", videoId)));
-		S3Object object;
-		try {
-			object = ossTemplate.getObject(SystemConstants.VIDEO_BUCKET_NAME, video.getVideoPath());
+
+		String realUrl = video.getRealUrl();
+		if (StringUtil.isBlank(realUrl)) {
+			throw new LibreException("realUrl is blank, realUrl: " + realUrl);
 		}
-		catch (Exception e) {
-			log.error("get file error: {}", Exceptions.getStackTraceAsString(e));
-			throw new LibreException(String.format("video not exist, videoId: %d", videoId));
+		String requestBaseUrl = getRequestBaseUrl(realUrl);
+
+		if (StringUtil.isBlank(requestBaseUrl)) {
+			throw new LibreException("requestBaseUrl is blank, realUrl: " + realUrl);
 		}
-		log.info("file name is: {}", object.getKey());
-		S3ObjectInputStream inputStream = object.getObjectContent();
-		m3u8Download.downloadVideoToLocal(inputStream.getDelegateStream(), video);
+		String m3u8Content = video.getM3u8Content();
+		if (StringUtil.isBlank(m3u8Content)) {
+			try {
+				m3u8Download.downloadAndReadM3u8File(video);
+			}
+			catch (Exception e) {
+				throw new LibreException(e);
+			}
+			this.updateById(video);
+			m3u8Content = video.getM3u8Content();
+		}
+		String[] lines = StringUtils.split(m3u8Content, StringPool.NEWLINE);
+		List<String> m3u8Lines = Lists.newArrayList();
+		for (String line : lines) {
+			if (line.endsWith(SystemConstants.TS_SUFFIX)) {
+				line = requestBaseUrl + StringPool.SLASH + line;
+			}
+			m3u8Lines.add(line);
+		}
+
+		String videoTempDir = m3u8Download.getVideoTempDir(videoId);
+		String m3u8FilePath = videoTempDir + File.separator + videoId + SystemConstants.MU38_SUFFIX;
+		String watchPath = videoId + File.separator + videoId + SystemConstants.MU38_SUFFIX;
+		if (Files.exists(Paths.get(m3u8FilePath))) {
+			return watchPath;
+		}
+
+		Path tempPathDir = Paths.get(videoTempDir);
+		if (!Files.exists(tempPathDir)) {
+			Files.createDirectory(tempPathDir);
+		}
+		FileUtils.writeLines(new File(m3u8FilePath), m3u8Lines);
+		return watchPath;
+	}
+
+	private static String getRequestBaseUrl(String realUrl) {
+		String requestBaseUrl = null;
+		if (realUrl.contains(StringPool.QUESTION_MARK)) {
+			int questionMarkIndex = realUrl.indexOf(StringPool.QUESTION_MARK);
+			realUrl = realUrl.substring(0, questionMarkIndex);
+			requestBaseUrl = realUrl.substring(0, realUrl.lastIndexOf(StringPool.SLASH));
+		}
+		else if (realUrl.endsWith(SystemConstants.MU38_SUFFIX)) {
+			requestBaseUrl = realUrl.substring(0, realUrl.lastIndexOf(StringPool.SLASH));
+		}
+		return requestBaseUrl;
 	}
 
 	private List<SortBuilder<?>> sortBuilders(PageDTO<Video> page) {
@@ -183,23 +240,37 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	@Override
 	public void syncToElasticsearch() {
 		log.info("开始同步数据....");
-
-		PageDTO<Video> page = new PageDTO<>();
-		page.setCurrent(1);
-		page.setSize(500);
-		this.page(page);
-		for (long i = 2; i < page.getPages(); i++) {
-			List<Video> records = page.getRecords();
-			log.info("已经同步数据{}条", 500 * i);
-			videoEsRepository.saveAll(records);
-			page.setCurrent(i);
-			this.page(page);
+		Job esSyncJob = SpringContext.getBean("esSyncJob");
+		Assert.notNull(esSyncJob, "esSyncJob must not be null");
+		try {
+			jobLauncher.run(esSyncJob, createJobParams());
 		}
+		catch (Exception e) {
+			throw new LibreException(e);
+		}
+		//
+		// PageDTO<Video> page = new PageDTO<>();
+		// page.setCurrent(1);
+		// page.setSize(500);
+		// this.page(page);
+		// for (long i = 2; i < page.getPages(); i++) {
+		// List<Video> records = page.getRecords();
+		// log.info("已经同步数据{}条", 500 * i);
+		// videoEsRepository.saveAll(records);
+		// page.setCurrent(i);
+		// this.page(page);
+		// }
+	}
+
+	private static JobParameters createJobParams() {
+		return new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
 	}
 
 	@Override
 	public void shutdown() {
 		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
 		executor.shutdown();
+		executor.initialize();
 	}
+
 }

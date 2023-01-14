@@ -30,7 +30,7 @@ import java.util.Random;
 
 @Slf4j
 @Component
-public abstract class AbstractVideoRequestStrategy<P> implements VideoRequestStrategy, InitializingBean {
+public abstract class AbstractVideoRequestStrategy<P> implements VideoRequestStrategy<P>, InitializingBean {
 
 	protected final VideoService videoService;
 
@@ -45,39 +45,8 @@ public abstract class AbstractVideoRequestStrategy<P> implements VideoRequestStr
 		this.webClient = webClient;
 	}
 
-	/**
-	 * 解析页码
-	 * @param body html
-	 * @return 页码
-	 */
-	protected abstract Integer parsePageSize(String body);
 
-	/**
-	 * 读取所有视频
-	 * @param pageSize 页数
-	 */
-	protected abstract void readVideoList(Integer pageSize);
 
-	/**
-	 * 分页解析
-	 * @param html /
-	 * @return /
-	 */
-	protected abstract List<P> parsePage(String html);
-
-	/**
-	 * 读取视频信息并存储
-	 * @param parseList /
-	 */
-	protected abstract void readAndSave(List<P> parseList);
-
-	protected static void publishErrorVideo(String url, String html, ErrorRequestType type) {
-		ErrorVideo errorVideo = new ErrorVideo();
-		errorVideo.setUrl(url);
-		errorVideo.setType(type.getCode());
-		errorVideo.setHtml(html);
-		VideoEventPublisher.publishErrorEvent(errorVideo);
-	}
 
 	protected Mono<String> request(String url) {
 		log.info("start request url: {}", url);
@@ -101,25 +70,5 @@ public abstract class AbstractVideoRequestStrategy<P> implements VideoRequestStr
 		headers.add(HttpHeaders.ACCEPT_LANGUAGE, "zh-cn,zh;q=0.5");
 		headers.add("Connection", "keep-alive");
 	}
-
-	// protected InetSocketAddress getProxyAddress() {
-	// String proxy = getProxy();
-	// int index = proxy.indexOf(StringPool.COLON);
-	// String ip = proxy.substring(0, index);
-	// int port = Integer.parseInt(proxy.substring(index + 1));
-	// return new InetSocketAddress(ip, port);
-	// }
-
-	// protected String getProxy() {
-	// Map<String, Object> proxyMap =
-	// HttpRequest.get("http://localhost:5010/get").execute().asMap(Object.class);
-	// if (CollectionUtil.isNotEmpty(proxyMap)) {
-	// String proxy = (String) proxyMap.get("proxy");
-	// if (StringUtil.isNotBlank(proxy)) {
-	// return proxy;
-	// }
-	// }
-	// return getProxy();
-	// }
 
 }

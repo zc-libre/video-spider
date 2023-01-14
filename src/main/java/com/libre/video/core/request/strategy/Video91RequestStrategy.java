@@ -70,8 +70,8 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 	}
 
 	@Override
-	protected void readVideoList(Integer pageSize) {
-		for (int i = 1220; i <= pageSize; i++) {
+	public void readVideoList(Integer pageSize) {
+		for (int i = 1937; i <= pageSize; i++) {
 			try {
 				Map<String, Object> params = Maps.newHashMap();
 				params.put(PARAM_PAGE, i);
@@ -92,7 +92,7 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 	}
 
 	@Override
-	protected List<Video91Parse> parsePage(String html) {
+	public List<Video91Parse> parsePage(String html) {
 		if (StringUtil.isBlank(html)) {
 			log.error("html is blank");
 			return Collections.emptyList();
@@ -105,7 +105,7 @@ public class Video91RequestStrategy extends AbstractVideoRequestStrategy<Video91
 	}
 
 	@Override
-	protected void readAndSave(List<Video91Parse> parseList) {
+	public void readAndSave(List<Video91Parse> parseList) {
 		try {
 			parseList.forEach(this::readVideo);
 		}

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
+@SuppressWarnings({"rawtypes"})
 public class VideoRequestContext  {
 
 	private static final Map<Integer, Class<VideoRequestStrategy>> VideoRequestStrategyContext = Maps.newHashMap();

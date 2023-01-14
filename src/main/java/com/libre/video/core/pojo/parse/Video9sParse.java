@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @CssQuery(value = ".colVideoList")
-public class Video9sParse {
+public class Video9sParse implements VideoParse{
 
     @CssQuery(value = ".video-elem .title", attr = "title")
     private String title;

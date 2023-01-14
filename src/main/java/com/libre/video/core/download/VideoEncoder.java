@@ -28,7 +28,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class VideoEncode {
+public class VideoEncoder {
 
 	private final VideoProperties properties;
 	private final VideoMapper videoMapper;

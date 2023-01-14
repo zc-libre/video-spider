@@ -66,7 +66,8 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 		log.info("request complete!");
 	}
 
-	protected void readVideoList(Integer pageSize) {
+	@Override
+	public void readVideoList(Integer pageSize) {
 		Map<String, Object> params = Maps.newHashMap();
 		for (int x = 1; x <= pageSize; x++) {
 			params.put("page", x);
@@ -83,7 +84,8 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 
 	}
 
-	protected List<VideoBaAvParse> parsePage(String html) {
+	@Override
+	public List<VideoBaAvParse> parsePage(String html) {
 		if (StringUtil.isBlank(html)) {
 			log.error("html is blank");
 			return Collections.emptyList();
@@ -92,12 +94,16 @@ public class VideoBaAvRequestStrategy extends AbstractVideoRequestStrategy<Video
 	}
 
 	public void readAndSave(List<VideoBaAvParse> videoBaAvParses) {
-		try {
-			videoBaAvParses.forEach(this::readVideo);
+
+		for (VideoBaAvParse videoBaAvParse : videoBaAvParses) {
+			try {
+				this.readVideo(videoBaAvParse);
+			}
+			catch (Exception e) {
+				log.error("视频解析失败", e);
+			}
 		}
-		catch (Exception e) {
-			log.error("parse video error, {}", e.getMessage());
-		}
+
 		List<BaAvVideo> list = Lists.newArrayList();
 		list.addAll(videoList);
 		VideoBaAvMapping mapping = VideoBaAvMapping.INSTANCE;

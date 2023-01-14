@@ -1,6 +1,13 @@
 package com.libre.video;
 
-import com.libre.video.core.download.VideoDownload;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.libre.oss.support.OssTemplate;
+import com.libre.spider.DomMapper;
+import com.libre.video.core.download.M3u8Download;
+import com.libre.video.core.download.VideoEncoder;
+import com.libre.video.core.enums.RequestTypeEnum;
+import com.libre.video.core.pojo.parse.VideoBaAvParse;
 import com.libre.video.core.request.strategy.Video9SRequestStrategy;
 import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
@@ -17,7 +24,7 @@ import java.io.IOException;
 @SpringBootTest
 class VideoApplicationTests {
     @Autowired
-    VideoDownload download;
+    VideoEncoder download;
     @Autowired
 	Video9SRequestStrategy request;
 

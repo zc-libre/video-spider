@@ -5,7 +5,7 @@ import lombok.Data;
 
 @CssQuery(value = "#videoShowPage")
 @Data
-public class Video9sDetailParse {
+public class Video9sDetailParse implements VideoParse{
 
     @CssQuery(value = "#video-play", attr = "data-src", regex = "(?<=/hls/).*(?=/index.m3u8)")
     private Long videoId;

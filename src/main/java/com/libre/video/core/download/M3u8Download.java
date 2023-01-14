@@ -7,6 +7,7 @@ import com.libre.core.toolkit.Exceptions;
 import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.video.config.VideoProperties;
+import com.libre.video.constant.SystemConstants;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.pojo.Video;
 import com.libre.video.toolkit.VideoFileUtils;
@@ -44,21 +45,17 @@ import java.util.stream.Collectors;
 @Component
 public class M3u8Download {
 
-	private final static String MU38_SUFFIX = ".m3u8";
 
-	private final static String TS_SUFFIX = "ts";
-
-	private final static String MP4_SUFFIX = ".mp4";
 
 	private final WebClient webClient;
 
-	private final VideoEncode videoEncode;
+	private final VideoEncoder videoEncoder;
 
 	private final VideoProperties properties;
 
-	public M3u8Download(WebClient webClient, VideoEncode videoEncode, VideoProperties properties) {
+	public M3u8Download(WebClient webClient, VideoEncoder videoEncoder, VideoProperties properties) {
 		this.webClient = webClient;
-		this.videoEncode = videoEncode;
+		this.videoEncoder = videoEncoder;
 		this.properties = properties;
 	}
 
@@ -85,7 +82,7 @@ public class M3u8Download {
 			log.error("m3u8文件下载失败, url: {}", url);
 			return;
 		}
-		String fileName = video.getId() + MU38_SUFFIX;
+		String fileName = video.getId() + SystemConstants.MU38_SUFFIX;
 		video.setVideoPath(fileName);
 		String content = readM3u8File(resource.getInputStream(), video);
 		if (StringUtil.isBlank(content)) {
@@ -124,7 +121,7 @@ public class M3u8Download {
 			return;
 		}
 
-		List<String> tsLines = lines.stream().filter(line -> line.endsWith(TS_SUFFIX) || line.contains(".ts"))
+		List<String> tsLines = lines.stream().filter(line -> line.endsWith(SystemConstants.TS_SUFFIX) || line.contains(".ts"))
 				.collect(Collectors.toList());
 		String realUrl = video.getRealUrl();
 		String baseUrl = realUrl.substring(0, realUrl.lastIndexOf(StringPool.SLASH));
@@ -154,7 +151,6 @@ public class M3u8Download {
 		if (CollectionUtils.isEmpty(lines)) {
 			throw new LibreException("lines is empty");
 		}
-
 		int i = 0;
 		List<String> tsFiles = Lists.newArrayList();
 		for (String ts : lines) {
@@ -250,7 +246,7 @@ public class M3u8Download {
 		return lines;
 	}
 
-	private void copyTsFile(String tsPath, Resource resource) {
+	public void copyTsFile(String tsPath, Resource resource) {
 		Path path = Paths.get(tsPath);
 		if (Files.exists(path)) {
 			return;
@@ -278,7 +274,7 @@ public class M3u8Download {
 		return tempDir;
 	}
 
-	private String getVideoTempDir(Long videoId) {
+	public String getVideoTempDir(Long videoId) {
 		String downloadPath = properties.getDownloadPath();
 		if (downloadPath.endsWith(File.separator)) {
 			return downloadPath + videoId;
@@ -291,12 +287,12 @@ public class M3u8Download {
 
 	private void mergeTsFiles(Video video, String downloadPath, List<String> tsSet) {
 		String[] paths = tsSet.stream().sorted().toArray(String[]::new);
-		String videoPath = downloadPath + File.separator + video.getId() + MP4_SUFFIX;
+		String videoPath = downloadPath + File.separator + video.getId() + SystemConstants.MP4_SUFFIX;
 		VideoFileUtils.mergeFiles(paths, videoPath);
 		log.info("合并完成");
 		video.setVideoPath(videoPath);
 		video.setTitle(String.valueOf(video.getId()));
-		videoEncode.encodeAndWrite(video);
+		videoEncoder.encodeAndWrite(video);
 		FileUtils.deleteQuietly(new File(videoPath));
 	}
 

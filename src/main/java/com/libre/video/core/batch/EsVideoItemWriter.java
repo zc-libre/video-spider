@@ -1,9 +1,9 @@
 package com.libre.video.core.batch;
 
-import com.google.common.collect.Lists;
+import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.pojo.Video;
-import com.libre.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
@@ -13,14 +13,15 @@ import java.util.List;
  * @author: Libre
  * @Date: 2023/1/13 12:37 AM
  */
-@Component
+@Slf4j
 @RequiredArgsConstructor
-public class VideoItemWriter implements ItemWriter<Video> {
+public class EsVideoItemWriter implements ItemWriter<Video> {
 
-	private final VideoService videoService;
+	private final VideoEsRepository videoEsRepository;
 
 	@Override
 	public void write(List<? extends Video> videos) throws Exception {
-		videoService.saveBatch(Lists.newArrayList(videos));
+		log.info("start to save videos to ES ....");
+		videoEsRepository.saveAll(videos);
 	}
 }
