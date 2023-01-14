@@ -6,8 +6,6 @@ VOLUME  /tmp
 
 WORKDIR /libre
 
-RUN yum -y update
-RUN yum install ffmpeg
 
 ADD  target/*.tar.gz /libre
 
