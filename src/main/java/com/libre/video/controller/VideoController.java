@@ -34,6 +34,14 @@ public class VideoController {
 
 	private final M3u8Download m3u8Download;
 
+
+	@GetMapping("/spider")
+	public R<Boolean> spider() {
+		videoService.spider();
+		return R.status(true);
+	}
+
+
 	@PostMapping("/list")
 	public R<Page<Video>> page(PageDTO<Video> page, VideoQuery videoQuery) {
 		Page<Video> videoPage = videoService.findByPage(page, videoQuery);

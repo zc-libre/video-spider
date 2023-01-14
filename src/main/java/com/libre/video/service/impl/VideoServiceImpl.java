@@ -248,18 +248,17 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		catch (Exception e) {
 			throw new LibreException(e);
 		}
-		//
-		// PageDTO<Video> page = new PageDTO<>();
-		// page.setCurrent(1);
-		// page.setSize(500);
-		// this.page(page);
-		// for (long i = 2; i < page.getPages(); i++) {
-		// List<Video> records = page.getRecords();
-		// log.info("已经同步数据{}条", 500 * i);
-		// videoEsRepository.saveAll(records);
-		// page.setCurrent(i);
-		// this.page(page);
-		// }
+	}
+
+	public void spider() {
+		Job videoSpiderJob = SpringContext.getBean("videoSpiderJob");
+		Assert.notNull(videoSpiderJob, "esSyncJob must not be null");
+
+		try {
+			jobLauncher.run(videoSpiderJob, createJobParams());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private static JobParameters createJobParams() {

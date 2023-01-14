@@ -26,7 +26,7 @@ public class Video implements Serializable {
 
 	@Id
 	@Field(type = FieldType.Keyword)
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.INPUT)
     private Long id;
 
 	@Field(type = FieldType.Keyword)

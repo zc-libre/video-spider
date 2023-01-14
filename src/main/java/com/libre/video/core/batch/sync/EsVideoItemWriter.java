@@ -1,4 +1,4 @@
-package com.libre.video.core.batch;
+package com.libre.video.core.batch.sync;
 
 import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.pojo.Video;

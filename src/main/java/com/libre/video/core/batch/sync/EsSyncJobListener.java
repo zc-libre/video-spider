@@ -1,4 +1,4 @@
-package com.libre.video.core.batch;
+package com.libre.video.core.batch.sync;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;

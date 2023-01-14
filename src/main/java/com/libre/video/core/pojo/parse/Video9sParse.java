@@ -3,9 +3,11 @@ package com.libre.video.core.pojo.parse;
 import com.libre.spider.CssQuery;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @CssQuery(value = ".colVideoList")
-public class Video9sParse implements VideoParse{
+public class Video9sParse implements VideoParse {
 
     @CssQuery(value = ".video-elem .title", attr = "title")
     private String title;

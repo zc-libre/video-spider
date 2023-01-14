@@ -23,6 +23,7 @@ import java.util.Optional;
 @RequestMapping("/video/user")
 @RequiredArgsConstructor
 public class UserController {
+
 	private final UserMapper userMapper;
 
 	/**
@@ -39,6 +40,7 @@ public class UserController {
 		map.put("token", user.getUsername());
 		return R.data(map);
 	}
+
 
 	@PostMapping("/info")
 	public R<Map<String, Object>> info(String token) {

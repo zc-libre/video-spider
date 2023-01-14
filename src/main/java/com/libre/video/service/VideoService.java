@@ -27,6 +27,9 @@ public interface VideoService extends IService<Video> {
 	@Async("videoRequestExecutor")
 	void syncToElasticsearch();
 
+	@Async("videoRequestExecutor")
+	void spider();
+
     /**
      * 通过视频id下载视频
      * @param ids id集合
