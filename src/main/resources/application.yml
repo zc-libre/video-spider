@@ -34,7 +34,6 @@ jasypt:
   encryptor:
     algorithm: PBEWithMD5AndDES
     iv-generator-classname: org.jasypt.iv.NoIvGenerator
-    password: 504879189zc..
 ---
 spring:
   config:
@@ -59,12 +58,6 @@ spring:
     password: ENC(hoWyhk+6Fzt7jqzr0DmeH3SP3Y/5hEMK)
     connection-timeout: 10s
 
-libre:
-  oss:
-    endpoint: http://101.42.252.139:9090
-    access-key: libre
-    secret-key: ENC(ETJLWDpbHdoI+lsUrh8QAlt7DUJvEVpz)
-
 video:
   download-path: /Users/libre/video/
   ffmpeg-path: /usr/local/Cellar/ffmpeg/5.0.1/bin/
@@ -75,6 +68,7 @@ spring:
   config:
     activate:
       on-profile: prod
+    location: ../config/application.yml
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://101.42.252.139:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&useCursorFetch=true
@@ -86,6 +80,10 @@ spring:
       maximum-pool-size: 200
       connection-test-query: select 1
 
+  redis:
+    host: 101.42.252.139
+    password: password
+
   elasticsearch:
     uris: http://172.17.0.3:9200
     username: elastic
@@ -95,9 +93,3 @@ video:
   download-path: /libre/video/
   ffmpeg-path: /usr/bin/
   mp4box-path: /libre/gpac/gpac_public/bin/gcc/MP4Box/
-
-libre:
-  oss:
-    endpoint: http://172.17.0.5:9000
-    access-key: libre
-    secret-key: ENC(ETJLWDpbHdoI+lsUrh8QAlt7DUJvEVpz)

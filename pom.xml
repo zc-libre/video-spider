@@ -304,6 +304,12 @@
                     <descriptors>
                         <descriptor>src/main/assembly/assembly.xml</descriptor>
                     </descriptors>
+                    <!--打包解压后的目录名；${project.artifactId}是指：项目的artifactId-->
+                    <finalName>app</finalName>
+                    <!-- 打包压缩包位置-->
+                    <!--                    <outputDirectory>${project.build.directory}/release</outputDirectory>-->
+                    <!-- 打包编码 -->
+                    <encoding>UTF-8</encoding>
                 </configuration>
                 <executions>
                     <execution>

@@ -6,7 +6,6 @@ VOLUME  /tmp
 
 WORKDIR /libre
 
-
 ADD  target/*.tar.gz /libre
 
 ENV TZ=Asia/Shanghai JAVA_OPTS="-Xms128m -Xmx256m -Djava.security.egd=file:/dev/./urandom"
@@ -15,4 +14,6 @@ ENV LC_ALL zh_CN.UTF-8
 
 EXPOSE 9870
 
-CMD java $JAVA_OPTS -jar app/boot/*.jar --jasypt.encryptor.password=504879189zc..
+CMD java $JAVA_OPTS -jar app/boot/*.jar
+
+ENTRYPOINT ["sh","-c","java  ${JAVA_OPTS} -jar app/boot/*.jar --spinrg.profiles.active=${ACTIVE} --jasypt.encryptor.password=${PASSWORD}"]
