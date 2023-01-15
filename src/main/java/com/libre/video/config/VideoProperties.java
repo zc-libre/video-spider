@@ -1,18 +1,16 @@
 package com.libre.video.config;
 
-import com.google.common.base.Predicate;
-import com.google.common.io.Files;
 import lombok.Data;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.io.File;
-import java.nio.file.Path;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 
 
 @Data
 @ConfigurationProperties(prefix = "video")
-public class VideoProperties {
+public class VideoProperties implements InitializingBean {
 
     private String ffmpegPath;
 
@@ -20,4 +18,10 @@ public class VideoProperties {
 
     private String downloadPath;
 
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (!Files.exists(Paths.get(downloadPath))) {
+			Files.createDirectory(Paths.get(downloadPath));
+		}
+	}
 }
