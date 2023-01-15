@@ -2,7 +2,6 @@ package com.libre.video;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.libre.oss.support.OssTemplate;
 import com.libre.spider.DomMapper;
 import com.libre.video.core.download.M3u8Download;
 import com.libre.video.core.download.VideoEncoder;
@@ -43,9 +42,6 @@ class VideoApplicationTests {
 
 	@Autowired
 	WebClient webClient;
-
-	@Autowired
-	OssTemplate ossTemplate;
 
 	@Test
 	void request() {

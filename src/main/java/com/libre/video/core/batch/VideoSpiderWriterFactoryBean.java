@@ -14,6 +14,7 @@ public class VideoSpiderWriterFactoryBean implements FactoryBean<VideoSpiderWrit
 
 	@Override
 	public VideoSpiderWriter getObject() throws Exception {
+
 		return null;
 	}
 

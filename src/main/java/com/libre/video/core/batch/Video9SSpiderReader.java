@@ -1,38 +1,28 @@
 package com.libre.video.core.batch;
 
-import com.google.common.collect.Lists;
 import com.libre.core.exception.LibreException;
-import com.libre.core.time.DatePattern;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
+import com.libre.redis.cache.RedisUtils;
 import com.libre.spider.DomMapper;
-import com.libre.video.core.constant.RequestConstant;
 import com.libre.video.core.enums.RequestTypeEnum;
-import com.libre.video.core.mapstruct.Video91Mapping;
-import com.libre.video.core.mapstruct.Video9sMapping;
-import com.libre.video.core.pojo.dto.Video9sDTO;
-import com.libre.video.core.pojo.parse.Video9sDetailParse;
 import com.libre.video.core.pojo.parse.Video9sParse;
-import com.libre.video.core.request.VideoRequest;
-import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
+import com.libre.video.toolkit.WebClientUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
-import org.springframework.beans.BeanUtils;
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.ItemStreamException;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author: Libre
@@ -43,45 +33,74 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader {
 
 	private final String baseUrl = RequestTypeEnum.REQUEST_9S.getBaseUrl();
 
+	private final RedisUtils redisUtils;
 
-	public Video9SSpiderReader(VideoService videoService, WebClient webClient) {
-		super(videoService, webClient);
+	private Integer maxPageSize;
+
+	public Video9SSpiderReader(RedisUtils redisUtils) {
+		this.redisUtils = redisUtils;
 	}
 
 	@Override
-	protected void doReadPage() {
-		if (results == null) {
-			results = new CopyOnWriteArrayList<>();
+	protected void doParseVideo() {
+		int page = this.getPage();
+		List<Video9sParse> video9sParses = doParse(page);
+		doProcessVideos(video9sParses);
+	}
+
+	@Override
+	protected void doOpen() throws Exception {
+		super.doOpen();
+		String indexPageHtml = requestIndexPage();
+		Integer totalPageSize = parsePageSize(indexPageHtml);
+		this.maxPageSize = totalPageSize;
+		List<Video9sParse> video9sParses = readVideo9sParseList(indexPageHtml);
+		if (CollectionUtil.isNotEmpty(video9sParses)) {
+			this.setMaxItemCount(totalPageSize * video9sParses.size());
 		}
-		else {
-			results.clear();
+
+		Integer videoCurrentPage = redisUtils.get(PAGE_CACHE_KEY);
+		int page = this.getPage();
+		if (Objects.nonNull(videoCurrentPage) && videoCurrentPage > page) {
+			this.setPageSize(video9sParses.size());
+			this.setCurrentItemCount(videoCurrentPage * video9sParses.size());
 		}
-		this.parseList();
 	}
 
 	@Override
 	protected void doJumpToPage(int itemIndex) {
-       log.info("234",itemIndex);
+		log.error("doJumpToPage, currentItemIndex is {}, currentPage is: {}", itemIndex, getPage());
+
 	}
 
-	public void parseList() {
-		int page = 1372 + this.getPage();
+	@Override
+	public void update(ExecutionContext executionContext) throws ItemStreamException {
+		super.update(executionContext);
+		int currentPage = this.getPage();
+		log.info("parse video is executing, currentPage is: {}, totalPage is: {}", currentPage, maxPageSize);
+		redisUtils.set(PAGE_CACHE_KEY, this.getPage());
+	}
+
+	private void doProcessVideos(List<Video9sParse> video9sParseList) {
+		this.setPageSize(video9sParseList.size());
+		results.addAll(video9sParseList);
+	}
+
+	protected String requestIndexPage() {
+		Mono<String> request = WebClientUtils.request(baseUrl);
+		return request.block();
+	}
+
+	private List<Video9sParse> doParse(int page) {
 		String requestVideoUrl = baseUrl + StringPool.SLASH + page;
-		try {
-			List<Video9sParse> video9sParseList = requestParseList(requestVideoUrl);
-			this.setPageSize(video9sParseList.size());
-			results.addAll(video9sParseList);
-		}
-		catch (Exception e) {
-			log.error("解析视频失败, url:" + requestVideoUrl, e);
-		}
+		return requestParseList(requestVideoUrl);
 	}
 
 	protected List<Video9sParse> requestParseList(String requestVideoUrl) {
-		Mono<String> mono = request(requestVideoUrl);
+		Mono<String> mono = WebClientUtils.request(requestVideoUrl);
 		String videoPageHtml = mono.block();
 		Assert.notNull(videoPageHtml, "videoPageHtml is blank");
-		List<Video9sParse> parseList = DomMapper.readList(videoPageHtml, Video9sParse.class);
+		List<Video9sParse> parseList = readVideo9sParseList(videoPageHtml);
 		if (CollectionUtil.isEmpty(parseList)) {
 			log.error("parseList is empty");
 			throw new LibreException("parseList is empty, url: " + requestVideoUrl);
@@ -89,12 +108,8 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader {
 		return parseList;
 	}
 
-	protected Integer requestIndexPage() {
-		Mono<String> request = request(baseUrl);
-		String html = request.block();
-		Integer pageSize = parsePageSize(html);
-		Optional.ofNullable(pageSize).orElseThrow(() -> new LibreException("解析页码失败"));
-		return pageSize;
+	private static List<Video9sParse> readVideo9sParseList(String videoPageHtml) {
+		return DomMapper.readList(videoPageHtml, Video9sParse.class);
 	}
 
 	public Integer parsePageSize(String html) {
@@ -118,4 +133,5 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader {
 		}
 		return Integer.parseInt(text);
 	}
+
 }

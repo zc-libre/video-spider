@@ -222,7 +222,7 @@ public class M3u8Download {
 		finally {
 			IOUtils.closeQuietly(inputStream);
 		}
-		log.info("video copy success, path: {}", m3u8FilePath);
+		log.debug("video copy success, path: {}", m3u8FilePath);
 		return content;
 	}
 

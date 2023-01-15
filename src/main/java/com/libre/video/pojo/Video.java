@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ser.std.StringSerializer;
 import com.libre.core.time.DatePattern;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -57,6 +58,7 @@ public class Video implements Serializable {
     private Integer collectNum;
 
 
+	@Transient
 	private String m3u8Content;
 
 	private String videoPath;

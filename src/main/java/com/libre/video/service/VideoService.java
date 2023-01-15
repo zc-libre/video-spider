@@ -36,11 +36,6 @@ public interface VideoService extends IService<Video> {
      */
     void download(List<Long> ids);
 
-	/**
-	 * 下载视频并存储至oss
-	 * @param videoUploadEvent video
-	 */
-	void saveVideoToOss(VideoUploadEvent videoUploadEvent);
 
 
 	void saveVideoToLocal(VideoUploadEvent videoUploadEvent);

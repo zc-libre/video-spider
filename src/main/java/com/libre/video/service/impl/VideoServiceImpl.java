@@ -1,7 +1,5 @@
 package com.libre.video.service.impl;
 
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -9,21 +7,19 @@ import com.google.common.collect.Lists;
 import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
-import com.libre.core.toolkit.Exceptions;
 import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
-import com.libre.oss.support.OssTemplate;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.constant.SystemConstants;
 import com.libre.video.core.download.M3u8Download;
 import com.libre.video.core.download.VideoEncoder;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.event.VideoUploadEvent;
+import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.core.request.VideoRequestContext;
 import com.libre.video.core.request.strategy.VideoRequestStrategy;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
-import com.libre.video.core.pojo.dto.VideoRequestParam;
 import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.ThreadPoolUtil;
@@ -31,28 +27,36 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.sort.*;
-import org.springframework.batch.core.*;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.core.*;
-import org.springframework.data.elasticsearch.core.query.*;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHitSupport;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.SearchPage;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.io.*;
-import java.nio.file.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -67,8 +71,6 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private final VideoEncoder videoEncoder;
 
 	private final ElasticsearchOperations elasticsearchOperations;
-
-	private final OssTemplate ossTemplate;
 
 	private final M3u8Download m3u8Download;
 
@@ -110,24 +112,24 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		log.info("video save success, url: {}", video.getVideoPath());
 	}
 
-	@Override
-	public void saveVideoToOss(VideoUploadEvent event) {
-		Video video = event.getVideo();
-		String videoPath = video.getVideoPath();
-		Resource resource = event.getResource();
-
-		Assert.hasText(videoPath, "video path must not be null");
-		Assert.notNull(resource, "video resource must not be null");
-
-		try (InputStream inputStream = resource.getInputStream()) {
-			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, videoPath, inputStream);
-		}
-		catch (IOException e) {
-			throw new LibreException("文件上传失败: " + e.getMessage());
-		}
-		this.updateById(video);
-		log.info("video save success, url: {}", video.getVideoPath());
-	}
+//	@Override
+//	public void saveVideoToOss(VideoUploadEvent event) {
+//		Video video = event.getVideo();
+//		String videoPath = video.getVideoPath();
+//		Resource resource = event.getResource();
+//
+//		Assert.hasText(videoPath, "video path must not be null");
+//		Assert.notNull(resource, "video resource must not be null");
+//
+//		try (InputStream inputStream = resource.getInputStream()) {
+//			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, videoPath, inputStream);
+//		}
+//		catch (IOException e) {
+//			throw new LibreException("文件上传失败: " + e.getMessage());
+//		}
+//		this.updateById(video);
+//		log.info("video save success, url: {}", video.getVideoPath());
+//	}
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -139,8 +141,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		String title = videoQuery.getTitle();
 		if (StringUtil.isNotBlank(title)) {
 			nativeSearchQueryBuilder.withQuery(QueryBuilders.matchPhraseQuery("title", title));
-			nativeSearchQueryBuilder.withQuery(QueryBuilders.matchQuery("title", title));
 		}
+		//nativeSearchQueryBuilder.withQuery(QueryBuilders.termQuery("videoWebsite", 2));
 		nativeSearchQueryBuilder.withPageable(pageRequest);
 		nativeSearchQueryBuilder.withSorts(sortBuilders(page));
 		NativeSearchQuery query = nativeSearchQueryBuilder.build();

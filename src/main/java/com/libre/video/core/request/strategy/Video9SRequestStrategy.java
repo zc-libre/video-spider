@@ -41,6 +41,7 @@ public class Video9SRequestStrategy extends AbstractVideoRequestStrategy<Video9s
 
 	private String baseUrl;
 	private Integer requestType;
+
 	private final List<Video> videoList = Lists.newCopyOnWriteArrayList();
 
 	public Video9SRequestStrategy(VideoService videoService, WebClient webClient) {
