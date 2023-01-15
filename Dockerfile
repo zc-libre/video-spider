@@ -16,4 +16,4 @@ EXPOSE 9870
 
 CMD java $JAVA_OPTS -jar app/boot/*.jar
 
-ENTRYPOINT ["sh","-c","java  ${JAVA_OPTS} -jar app/boot/*.jar --spinrg.profiles.active=${ACTIVE} --jasypt.encryptor.password=${PASSWORD}"]
+ENTRYPOINT ["sh","-c","java  ${JAVA_OPTS} -jar app/boot/*.jar --spinrg.profiles.active=${ACTIVE} --jasypt.encryptor.password=${VIDEO_PASSWORD}"]
