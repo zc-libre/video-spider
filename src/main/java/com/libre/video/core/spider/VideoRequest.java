@@ -1,6 +1,7 @@
-package com.libre.video.core.request;
+package com.libre.video.core.spider;
 
 import com.libre.video.core.enums.RequestTypeEnum;
+import com.libre.video.core.enums.VideoStepType;
 
 import java.lang.annotation.*;
 
@@ -9,8 +10,12 @@ import java.lang.annotation.*;
 @Documented
 @Inherited
 public @interface VideoRequest {
+
 	/**
 	 * 策略类型
 	 */
-     RequestTypeEnum value();
+	RequestTypeEnum value();
+
+	VideoStepType step() default VideoStepType.READER;
+
 }

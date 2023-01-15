@@ -35,9 +35,9 @@ public class VideoController {
 	private final M3u8Download m3u8Download;
 
 
-	@GetMapping("/spider")
-	public R<Boolean> spider() {
-		videoService.spider();
+	@GetMapping("/spider/{type}")
+	public R<Boolean> spider(@PathVariable Integer type) {
+		videoService.spider(type);
 		return R.status(true);
 	}
 
@@ -86,11 +86,6 @@ public class VideoController {
 		return R.success("数据同步成功");
 	}
 
-	@GetMapping("/request")
-	public R<Boolean> request(@RequestParam Integer requestType, Integer size) {
-		videoService.request(VideoRequestParam.builder().requestType(requestType).size(size).build());
-		return R.status(Boolean.TRUE);
-	}
 
 	@GetMapping("/shutdown")
 	public R<Boolean> shutdown() {

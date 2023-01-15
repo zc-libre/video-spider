@@ -11,13 +11,12 @@ import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.constant.SystemConstants;
+import com.libre.video.core.spider.VideoSpiderJobBuilder;
 import com.libre.video.core.download.M3u8Download;
 import com.libre.video.core.download.VideoEncoder;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.core.pojo.dto.VideoRequestParam;
-import com.libre.video.core.request.VideoRequestContext;
-import com.libre.video.core.request.strategy.VideoRequestStrategy;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
 import com.libre.video.pojo.dto.VideoQuery;
@@ -66,8 +65,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements VideoService {
 
-	private final VideoRequestContext videoRequestContext;
-
 	private final VideoEncoder videoEncoder;
 
 	private final ElasticsearchOperations elasticsearchOperations;
@@ -78,17 +75,10 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	private final JobLauncher jobLauncher;
 
+	private final VideoSpiderJobBuilder videoSpiderJobBuilder;
+
 	private final VideoProperties videoProperties;
 
-	@Override
-	public void request(VideoRequestParam param) {
-		RequestTypeEnum requestTypeEnum = RequestTypeEnum.find(param.getRequestType());
-		Assert.notNull(requestTypeEnum, "request type must not be null");
-		log.info("start request type: {}, baseUrl: {}", requestTypeEnum.name(), requestTypeEnum.getBaseUrl());
-		param.setRequestTypeEnum(requestTypeEnum);
-		VideoRequestStrategy<?> requestStrategy = videoRequestContext.getRequestStrategy(param.getRequestType());
-		requestStrategy.execute(param);
-	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
@@ -112,24 +102,24 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		log.info("video save success, url: {}", video.getVideoPath());
 	}
 
-//	@Override
-//	public void saveVideoToOss(VideoUploadEvent event) {
-//		Video video = event.getVideo();
-//		String videoPath = video.getVideoPath();
-//		Resource resource = event.getResource();
-//
-//		Assert.hasText(videoPath, "video path must not be null");
-//		Assert.notNull(resource, "video resource must not be null");
-//
-//		try (InputStream inputStream = resource.getInputStream()) {
-//			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, videoPath, inputStream);
-//		}
-//		catch (IOException e) {
-//			throw new LibreException("文件上传失败: " + e.getMessage());
-//		}
-//		this.updateById(video);
-//		log.info("video save success, url: {}", video.getVideoPath());
-//	}
+	// @Override
+	// public void saveVideoToOss(VideoUploadEvent event) {
+	// Video video = event.getVideo();
+	// String videoPath = video.getVideoPath();
+	// Resource resource = event.getResource();
+	//
+	// Assert.hasText(videoPath, "video path must not be null");
+	// Assert.notNull(resource, "video resource must not be null");
+	//
+	// try (InputStream inputStream = resource.getInputStream()) {
+	// ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, videoPath, inputStream);
+	// }
+	// catch (IOException e) {
+	// throw new LibreException("文件上传失败: " + e.getMessage());
+	// }
+	// this.updateById(video);
+	// log.info("video save success, url: {}", video.getVideoPath());
+	// }
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -142,7 +132,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		if (StringUtil.isNotBlank(title)) {
 			nativeSearchQueryBuilder.withQuery(QueryBuilders.matchPhraseQuery("title", title));
 		}
-		//nativeSearchQueryBuilder.withQuery(QueryBuilders.termQuery("videoWebsite", 2));
+		// nativeSearchQueryBuilder.withQuery(QueryBuilders.termQuery("videoWebsite", 2));
 		nativeSearchQueryBuilder.withPageable(pageRequest);
 		nativeSearchQueryBuilder.withSorts(sortBuilders(page));
 		NativeSearchQuery query = nativeSearchQueryBuilder.build();
@@ -218,13 +208,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		List<SortBuilder<?>> sortBuilders = Lists.newArrayList();
 		List<OrderItem> orderItems = page.getOrders();
 		if (CollectionUtil.isEmpty(orderItems)) {
-
 			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort("publishTime").order(SortOrder.DESC);
 			sortBuilders.add(fieldSortBuilder);
-
-			// ScoreSortBuilder scoreSortBuilder =
-			// SortBuilders.scoreSort().order(SortOrder.DESC);
-			// sortBuilders.add(scoreSortBuilder);
 		}
 
 		for (OrderItem orderItem : orderItems) {
@@ -252,14 +237,14 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		}
 	}
 
-	public void spider() {
-		Job videoSpiderJob = SpringContext.getBean("videoSpiderJob");
-		Assert.notNull(videoSpiderJob, "esSyncJob must not be null");
-
+	@Override
+	public void spider(Integer type) {
+		Job videoSpiderJob = videoSpiderJobBuilder.videoSpiderJob(type);
 		try {
 			jobLauncher.run(videoSpiderJob, createJobParams());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		}
+		catch (Exception e) {
+			throw new LibreException(e);
 		}
 	}
 

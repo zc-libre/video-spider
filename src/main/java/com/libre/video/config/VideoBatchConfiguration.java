@@ -1,13 +1,7 @@
 package com.libre.video.config;
 
-import com.libre.redis.cache.RedisUtils;
-import com.libre.video.core.batch.Video9SSpiderReader;
-import com.libre.video.core.batch.Video9sSpiderProcessor;
-import com.libre.video.core.batch.VideoSpiderWriter;
-import com.libre.video.core.batch.sync.EsSyncJobListener;
-import com.libre.video.core.batch.sync.EsVideoItemWriter;
-import com.libre.video.core.download.M3u8Download;
-import com.libre.video.core.pojo.parse.Video9sParse;
+import com.libre.video.core.sync.EsSyncJobListener;
+import com.libre.video.core.sync.EsVideoItemWriter;
 import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.pojo.Video;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +14,6 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
-import org.springframework.batch.core.step.skip.SkipPolicy;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -87,46 +79,47 @@ public class VideoBatchConfiguration {
 			.build();
 	}
 
-	@Bean
-	@StepScope
-	public Video9SSpiderReader video9SSpiderReader(RedisUtils redisUtils) {
-		return new Video9SSpiderReader(redisUtils);
-	}
 
-	@Bean
-	@StepScope
-	public Video9sSpiderProcessor video9sSpiderProcessor(M3u8Download m3u8Download) {
-		return new Video9sSpiderProcessor(m3u8Download);
-	}
-
-	@Bean
-	@StepScope
-	public VideoSpiderWriter videoSpiderWriter() {
-		return new VideoSpiderWriter();
-	}
-
-	@Bean
-	public Step videoSpiderStep(Video9SSpiderReader itemReader,
-								Video9sSpiderProcessor video9sSpiderProcessor,
-			                    VideoSpiderWriter videoSpiderWriter,
-								@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor) {
-		SkipPolicy skipPolicy = new AlwaysSkipItemSkipPolicy();
-
-		return stepBuilderFactory.get("videoSpiderStep")
-			.<Video9sParse, Video>chunk(100)
-			.reader(itemReader).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-			.processor(video9sSpiderProcessor).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-			.writer(videoSpiderWriter).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-			.taskExecutor(taskExecutor).build();
-	}
-
-	@Bean
-	public Job videoSpiderJob(@Qualifier("videoSpiderStep") Step videoSpiderStep) {
-		return jobBuilderFactory.get("videoSpiderJob")
-			.incrementer(new RunIdIncrementer())
-			.flow(videoSpiderStep)
-			.end()
-			.build();
-	}
+//	@Bean
+//	@StepScope
+//	public Video9SSpiderReader video9SSpiderReader(RedisUtils redisUtils) {
+//		return new Video9SSpiderReader(redisUtils);
+//	}
+//
+//	@Bean
+//	@StepScope
+//	public Video9sSpiderProcessor video9sSpiderProcessor() {
+//		return new Video9sSpiderProcessor();
+//	}
+//
+//	@Bean
+//	@StepScope
+//	public VideoSpiderWriter videoSpiderWriter() {
+//		return new VideoSpiderWriter();
+//	}
+//
+//	@Bean
+//	public Step videoSpiderStep(Video9SSpiderReader itemReader,
+//								Video9sSpiderProcessor video9sSpiderProcessor,
+//			                    VideoSpiderWriter videoSpiderWriter,
+//								@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor) {
+//		SkipPolicy skipPolicy = new AlwaysSkipItemSkipPolicy();
+//
+//		return stepBuilderFactory.get("videoSpiderStep")
+//			.<VideoParse, Video>chunk(100)
+//			.reader(itemReader).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
+//			.processor(video9sSpiderProcessor).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
+//			.writer(videoSpiderWriter).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
+//			.taskExecutor(taskExecutor).build();
+//	}
+//
+//	@Bean
+//	public Job videoSpiderJob(@Qualifier("videoSpiderStep") Step videoSpiderStep) {
+//		return jobBuilderFactory.get("videoSpiderJob")
+//			.incrementer(new RunIdIncrementer())
+//			.flow(videoSpiderStep)
+//			.end()
+//			.build();
+//	}
 
 }

@@ -15,20 +15,17 @@ import java.util.List;
 public interface VideoService extends IService<Video> {
 
 	/**
-	 * 爬取视频
-	 * @param param /
-	 */
-	@Async("videoRequestExecutor")
-	void request(VideoRequestParam param);
-
-	/**
 	 * 同步数据至elasticsearch
 	 */
 	@Async("videoRequestExecutor")
 	void syncToElasticsearch();
 
+	/**
+	 * 爬取视频
+	 * @param type 请求类型
+	 */
 	@Async("videoRequestExecutor")
-	void spider();
+	void spider(Integer type);
 
     /**
      * 通过视频id下载视频
