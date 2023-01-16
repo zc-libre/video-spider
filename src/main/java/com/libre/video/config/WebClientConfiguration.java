@@ -51,7 +51,6 @@ public class WebClientConfiguration {
 			.doOnConnected(conn -> conn
 				.addHandlerLast(new ReadTimeoutHandler(10))
 				.addHandlerLast(new WriteTimeoutHandler(10)))
-			.proxyWithSystemProperties()
 			.responseTimeout(Duration.ofSeconds(10));
 
 		ClientHttpConnector connector = new ReactorClientHttpConnector(reactorResourceFactory, mapper);
