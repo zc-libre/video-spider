@@ -28,7 +28,9 @@ ENV TZ=Asia/Shanghai JAVA_OPTS="-Xms128m -Xmx256m -Djava.security.egd=file:/dev/
 
 ENV LC_ALL zh_CN.UTF-8
 
-ENV ALL_PROXY=http://127.0.0.1:7890
+ENV ALL_PROXY http://127.0.0.1:7890
+ENV http_proxy http://127.0.0.1:7890
+ENV https_proxy http://127.0.0.1:7890
 
 EXPOSE 9870
 
