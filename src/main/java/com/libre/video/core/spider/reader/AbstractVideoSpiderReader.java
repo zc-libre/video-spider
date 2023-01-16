@@ -32,7 +32,6 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 
 	protected AbstractVideoSpiderReader(RedisUtils redisUtils) {
 		this.redisUtils = redisUtils;
-		this.requestType = getRequestType();
 	}
 
 	@Override
@@ -81,6 +80,11 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 		redisUtils.set(PAGE_CACHE_KEY + requestType.name(), this.getPage());
 	}
 
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		super.afterPropertiesSet();
+		this.requestType = getRequestType();
+	}
 
 	protected void doParseVideo() {
 		int page = this.getPage();

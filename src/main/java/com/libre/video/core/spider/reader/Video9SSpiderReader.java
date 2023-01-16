@@ -46,8 +46,7 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 		return request.block();
 	}
 
-
-
+	@Override
 	protected List<Video9sParse> doParse(Integer page) {
 		String requestVideoUrl = baseUrl + StringPool.SLASH + page;
 		Mono<String> mono = WebClientUtils.request(requestVideoUrl);
@@ -68,18 +67,6 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 	}
 
 
-//	@Override
-//	protected List<Video9sParse> readVideoParseList(String html) {
-//		Mono<String> mono = WebClientUtils.request(requestVideoUrl);
-//		String videoPageHtml = mono.block();
-//		Assert.notNull(videoPageHtml, "videoPageHtml is blank");
-//		List<Video9sParse> parseList = readVideo9sParseList(videoPageHtml);
-//		if (CollectionUtil.isEmpty(parseList)) {
-//			log.error("parseList is empty");
-//			throw new LibreException("parseList is empty, url: " + requestVideoUrl);
-//		}
-//		return parseList;
-//	}
 	@Override
 	protected RequestTypeEnum getRequestType() {
 		return RequestTypeEnum.REQUEST_9S;

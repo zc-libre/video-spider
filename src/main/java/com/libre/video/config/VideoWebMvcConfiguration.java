@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -16,10 +17,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class VideoWebMvcConfiguration implements WebMvcConfigurer {
 
 	private final VideoProperties videoProperties;
+
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
 		String path = videoProperties.getDownloadPath();
 		String pathUtl = "file:" + path.replace("\\","/");
 		registry.addResourceHandler("/file/**").addResourceLocations(pathUtl).setCachePeriod(0);
+
+		registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
+
 	}
 }

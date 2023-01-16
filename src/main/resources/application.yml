@@ -41,9 +41,9 @@ spring:
       on-profile: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&useCursorFetch=true
+    url: jdbc:mysql://101.42.252.139:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&useCursorFetch=true
     username: root
-    password: 123456
+    password: 504879189
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       connection-test-query: SELECT 1 FROM DUAL
@@ -71,7 +71,7 @@ spring:
     location: ../config/application.yml
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://101.42.252.139:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&useCursorFetch=true
+    url: jdbc:mysql://127.0.0.1:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&useCursorFetch=true
     username: root
     password: ENC(pS3X2GTc99Gw5vhMMZWmHzdvtRRHO1o3)
     type: com.zaxxer.hikari.HikariDataSource
@@ -81,7 +81,7 @@ spring:
       connection-test-query: select 1
 
   redis:
-    host: 101.42.252.139
+    host: 127.0.0.1
     password: password
 
   elasticsearch:

@@ -7,7 +7,6 @@ import com.libre.video.core.download.M3u8Download;
 import com.libre.video.core.download.VideoEncoder;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.pojo.parse.VideoBaAvParse;
-import com.libre.video.core.request.strategy.Video9SRequestStrategy;
 import com.libre.video.pojo.Video;
 import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.VideoFileUtils;
@@ -24,9 +23,6 @@ import java.io.IOException;
 class VideoApplicationTests {
     @Autowired
     VideoEncoder download;
-    @Autowired
-	Video9SRequestStrategy request;
-
 
 	@Autowired
 	M3u8Download m3u8Download;
