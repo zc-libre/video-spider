@@ -5,6 +5,7 @@ import com.libre.redis.cache.RedisUtils;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.pojo.parse.VideoParse;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
@@ -72,7 +73,7 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 	}
 
 	@Override
-	public void update(ExecutionContext executionContext) throws ItemStreamException {
+	public void update(@NotNull ExecutionContext executionContext) throws ItemStreamException {
 		super.update(executionContext);
 		int currentPage = this.getPage();
 		log.info("{} parse video is executing, currentPage is: {}, totalPage is: {}", requestType.name(), currentPage,

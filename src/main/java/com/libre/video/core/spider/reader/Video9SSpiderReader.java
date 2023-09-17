@@ -10,6 +10,7 @@ import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.VideoStepType;
 import com.libre.video.core.pojo.parse.Video9sParse;
 import com.libre.video.core.spider.VideoRequest;
+import com.libre.video.toolkit.HttpClientUtils;
 import com.libre.video.toolkit.WebClientUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
@@ -42,15 +43,13 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 
 	@Override
 	protected String requestIndexPage() {
-		Mono<String> request = WebClientUtils.request(baseUrl);
-		return request.block();
+		return HttpClientUtils.request(baseUrl);
 	}
 
 	@Override
 	protected List<Video9sParse> doParse(Integer page) {
 		String requestVideoUrl = baseUrl + StringPool.SLASH + page;
-		Mono<String> mono = WebClientUtils.request(requestVideoUrl);
-		String videoPageHtml = mono.block();
+		String videoPageHtml = HttpClientUtils.request(requestVideoUrl);
 		Assert.notNull(videoPageHtml, "videoPageHtml is blank");
 		List<Video9sParse> parseList = readVideoParseList(videoPageHtml);
 		if (CollectionUtil.isEmpty(parseList)) {
@@ -86,7 +85,7 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 			return null;
 		}
 		Elements allPage = pagination.getAllElements();
-		Element page = allPage.get(8);
+		Element page = allPage.get(allPage.size() - 3);
 		if (Objects.isNull(page)) {
 			return null;
 		}

@@ -20,12 +20,9 @@ public class VideoWebMvcConfiguration implements WebMvcConfigurer {
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-
 		String path = videoProperties.getDownloadPath();
 		String pathUtl = "file:" + path.replace("\\","/");
 		registry.addResourceHandler("/file/**").addResourceLocations(pathUtl).setCachePeriod(0);
-
 		registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
-
 	}
 }

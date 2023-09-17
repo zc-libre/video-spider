@@ -17,7 +17,6 @@ public interface VideoService extends IService<Video> {
 	/**
 	 * 同步数据至elasticsearch
 	 */
-	@Async("videoRequestExecutor")
 	void syncToElasticsearch();
 
 	/**

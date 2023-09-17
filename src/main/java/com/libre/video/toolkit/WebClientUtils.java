@@ -24,7 +24,7 @@ import java.util.Random;
 public class WebClientUtils {
 
 	private static WebClient webClient;
-	private static final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+	public static final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
 
 	static {
 		initialize();

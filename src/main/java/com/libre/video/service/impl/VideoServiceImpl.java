@@ -26,7 +26,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.common.unit.Fuzziness;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -79,7 +80,6 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	private final VideoProperties videoProperties;
 
-
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void download(List<Long> ids) {
@@ -130,12 +130,43 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 		String title = videoQuery.getTitle();
 		if (StringUtil.isNotBlank(title)) {
-			nativeSearchQueryBuilder.withQuery(QueryBuilders.matchPhraseQuery("title", title));
+			BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+			List<QueryBuilder> shouldQuery = boolQueryBuilder.should();
+
+			MatchPhraseQueryBuilder matchPhraseQuery = QueryBuilders.matchPhraseQuery("title", title);
+			matchPhraseQuery.boost(10);
+			shouldQuery.add(matchPhraseQuery);
+
+			QueryStringQueryBuilder stringQuery = QueryBuilders.queryStringQuery(title);
+			stringQuery.field("title")
+				.field("title.keyword")
+				.queryName(title)
+				.fuzziness(Fuzziness.AUTO)
+				.fuzzyPrefixLength(2)
+				.fuzzyMaxExpansions(20)
+				.fuzzyTranspositions(true)
+				.allowLeadingWildcard(false);
+			stringQuery.boost(9);
+			shouldQuery.add(stringQuery);
+
+			PrefixQueryBuilder prefixQuery = QueryBuilders.prefixQuery("title.keyword", title);
+			shouldQuery.add(prefixQuery);
+
+			MatchPhrasePrefixQueryBuilder matchPhrasePrefixQueryBuilder = QueryBuilders.matchPhrasePrefixQuery("title", title);
+			shouldQuery.add(matchPhrasePrefixQueryBuilder);
+
+			MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("title", title);
+			matchQuery.boost(1);
+			shouldQuery.add(matchQuery);
+
+			nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
 		}
-		// nativeSearchQueryBuilder.withQuery(QueryBuilders.termQuery("videoWebsite", 2));
+
+	    nativeSearchQueryBuilder.withTrackTotalHits(true);
 		nativeSearchQueryBuilder.withPageable(pageRequest);
-		nativeSearchQueryBuilder.withSorts(sortBuilders(page));
+		//nativeSearchQueryBuilder.withSorts(sortBuilders(page));
 		NativeSearchQuery query = nativeSearchQueryBuilder.build();
+
 		SearchHits<Video> hits = elasticsearchOperations.search(query, Video.class);
 		SearchPage<Video> searchPage = SearchHitSupport.searchPageFor(hits, query.getPageable());
 		return (Page<Video>) SearchHitSupport.unwrapSearchHits(searchPage);

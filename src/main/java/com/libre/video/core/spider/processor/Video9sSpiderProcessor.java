@@ -15,6 +15,7 @@ import com.libre.video.core.pojo.parse.Video9sDetailParse;
 import com.libre.video.core.pojo.parse.Video9sParse;
 import com.libre.video.core.spider.VideoRequest;
 import com.libre.video.pojo.Video;
+import com.libre.video.toolkit.HttpClientUtils;
 import com.libre.video.toolkit.WebClientUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -53,8 +54,7 @@ public class Video9sSpiderProcessor extends AbstractVideoProcessor<Video9sParse>
 			url = RequestConstant.REQUEST_9S_BASE_URL + url;
 			video9SDTO.setUrl(url);
 		}
-		Mono<String> request = WebClientUtils.request(url);
-		String body = request.block();
+		String body = HttpClientUtils.request(url);
 		if (StringUtil.isBlank(body)) {
 			throw new LibreException("body is blank, url: " + url);
 		}
