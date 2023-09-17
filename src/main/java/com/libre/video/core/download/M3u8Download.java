@@ -10,6 +10,7 @@ import com.libre.video.config.VideoProperties;
 import com.libre.video.constant.SystemConstants;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.pojo.Video;
+import com.libre.video.toolkit.HttpClientUtils;
 import com.libre.video.toolkit.VideoFileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -44,8 +45,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class M3u8Download {
-
-
 
 	private final WebClient webClient;
 

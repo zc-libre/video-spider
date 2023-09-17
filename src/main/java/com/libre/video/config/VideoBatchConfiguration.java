@@ -57,7 +57,7 @@ public class VideoBatchConfiguration {
 		MyBatisPagingItemReader<Video> itemReader = new MyBatisPagingItemReader<>();
 		itemReader.setQueryId("com.libre.video.mapper.VideoMapper.findByBatchPage");
 		itemReader.setSqlSessionFactory(sqlSessionFactory);
-		itemReader.setPageSize(2000);
+		itemReader.setPageSize(10000);
 		return itemReader;
 	}
 
