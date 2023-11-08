@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 public class VideoTest {
 
 	@Test
-	 void test1 () throws IOException {
+	void test1() throws IOException {
 		Stream<Path> list = Files.list(Paths.get("/Users/libre/video/1609239160856510466"));
 
 		List<String> fileList = list.map(p -> p.toAbsolutePath().toString()).sorted((o1, o2) -> {
@@ -38,12 +38,14 @@ public class VideoTest {
 				String id1 = o1.substring(o1.lastIndexOf('/') + 1, o1.lastIndexOf("."));
 				String id2 = o2.substring(o1.lastIndexOf('/') + 1, o2.lastIndexOf("."));
 				if (StringUtils.isNotBlank(id1) && StringUtils.isNotBlank(id2)
-					&& Integer.parseInt(id1) - Integer.parseInt(id2) < 0) {
+						&& Integer.parseInt(id1) - Integer.parseInt(id2) < 0) {
 					return -1;
-				} else {
+				}
+				else {
 					return 1;
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				// throw new RuntimeException(e);
 			}
 			return 0;

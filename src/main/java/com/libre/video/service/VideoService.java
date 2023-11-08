@@ -26,15 +26,14 @@ public interface VideoService extends IService<Video> {
 	@Async("videoRequestExecutor")
 	void spider(Integer type);
 
-    /**
-     * 通过视频id下载视频
-     * @param ids id集合
-     */
-    void download(List<Long> ids);
-
-
+	/**
+	 * 通过视频id下载视频
+	 * @param ids id集合
+	 */
+	void download(List<Long> ids);
 
 	void saveVideoToLocal(VideoUploadEvent videoUploadEvent);
+
 	/**
 	 * es分页查询视频
 	 * @param page 分页参数
@@ -43,9 +42,8 @@ public interface VideoService extends IService<Video> {
 	 */
 	Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery);
 
+	String watch(Long videoId) throws IOException;
 
-    String watch(Long videoId) throws IOException;
-
-    void shutdown();
+	void shutdown();
 
 }

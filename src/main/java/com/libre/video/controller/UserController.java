@@ -32,7 +32,8 @@ public class UserController {
 	 */
 	@PostMapping("/login")
 	public R<Map<String, Object>> login(@RequestBody User user) {
-		User dbUser = Optional.ofNullable(userMapper.findByUsername(user.getUsername())).orElseThrow(() -> new LibreException("用户不存在"));
+		User dbUser = Optional.ofNullable(userMapper.findByUsername(user.getUsername()))
+				.orElseThrow(() -> new LibreException("用户不存在"));
 		if (!dbUser.getPassword().equals(user.getPassword())) {
 			throw new LibreException("用户名或密码错误");
 		}
@@ -41,10 +42,10 @@ public class UserController {
 		return R.data(map);
 	}
 
-
 	@PostMapping("/info")
 	public R<Map<String, Object>> info(String token) {
-		User dbUser = Optional.ofNullable(userMapper.findByUsername(token)).orElseThrow(() -> new LibreException("用户不存在"));
+		User dbUser = Optional.ofNullable(userMapper.findByUsername(token))
+				.orElseThrow(() -> new LibreException("用户不存在"));
 		Map<String, Object> map = Maps.newHashMap();
 		map.put("roles", ImmutableList.of("admin"));
 		map.put("avatar", "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif");
@@ -52,4 +53,5 @@ public class UserController {
 		map.put("name", dbUser.getUsername());
 		return R.data(map);
 	}
+
 }

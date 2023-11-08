@@ -39,8 +39,6 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 		super(redisUtils);
 	}
 
-
-
 	@Override
 	protected String requestIndexPage() {
 		return HttpClientUtils.request(baseUrl);
@@ -59,19 +57,15 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 		return parseList;
 	}
 
-
 	@Override
 	protected List<Video9sParse> readVideoParseList(String html) {
-       return DomMapper.readList(html, Video9sParse.class);
+		return DomMapper.readList(html, Video9sParse.class);
 	}
-
 
 	@Override
 	protected RequestTypeEnum getRequestType() {
 		return RequestTypeEnum.REQUEST_9S;
 	}
-
-
 
 	@Override
 	public Integer parsePageSize(String html) {
@@ -95,4 +89,5 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 		}
 		return Integer.parseInt(text);
 	}
+
 }

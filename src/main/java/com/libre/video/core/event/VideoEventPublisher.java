@@ -9,23 +9,25 @@ import org.springframework.util.Assert;
 import java.util.List;
 
 public class VideoEventPublisher {
+
 	private static final ApplicationContext applicationContext;
 
 	static {
-		 applicationContext = SpringContext.getContext();
+		applicationContext = SpringContext.getContext();
 		Assert.notNull(applicationContext, "applicationContext must not null");
 	}
 
-    public static void publishVideoSaveEvent(List<Video> videoList) {
-        VideoSaveEvent videoSaveEvent = new VideoSaveEvent(videoList);
-        applicationContext.publishEvent(videoSaveEvent);
-    }
+	public static void publishVideoSaveEvent(List<Video> videoList) {
+		VideoSaveEvent videoSaveEvent = new VideoSaveEvent(videoList);
+		applicationContext.publishEvent(videoSaveEvent);
+	}
 
-    public static void publishErrorEvent(ErrorVideo errorVideo) {
-        applicationContext.publishEvent(errorVideo);
-    }
+	public static void publishErrorEvent(ErrorVideo errorVideo) {
+		applicationContext.publishEvent(errorVideo);
+	}
 
 	public static void publishVideoUploadEvent(VideoUploadEvent downloadEvent) {
 		applicationContext.publishEvent(downloadEvent);
 	}
+
 }

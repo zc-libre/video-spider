@@ -47,7 +47,6 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 
 	private final Map<Integer, VideoSpiderProcessor<?>> processorContext = Maps.newHashMap();
 
-
 	public Job videoSpiderJob(Integer requestType) {
 		RequestTypeEnum requestTypeEnum = RequestTypeEnum.find(requestType);
 		Assert.notNull(requestTypeEnum, "requestTypeEnum must not be null");
@@ -55,28 +54,18 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 		AbstractVideoSpiderReader<?> reader = readerContext.get(requestType);
 		VideoSpiderProcessor<?> processor = processorContext.get(requestType);
 		Step step = videoSpiderStep(requestTypeEnum.name(), reader, processor, writer);
-		return jobBuilderFactory.get("videoSpiderJob")
-			.incrementer(new RunIdIncrementer())
-			.flow(step)
-			.end()
-			.build();
+		return jobBuilderFactory.get("videoSpiderJob").incrementer(new RunIdIncrementer()).flow(step).end().build();
 	}
 
-
-	private Step videoSpiderStep(String stepName, AbstractVideoSpiderReader<?> reader, VideoSpiderProcessor<?> processor,
-								 VideoSpiderWriter writer) {
+	private Step videoSpiderStep(String stepName, AbstractVideoSpiderReader<?> reader,
+			VideoSpiderProcessor<?> processor, VideoSpiderWriter writer) {
 		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
 
-		return stepBuilderFactory.get(stepName)
-			.<VideoParse, Video>chunk(1)
-			.reader(reader).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-			.processor(processor).faultTolerant().skip(Exception.class)
-			.skipPolicy(skipPolicy).writer(writer).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-			.taskExecutor(executor)
-			.build();
+		return stepBuilderFactory.get(stepName).<VideoParse, Video>chunk(1).reader(reader).faultTolerant()
+				.skip(Exception.class).skipPolicy(skipPolicy).processor(processor).faultTolerant().skip(Exception.class)
+				.skipPolicy(skipPolicy).writer(writer).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
+				.taskExecutor(executor).build();
 	}
-
-
 
 	@Override
 	public void afterSingletonsInstantiated() {

@@ -31,7 +31,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 @VideoRequest(value = RequestTypeEnum.REQUEST_91, step = VideoStepType.PROCESSOR)
-public class Video91VideoProcessor extends AbstractVideoProcessor<Video91Parse>{
+public class Video91VideoProcessor extends AbstractVideoProcessor<Video91Parse> {
+
 	public Video91VideoProcessor(M3u8Download m3u8Download) {
 		super(m3u8Download);
 	}
@@ -45,18 +46,18 @@ public class Video91VideoProcessor extends AbstractVideoProcessor<Video91Parse>{
 		try {
 			String url = video91Parse.getUrl();
 			if (StringUtil.isBlank(url)) {
-				throw new LibreException("url is blank, url: " +  url);
+				throw new LibreException("url is blank, url: " + url);
 			}
 			Mono<String> mono = WebClientUtils.request(url);
 			String body = mono.block();
 
 			if (StringUtil.isBlank(body)) {
-				throw new LibreException("body is blank, body: " +  body);
+				throw new LibreException("body is blank, body: " + body);
 			}
 			String realUrl = JsEncodeUtil.encodeRealVideoUrl(body);
 			log.info("realVideoUrl: {}", realUrl);
 			if (StringUtil.isBlank(realUrl)) {
-				throw new LibreException("realVideoUrl is blank, realVideoUrl: " +  body);
+				throw new LibreException("realVideoUrl is blank, realVideoUrl: " + body);
 			}
 			Video91Mapping mapping = Video91Mapping.INSTANCE;
 			Video video = mapping.sourceToTarget(video91Parse);
@@ -98,4 +99,5 @@ public class Video91VideoProcessor extends AbstractVideoProcessor<Video91Parse>{
 	public RequestTypeEnum getRequestType() {
 		return RequestTypeEnum.REQUEST_91;
 	}
+
 }

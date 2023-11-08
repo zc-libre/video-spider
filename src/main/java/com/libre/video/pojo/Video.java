@@ -27,36 +27,35 @@ public class Video implements Serializable {
 
 	@Id
 	@Field(type = FieldType.Keyword)
-    @TableId(type = IdType.INPUT)
-    private Long id;
+	@TableId(type = IdType.INPUT)
+	private Long id;
 
 	@Field(type = FieldType.Keyword)
 	private Long videoId;
 
 	@Field(type = FieldType.Keyword)
-    private String url;
+	private String url;
 
 	@Field(type = FieldType.Keyword)
-    private String realUrl;
+	private String realUrl;
 
 	@Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
-    private String title;
+	private String title;
 
 	@Field(type = FieldType.Keyword)
-    private String image;
+	private String image;
 
 	@Field(type = FieldType.Keyword)
-    private String duration;
+	private String duration;
 
 	@Field(type = FieldType.Keyword)
-    private String author;
+	private String author;
 
 	@Field(type = FieldType.Integer)
-    private Integer lookNum;
+	private Integer lookNum;
 
 	@Field(type = FieldType.Integer)
-    private Integer collectNum;
-
+	private Integer collectNum;
 
 	@Transient
 	private String m3u8Content;
@@ -65,15 +64,14 @@ public class Video implements Serializable {
 
 	private Integer videoWebsite;
 
-    @JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
+	@JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
 	@Field(type = FieldType.Date, format = DateFormat.date)
-    private LocalDate publishTime;
+	private LocalDate publishTime;
 
 	@TableField(fill = FieldFill.INSERT)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
 	@Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second_millis)
 	private LocalDateTime createTime;
-
 
 	@TableField(fill = FieldFill.UPDATE)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)

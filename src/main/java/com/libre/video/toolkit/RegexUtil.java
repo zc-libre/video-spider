@@ -10,8 +10,9 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class RegexUtil {
 
-	private final static Pattern M3U8_URL_PATTERN = Pattern.compile("(https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#,?&*//=]*)(.m3u8)\\b([-a-zA-Z0-9@:%_\\+.~#,?&//=]*))",
-		Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+	private final static Pattern M3U8_URL_PATTERN = Pattern.compile(
+			"(https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#,?&*//=]*)(.m3u8)\\b([-a-zA-Z0-9@:%_\\+.~#,?&//=]*))",
+			Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
 	public static String matchM3u8Url(String value) {
 		return getRegexValue(M3U8_URL_PATTERN, 0, value);
@@ -29,7 +30,6 @@ public class RegexUtil {
 		}
 		return matcher.group();
 	}
-
 
 	public static String getRegexValue(Pattern pattern, int regexGroup, String value) {
 		// 处理正则表达式

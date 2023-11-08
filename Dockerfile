@@ -6,7 +6,7 @@ VOLUME  /tmp
 
 WORKDIR /libre
 
-ADD  target/*.tar.gz /libre
+ADD  target/*.jar /libre
 
 RUN mkdir /opt/clash && cd /opt/clash \
             &&  wget https://dl3.ssrss.club/clash-linux-amd64-v1.9.0.gz  \

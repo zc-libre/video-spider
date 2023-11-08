@@ -20,8 +20,7 @@ import java.util.List;
 @UtilityClass
 public class PageUtil<T> {
 
-
-	public static  <T> List<Sort.Order> getOrders(PageDTO<T> page) {
+	public static <T> List<Sort.Order> getOrders(PageDTO<T> page) {
 		List<OrderItem> orderItems = page.getOrders();
 		if (CollectionUtil.isEmpty(orderItems)) {
 			return Collections.emptyList();
@@ -39,10 +38,13 @@ public class PageUtil<T> {
 	private Sort.Direction getDirection(Boolean isAsc) {
 		if (Boolean.TRUE.equals(isAsc)) {
 			return Sort.Direction.ASC;
-		} else if(Boolean.FALSE.equals(isAsc)){
+		}
+		else if (Boolean.FALSE.equals(isAsc)) {
 			return Sort.Direction.DESC;
-		} else {
+		}
+		else {
 			return Sort.Direction.ASC;
 		}
 	}
+
 }

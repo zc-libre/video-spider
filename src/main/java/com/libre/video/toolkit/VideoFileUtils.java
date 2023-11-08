@@ -55,7 +55,8 @@ public class VideoFileUtils {
 		Path videoPath = Paths.get(path);
 		try {
 			Files.delete(videoPath);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new LibreException(String.format("文件删除失败, %s", e.getMessage()));
 		}
 	}
@@ -64,7 +65,8 @@ public class VideoFileUtils {
 		String url;
 		try {
 			url = URLDecoder.decode(videoUrl, StandardCharsets.UTF_8.name());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw Exceptions.unchecked(e);
 		}
 		return url;
@@ -88,19 +90,21 @@ public class VideoFileUtils {
 
 		File resultFile = new File(resultPath);
 
-		try (FileOutputStream outputStream = new FileOutputStream(resultFile, true)){
+		try (FileOutputStream outputStream = new FileOutputStream(resultFile, true)) {
 			FileChannel resultFileChannel = outputStream.getChannel();
 			for (String filePath : filePaths) {
-				try (FileInputStream fileInputStream = new FileInputStream(filePath)){
+				try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
 					FileChannel channel = fileInputStream.getChannel();
 					resultFileChannel.transferFrom(channel, resultFileChannel.size(), channel.size());
 					channel.close();
-				} catch (IOException e) {
+				}
+				catch (IOException e) {
 					throw new LibreException(e);
 				}
 			}
 			resultFileChannel.close();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			log.error(e.getMessage());
 			return false;
 		}
@@ -108,11 +112,13 @@ public class VideoFileUtils {
 		for (String filePath : filePaths) {
 			try {
 				Files.delete(Paths.get(filePath));
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}
 
 		return true;
 	}
+
 }

@@ -91,8 +91,6 @@ public class VideoEventListener {
 		updateVideo(videoList, videos);
 	}
 
-
-
 	private void updateVideo(List<Video> videoList, List<Video> videos) {
 		Map<Long, Video> videoMap = StreamUtils.map(videos, Video::getVideoId, Function.identity());
 		SqlSessionFactory sqlSessionFactory = sqlSessionTemplate.getSqlSessionFactory();

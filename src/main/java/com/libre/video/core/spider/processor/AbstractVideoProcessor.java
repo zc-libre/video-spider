@@ -32,5 +32,4 @@ public abstract class AbstractVideoProcessor<P extends VideoParse> implements Vi
 
 	abstract protected Video doProcess(P parse) throws Exception;
 
-
 }

@@ -71,14 +71,14 @@ public class Video9sSpiderProcessor extends AbstractVideoProcessor<Video9sParse>
 		if (StringUtil.isNotBlank(publishTime)) {
 			publishTime = StringUtil.trimWhitespace(publishTime);
 			video9SDTO.setPublishTime(
-				LocalDate.parse(publishTime, DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)));
+					LocalDate.parse(publishTime, DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)));
 		}
 		BeanUtils.copyProperties(video9SDetailParse, video9SDTO);
 	}
-
 
 	@Override
 	public RequestTypeEnum getRequestType() {
 		return RequestTypeEnum.REQUEST_9S;
 	}
+
 }

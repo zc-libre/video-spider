@@ -24,4 +24,5 @@ public class EsVideoItemWriter implements ItemWriter<Video> {
 		log.info("start to save videos to ES ....");
 		videoEsRepository.saveAll(videos);
 	}
+
 }

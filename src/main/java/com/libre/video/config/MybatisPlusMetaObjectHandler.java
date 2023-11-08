@@ -17,16 +17,17 @@ import java.util.function.Supplier;
 @Slf4j
 public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
-    private static final String SYSTEM = "System";
+	private static final String SYSTEM = "System";
 
-    @Override
-    public void insertFill(MetaObject metaObject) {
+	@Override
+	public void insertFill(MetaObject metaObject) {
 		this.strictInsertFill(metaObject, "createTime", LocalDateTime::now, LocalDateTime.class);
 		this.strictInsertFill(metaObject, "updateTime", LocalDateTime::now, LocalDateTime.class);
-    }
+	}
 
-    @Override
-    public void updateFill(MetaObject metaObject) {
+	@Override
+	public void updateFill(MetaObject metaObject) {
 		this.strictUpdateFill(metaObject, "updateTime", LocalDateTime::now, LocalDateTime.class);
-    }
+	}
+
 }

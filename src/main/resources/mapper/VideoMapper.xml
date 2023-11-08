@@ -48,7 +48,7 @@
         SELECT *
         FROM video
         ORDER BY id
-        LIMIT #{_skiprows}, #{_pagesize}
+        LIMIT #{_pagesize} OFFSET #{_skiprows}
     </select>
 
 </mapper>

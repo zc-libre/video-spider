@@ -16,4 +16,5 @@ public class VideoQuery {
 	private String sort;
 
 	private Integer sortOrder;
+
 }

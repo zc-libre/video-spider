@@ -43,24 +43,25 @@ public class VideoEncoderTests {
 
 	@Autowired
 	WebClient webClient;
+
 	@Autowired
 	VideoProperties videoProperties;
 
 	@Test
 	void download() throws IOException {
 
-
 	}
 
 	private void compine(Set<String> lines) {
 		List<File> files = Lists.newArrayList();
 
-//		for (String s : tsSet) {
-//			File tsFile = new File(videoProperties.getDownloadPath() + s);
-//			if (tsFile.exists()) {
-//				String name = tsFile.getName();
-//				System.out.println(name);
-//			}
-//		}
+		// for (String s : tsSet) {
+		// File tsFile = new File(videoProperties.getDownloadPath() + s);
+		// if (tsFile.exists()) {
+		// String name = tsFile.getName();
+		// System.out.println(name);
+		// }
+		// }
 	}
+
 }

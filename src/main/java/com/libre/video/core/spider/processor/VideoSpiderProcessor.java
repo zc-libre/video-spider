@@ -14,4 +14,5 @@ import org.springframework.batch.item.ItemProcessor;
 public interface VideoSpiderProcessor<P extends VideoParse> extends ItemProcessor<VideoParse, Video> {
 
 	RequestTypeEnum getRequestType();
+
 }

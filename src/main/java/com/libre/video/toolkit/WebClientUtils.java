@@ -24,6 +24,7 @@ import java.util.Random;
 public class WebClientUtils {
 
 	private static WebClient webClient;
+
 	public static final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
 
 	static {
@@ -31,16 +32,14 @@ public class WebClientUtils {
 	}
 
 	private final Random r = RandomHolder.RANDOM;
+
 	public static Mono<String> request(String url) {
 		log.debug("start request url: {}", url);
-		return webClient.get()
-			.uri(url)
-			.headers(httpHeaders -> httpHeaders.addAll(headers))
-			.header("X-Forwarded-For", r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256))
-			.retrieve()
-			.bodyToMono(String.class)
-			.doOnError(e -> log.error("request error, url: {},message: {}", url, e.getMessage()))
-			.retry(3);
+		return webClient.get().uri(url).headers(httpHeaders -> httpHeaders.addAll(headers))
+				.header("X-Forwarded-For",
+						r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256))
+				.retrieve().bodyToMono(String.class)
+				.doOnError(e -> log.error("request error, url: {},message: {}", url, e.getMessage())).retry(3);
 	}
 
 	public static String buildUrl(String urlTemplate, Map<String, Object> params) {
@@ -52,9 +51,10 @@ public class WebClientUtils {
 		webClient = SpringContext.getBean(WebClient.class);
 		Assert.notNull(webClient, "webClient must not be null");
 		headers.add(HttpHeaders.ACCEPT,
-			"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+				"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
 		headers.add(HttpHeaders.USER_AGENT, UserAgentContext.getUserAgent());
 		headers.add(HttpHeaders.ACCEPT_LANGUAGE, "zh-cn,zh;q=0.5");
 		headers.add("Connection", "keep-alive");
 	}
+
 }

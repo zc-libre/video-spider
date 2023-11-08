@@ -18,4 +18,5 @@ public class VideoUploadEvent {
 	private Video video;
 
 	private Resource resource;
+
 }

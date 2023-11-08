@@ -11,7 +11,6 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-
 @Slf4j
 @Component
 @EqualsAndHashCode
@@ -54,17 +53,17 @@ public class WebSocketServer {
 
 	/**
 	 * 收到客户端消息后调用的方法
-	 *
 	 * @param message 客户端发送过来的消息
 	 */
 	@OnMessage
 	public void onMessage(String message, Session session) {
 		log.debug("收到来" + sid + "的信息:" + message);
-		//群发消息
+		// 群发消息
 		for (WebSocketServer item : webSocketSet) {
 			try {
 				item.sendMessage(message);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				log.error(e.getMessage(), e);
 			}
 		}
@@ -92,12 +91,15 @@ public class WebSocketServer {
 			try {
 				if (sid == null) {
 					item.sendMessage(msg);
-				} else if (item.sid.equals(sid)) {
+				}
+				else if (item.sid.equals(sid)) {
 					item.sendMessage(msg);
 				}
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				log.error(e.getMessage());
 			}
 		}
 	}
+
 }

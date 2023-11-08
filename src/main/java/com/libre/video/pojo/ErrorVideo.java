@@ -13,17 +13,18 @@ import java.time.LocalDateTime;
 @TableName("error_video")
 public class ErrorVideo {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
+	@TableId(type = IdType.AUTO)
+	private Long id;
 
-    private String url;
+	private String url;
 
-    private Integer type;
+	private Integer type;
 
-    private String html;
+	private String html;
 
 	private Integer requestType;
 
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
 	private LocalDateTime createTime;
+
 }

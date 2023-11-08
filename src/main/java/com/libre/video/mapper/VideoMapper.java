@@ -13,7 +13,6 @@ import java.util.Map;
 @Mapper
 public interface VideoMapper extends BaseMapper<Video> {
 
-
 	@Options(fetchSize = Integer.MIN_VALUE, resultSetType = ResultSetType.FORWARD_ONLY)
 	List<Video> findAll();
 

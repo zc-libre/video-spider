@@ -18,7 +18,7 @@ import java.util.Objects;
  * @Date: 2022/5/12 2:35 AM
  */
 @Data
-public class BaAvVideo  {
+public class BaAvVideo {
 
 	private Long videoId;
 
@@ -37,20 +37,18 @@ public class BaAvVideo  {
 	private Integer lookNum;
 
 	private Integer collectNum;
+
 	private String publishTime;
 
 	@TableField(exist = false)
 	private LocalDate time;
 
-
 	@TableField(fill = FieldFill.INSERT)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
 	private LocalDateTime createTime;
 
-
 	@TableField(fill = FieldFill.UPDATE)
 	private LocalDateTime updateTime;
-
 
 	public LocalDate getTime() {
 		if (StringUtil.isBlank(this.publishTime)) {
@@ -58,11 +56,13 @@ public class BaAvVideo  {
 		}
 		if (DatePattern.NORM_DATE_PATTERN.length() == this.publishTime.length()) {
 			return LocalDate.parse(this.publishTime, DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN));
-		} else if (6 == this.publishTime.length()) {
+		}
+		else if (6 == this.publishTime.length()) {
 			String format = LocalDate.now().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL));
 			String timeStr = format.substring(0, 5) + this.publishTime;
 			return LocalDate.parse(timeStr, DateTimeFormatter.ofPattern(DatePattern.CHINESE_DATE_PATTERN));
 		}
 		return null;
 	}
+
 }

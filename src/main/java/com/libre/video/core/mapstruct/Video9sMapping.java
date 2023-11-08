@@ -14,9 +14,10 @@ import java.util.List;
 @Mapper
 public interface Video9sMapping extends BaseConvert<Video9sDetailParse, Video9sDTO> {
 
-    Video9sMapping INSTANCE = Mappers.getMapper(Video9sMapping.class);
+	Video9sMapping INSTANCE = Mappers.getMapper(Video9sMapping.class);
 
-    Video9sDTO convertToVideo9s(Video9sParse video9sParse);
+	Video9sDTO convertToVideo9s(Video9sParse video9sParse);
 
-    List<Video9sDTO> convertToVideo9sList(Collection<Video> collection);
+	List<Video9sDTO> convertToVideo9sList(Collection<Video> collection);
+
 }

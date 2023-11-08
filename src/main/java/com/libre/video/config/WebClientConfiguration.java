@@ -1,10 +1,10 @@
 package com.libre.video.config;
 
-import com.libre.core.random.RandomHolder;
-import com.libre.video.toolkit.UserAgentContext;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -32,10 +32,8 @@ public class WebClientConfiguration {
 
 	@Bean
 	public ReactorResourceFactory reactorResourceFactory() {
-		ConnectionProvider connectionProvider = ConnectionProvider.builder("reactive-pool")
-			.maxConnections(1000)
-			.pendingAcquireMaxCount(2000)
-			.build();
+		ConnectionProvider connectionProvider = ConnectionProvider.builder("reactive-pool").maxConnections(1000)
+				.pendingAcquireMaxCount(2000).build();
 		ReactorResourceFactory reactorResourceFactory = new ReactorResourceFactory();
 		reactorResourceFactory.setUseGlobalResources(false);
 		reactorResourceFactory.setConnectionProvider(connectionProvider);
@@ -43,24 +41,18 @@ public class WebClientConfiguration {
 		return reactorResourceFactory;
 	}
 
-
 	@Bean
 	public WebClient webClient(ReactorResourceFactory reactorResourceFactory) {
 
 		Function<HttpClient, HttpClient> mapper = client -> client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 100000)
-			.doOnConnected(conn -> conn
-				.addHandlerLast(new ReadTimeoutHandler(10))
-				.addHandlerLast(new WriteTimeoutHandler(10)))
-			.proxyWithSystemProperties()
-			.responseTimeout(Duration.ofSeconds(10));
+				.doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(10))
+						.addHandlerLast(new WriteTimeoutHandler(10)))
+				.proxyWithSystemProperties().responseTimeout(Duration.ofSeconds(10));
 
 		ClientHttpConnector connector = new ReactorClientHttpConnector(reactorResourceFactory, mapper);
 
-		return WebClient.builder()
-			.clientConnector(connector)
-			.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024))
-			.build();
+		return WebClient.builder().clientConnector(connector)
+				.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build();
 	}
-
 
 }

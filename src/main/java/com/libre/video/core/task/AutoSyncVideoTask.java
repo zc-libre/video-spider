@@ -23,4 +23,5 @@ public class AutoSyncVideoTask {
 		log.info("sync task is start ......");
 		videoService.syncToElasticsearch();
 	}
+
 }

@@ -7,16 +7,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-
 @Data
 @ConfigurationProperties(prefix = "video")
 public class VideoProperties implements InitializingBean {
 
-    private String ffmpegPath;
+	private String ffmpegPath;
 
-    private String mp4boxPath;
+	private String mp4boxPath;
 
-    private String downloadPath;
+	private String downloadPath;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -24,4 +23,5 @@ public class VideoProperties implements InitializingBean {
 			Files.createDirectory(Paths.get(downloadPath));
 		}
 	}
+
 }

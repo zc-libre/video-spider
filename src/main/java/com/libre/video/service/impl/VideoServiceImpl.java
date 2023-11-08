@@ -138,21 +138,16 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			shouldQuery.add(matchPhraseQuery);
 
 			QueryStringQueryBuilder stringQuery = QueryBuilders.queryStringQuery(title);
-			stringQuery.field("title")
-				.field("title.keyword")
-				.queryName(title)
-				.fuzziness(Fuzziness.AUTO)
-				.fuzzyPrefixLength(2)
-				.fuzzyMaxExpansions(20)
-				.fuzzyTranspositions(true)
-				.allowLeadingWildcard(false);
+			stringQuery.field("title").field("title.keyword").queryName(title).fuzziness(Fuzziness.AUTO)
+					.fuzzyPrefixLength(2).fuzzyMaxExpansions(20).fuzzyTranspositions(true).allowLeadingWildcard(false);
 			stringQuery.boost(9);
 			shouldQuery.add(stringQuery);
 
 			PrefixQueryBuilder prefixQuery = QueryBuilders.prefixQuery("title.keyword", title);
 			shouldQuery.add(prefixQuery);
 
-			MatchPhrasePrefixQueryBuilder matchPhrasePrefixQueryBuilder = QueryBuilders.matchPhrasePrefixQuery("title", title);
+			MatchPhrasePrefixQueryBuilder matchPhrasePrefixQueryBuilder = QueryBuilders.matchPhrasePrefixQuery("title",
+					title);
 			shouldQuery.add(matchPhrasePrefixQueryBuilder);
 
 			MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("title", title);
@@ -162,9 +157,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
 		}
 
-	    nativeSearchQueryBuilder.withTrackTotalHits(true);
+		nativeSearchQueryBuilder.withTrackTotalHits(true);
 		nativeSearchQueryBuilder.withPageable(pageRequest);
-		//nativeSearchQueryBuilder.withSorts(sortBuilders(page));
+		// nativeSearchQueryBuilder.withSorts(sortBuilders(page));
 		NativeSearchQuery query = nativeSearchQueryBuilder.build();
 
 		SearchHits<Video> hits = elasticsearchOperations.search(query, Video.class);

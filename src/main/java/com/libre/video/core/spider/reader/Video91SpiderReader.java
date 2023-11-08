@@ -133,10 +133,9 @@ public class Video91SpiderReader extends AbstractVideoSpiderReader<Video91Parse>
 		return Integer.parseInt(text);
 	}
 
-
-
 	@Override
 	protected RequestTypeEnum getRequestType() {
 		return RequestTypeEnum.REQUEST_91;
 	}
+
 }

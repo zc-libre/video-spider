@@ -1,6 +1,5 @@
 package com.libre.video;
 
-
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -17,12 +16,13 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableAspectJAutoProxy(exposeProxy = true, proxyTargetClass = true)
 public class VideoSpiderApplication implements ApplicationRunner {
 
-    public static void main(String[] args) {
-        SpringApplication.run(VideoSpiderApplication.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(VideoSpiderApplication.class, args);
+	}
 
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
+	@Override
+	public void run(ApplicationArguments args) throws Exception {
 
-    }
+	}
+
 }

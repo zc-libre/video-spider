@@ -8,5 +8,7 @@ import lombok.Data;
  */
 @Data
 public class VideoParam {
+
 	private String realUrl;
+
 }

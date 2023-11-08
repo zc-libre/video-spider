@@ -34,12 +34,8 @@ public class VideoBatchConfiguration {
 
 	@Bean
 	public Job esSyncJob(@Qualifier("esStep") Step esStep, EsSyncJobListener esSyncJobListener) {
-		return jobBuilderFactory.get("esSyncJob")
-			.incrementer(new RunIdIncrementer())
-			.listener(esSyncJobListener)
-			.flow(esStep)
-			.end()
-			.build();
+		return jobBuilderFactory.get("esSyncJob").incrementer(new RunIdIncrementer()).listener(esSyncJobListener)
+				.flow(esStep).end().build();
 	}
 
 	@Bean
@@ -71,55 +67,50 @@ public class VideoBatchConfiguration {
 	public Step esStep(EsVideoItemWriter esVideoWriter, MyBatisPagingItemReader<Video> itemReader,
 			@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor) {
 
-		return stepBuilderFactory.get("esStep")
-			.<Video, Video>chunk(1000)
-			.reader(itemReader)
-			.writer(esVideoWriter)
-			.taskExecutor(taskExecutor)
-			.build();
+		return stepBuilderFactory.get("esStep").<Video, Video>chunk(1000).reader(itemReader).writer(esVideoWriter)
+				.taskExecutor(taskExecutor).build();
 	}
 
-
-//	@Bean
-//	@StepScope
-//	public Video9SSpiderReader video9SSpiderReader(RedisUtils redisUtils) {
-//		return new Video9SSpiderReader(redisUtils);
-//	}
-//
-//	@Bean
-//	@StepScope
-//	public Video9sSpiderProcessor video9sSpiderProcessor() {
-//		return new Video9sSpiderProcessor();
-//	}
-//
-//	@Bean
-//	@StepScope
-//	public VideoSpiderWriter videoSpiderWriter() {
-//		return new VideoSpiderWriter();
-//	}
-//
-//	@Bean
-//	public Step videoSpiderStep(Video9SSpiderReader itemReader,
-//								Video9sSpiderProcessor video9sSpiderProcessor,
-//			                    VideoSpiderWriter videoSpiderWriter,
-//								@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor) {
-//		SkipPolicy skipPolicy = new AlwaysSkipItemSkipPolicy();
-//
-//		return stepBuilderFactory.get("videoSpiderStep")
-//			.<VideoParse, Video>chunk(100)
-//			.reader(itemReader).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-//			.processor(video9sSpiderProcessor).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-//			.writer(videoSpiderWriter).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-//			.taskExecutor(taskExecutor).build();
-//	}
-//
-//	@Bean
-//	public Job videoSpiderJob(@Qualifier("videoSpiderStep") Step videoSpiderStep) {
-//		return jobBuilderFactory.get("videoSpiderJob")
-//			.incrementer(new RunIdIncrementer())
-//			.flow(videoSpiderStep)
-//			.end()
-//			.build();
-//	}
+	// @Bean
+	// @StepScope
+	// public Video9SSpiderReader video9SSpiderReader(RedisUtils redisUtils) {
+	// return new Video9SSpiderReader(redisUtils);
+	// }
+	//
+	// @Bean
+	// @StepScope
+	// public Video9sSpiderProcessor video9sSpiderProcessor() {
+	// return new Video9sSpiderProcessor();
+	// }
+	//
+	// @Bean
+	// @StepScope
+	// public VideoSpiderWriter videoSpiderWriter() {
+	// return new VideoSpiderWriter();
+	// }
+	//
+	// @Bean
+	// public Step videoSpiderStep(Video9SSpiderReader itemReader,
+	// Video9sSpiderProcessor video9sSpiderProcessor,
+	// VideoSpiderWriter videoSpiderWriter,
+	// @Qualifier("videoRequestExecutor") TaskExecutor taskExecutor) {
+	// SkipPolicy skipPolicy = new AlwaysSkipItemSkipPolicy();
+	//
+	// return stepBuilderFactory.get("videoSpiderStep")
+	// .<VideoParse, Video>chunk(100)
+	// .reader(itemReader).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
+	// .processor(video9sSpiderProcessor).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
+	// .writer(videoSpiderWriter).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
+	// .taskExecutor(taskExecutor).build();
+	// }
+	//
+	// @Bean
+	// public Job videoSpiderJob(@Qualifier("videoSpiderStep") Step videoSpiderStep) {
+	// return jobBuilderFactory.get("videoSpiderJob")
+	// .incrementer(new RunIdIncrementer())
+	// .flow(videoSpiderStep)
+	// .end()
+	// .build();
+	// }
 
 }

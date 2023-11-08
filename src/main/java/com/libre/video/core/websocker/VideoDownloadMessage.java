@@ -21,4 +21,5 @@ public class VideoDownloadMessage {
 	private String message;
 
 	private Video video;
+
 }

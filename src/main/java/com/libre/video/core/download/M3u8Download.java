@@ -120,7 +120,8 @@ public class M3u8Download {
 			return;
 		}
 
-		List<String> tsLines = lines.stream().filter(line -> line.endsWith(SystemConstants.TS_SUFFIX) || line.contains(".ts"))
+		List<String> tsLines = lines.stream()
+				.filter(line -> line.endsWith(SystemConstants.TS_SUFFIX) || line.contains(".ts"))
 				.collect(Collectors.toList());
 		String realUrl = video.getRealUrl();
 		String baseUrl = realUrl.substring(0, realUrl.lastIndexOf(StringPool.SLASH));

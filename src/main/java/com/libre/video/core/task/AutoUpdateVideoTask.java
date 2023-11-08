@@ -15,20 +15,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AutoUpdateVideoTask {
 
-
 	private final M3u8Download m3u8Download;
+
 	private final VideoService videoService;
 
-//	@Scheduled(cron = "0 0 * * * ?")
+	// @Scheduled(cron = "0 0 * * * ?")
 	public void updateVideo() {
 		log.info("updateVideoTask is start....");
 		List<Video> list = videoService.list(Wrappers.<Video>lambdaQuery().isNull(Video::getVideoPath));
 		for (Video video : list) {
 			try {
 				m3u8Download.downloadAndReadM3u8File(video);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				log.error("update error: {}", e.getMessage());
 			}
 		}
 	}
+
 }

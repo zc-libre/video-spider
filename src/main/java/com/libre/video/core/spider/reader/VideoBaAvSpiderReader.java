@@ -47,12 +47,11 @@ public class VideoBaAvSpiderReader extends AbstractVideoSpiderReader<VideoBaAvPa
 		Mono<String> res = WebClientUtils.request(requestUrl);
 		String html = res.block();
 		if (StringUtil.isBlank(html)) {
-			throw new LibreException("html is blank, page: " +  page);
+			throw new LibreException("html is blank, page: " + page);
 		}
 		List<VideoBaAvParse> parseList = DomMapper.readList(html, VideoBaAvParse.class);
 		return parseList.stream().filter(parse -> StringUtil.isNotBlank(parse.getUrl())).collect(Collectors.toList());
 	}
-
 
 	@Override
 	protected String requestIndexPage() {
@@ -95,7 +94,6 @@ public class VideoBaAvSpiderReader extends AbstractVideoSpiderReader<VideoBaAvPa
 		}
 		return null;
 	}
-
 
 	@Override
 	protected RequestTypeEnum getRequestType() {

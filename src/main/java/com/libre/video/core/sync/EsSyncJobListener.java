@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class EsSyncJobListener implements JobExecutionListener {
+
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
 		log.info("beforeJob execute ......");
@@ -22,4 +23,5 @@ public class EsSyncJobListener implements JobExecutionListener {
 	public void afterJob(JobExecution jobExecution) {
 		log.info("job execute complete");
 	}
+
 }

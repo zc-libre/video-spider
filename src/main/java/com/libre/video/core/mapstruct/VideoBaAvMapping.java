@@ -13,7 +13,7 @@ import java.util.List;
 @Mapper
 public interface VideoBaAvMapping extends BaseConvert<VideoBaAvParse, BaAvVideo> {
 
-    VideoBaAvMapping INSTANCE = Mappers.getMapper(VideoBaAvMapping.class);
+	VideoBaAvMapping INSTANCE = Mappers.getMapper(VideoBaAvMapping.class);
 
 	@Override
 	BaAvVideo sourceToTarget(VideoBaAvParse videoBaAvParse);
@@ -23,4 +23,5 @@ public interface VideoBaAvMapping extends BaseConvert<VideoBaAvParse, BaAvVideo>
 
 	@Mapping(source = "time", target = "publishTime")
 	List<Video> convertToVideList(List<BaAvVideo> baAvVideoList);
+
 }

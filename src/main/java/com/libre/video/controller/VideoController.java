@@ -24,7 +24,7 @@ import java.io.InputStream;
 
 @Slf4j
 @RestController
-@RequestMapping("/video")
+@RequestMapping("/api/video")
 @RequiredArgsConstructor
 public class VideoController {
 
@@ -34,13 +34,11 @@ public class VideoController {
 
 	private final M3u8Download m3u8Download;
 
-
 	@GetMapping("/spider/{type}")
 	public R<Boolean> spider(@PathVariable Integer type) {
 		videoService.spider(type);
 		return R.status(true);
 	}
-
 
 	@PostMapping("/list")
 	public R<Page<Video>> page(PageDTO<Video> page, VideoQuery videoQuery) {
@@ -86,10 +84,10 @@ public class VideoController {
 		return R.success("数据同步成功");
 	}
 
-
 	@GetMapping("/shutdown")
 	public R<Boolean> shutdown() {
 		videoService.shutdown();
 		return R.status(true);
 	}
+
 }

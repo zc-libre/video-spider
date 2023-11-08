@@ -13,9 +13,10 @@ import java.time.LocalDate;
  */
 @Data
 @CssQuery("#videodetails-content")
-public class Video91DetailParse implements VideoParse{
+public class Video91DetailParse implements VideoParse {
 
 	@DateTimeFormat(pattern = DatePattern.NORM_DATE_PATTERN)
 	@CssQuery(value = "div:nth-child(1) > span.title-yakov", attr = "text")
 	private LocalDate publishTime;
+
 }

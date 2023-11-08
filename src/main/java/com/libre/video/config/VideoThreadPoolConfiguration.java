@@ -6,7 +6,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
-
 @Configuration(proxyBeanMethods = false)
 public class VideoThreadPoolConfiguration {
 
@@ -22,16 +21,16 @@ public class VideoThreadPoolConfiguration {
 		return executor;
 	}
 
+	@Bean
+	public ThreadPoolTaskExecutor downloadExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(20);
+		executor.setMaxPoolSize(20);
+		executor.setQueueCapacity(40);
+		executor.setKeepAliveSeconds(60);
+		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+		executor.setThreadNamePrefix("download-task-");
+		return executor;
+	}
 
-    @Bean
-    public ThreadPoolTaskExecutor downloadExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(20);
-        executor.setMaxPoolSize(20);
-        executor.setQueueCapacity(40);
-        executor.setKeepAliveSeconds(60);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setThreadNamePrefix("download-task-");
-        return executor;
-    }
 }

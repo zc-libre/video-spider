@@ -93,7 +93,6 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 		doProcessVideos(video9sParses);
 	}
 
-
 	private void doProcessVideos(List<P> videoParseList) {
 		this.setPageSize(videoParseList.size());
 		results.addAll(videoParseList);

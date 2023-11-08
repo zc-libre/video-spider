@@ -12,5 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class VideoSaveEvent {
 
-    private List<Video> videoList;
+	private List<Video> videoList;
+
 }

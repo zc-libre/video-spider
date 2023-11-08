@@ -7,24 +7,24 @@ import java.time.LocalDate;
 @Data
 public class Video9sDTO {
 
-    private Long videoId;
+	private Long videoId;
 
-    private String url;
+	private String url;
 
-    private String realUrl;
+	private String realUrl;
 
-    private String title;
+	private String title;
 
-    private String image;
+	private String image;
 
-    private String duration;
+	private String duration;
 
-    private String author;
+	private String author;
 
-    private Integer lookNum;
+	private Integer lookNum;
 
-    private Integer collectNum;
+	private Integer collectNum;
 
-    private LocalDate publishTime;
+	private LocalDate publishTime;
 
 }

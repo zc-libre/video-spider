@@ -19,4 +19,5 @@ public class VideoRequestParam {
 	private RequestTypeEnum requestTypeEnum;
 
 	private Integer size;
+
 }
