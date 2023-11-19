@@ -14,7 +14,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.client.erhlc.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -41,7 +42,7 @@ class VideoApplicationTests {
 	VideoService videoService;
 
 	@Autowired
-	ElasticsearchRestTemplate elasticsearchRestTemplate;
+	ElasticsearchOperations elasticsearchRestTemplate;
 
 	@Autowired
 	WebClient webClient;

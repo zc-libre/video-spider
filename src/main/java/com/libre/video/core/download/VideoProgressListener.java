@@ -1,31 +1,27 @@
 package com.libre.video.core.download;
 
-import com.libre.video.constant.SystemConstants;
-import com.libre.video.core.websocker.VideoDownloadMessage;
-import com.libre.video.core.websocker.WebSocketServer;
 import com.libre.video.pojo.Video;
 import lombok.extern.slf4j.Slf4j;
 import net.bramp.ffmpeg.FFmpegUtils;
 import net.bramp.ffmpeg.progress.Progress;
 import net.bramp.ffmpeg.progress.ProgressListener;
 
-import java.io.IOException;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class VideoProgressListener implements ProgressListener {
 
-	private final double durationNs;
+	private double durationNs;
 
-	private final Video video;
+	private Video video;
 
-	public VideoProgressListener(Video video, Double duration, WebSocketServer webSocketServer) {
-		this.durationNs = duration * Duration.ofSeconds(1).toNanos();
-		// this.webSocketServer = webSocketServer;
-		this.video = video;
-	}
+	// public VideoProgressListener(Video video, Double duration, WebSocketServer
+	// webSocketServer) {
+	// this.durationNs = duration * Duration.ofSeconds(1).toNanos();
+	// // this.webSocketServer = webSocketServer;
+	// this.video = video;
+	// }
 
 	@Override
 	public void progress(Progress progress) {

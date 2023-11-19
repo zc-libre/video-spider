@@ -10,14 +10,17 @@ import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.mybatis.spring.batch.MyBatisPagingItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.configuration.support.DefaultBatchConfiguration;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * @author: Libre
@@ -26,15 +29,13 @@ import org.springframework.core.task.TaskExecutor;
 
 @Configuration
 @RequiredArgsConstructor
-public class VideoBatchConfiguration {
+public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 
-	public final JobBuilderFactory jobBuilderFactory;
 
-	public final StepBuilderFactory stepBuilderFactory;
-
+	private final PlatformTransactionManager platformTransactionManager;
 	@Bean
-	public Job esSyncJob(@Qualifier("esStep") Step esStep, EsSyncJobListener esSyncJobListener) {
-		return jobBuilderFactory.get("esSyncJob").incrementer(new RunIdIncrementer()).listener(esSyncJobListener)
+	public Job esSyncJob(@Qualifier("esStep") Step esStep, EsSyncJobListener esSyncJobListener, JobRepository jobRepository) {
+		return new JobBuilder("esSyncJob", jobRepository).incrementer(new RunIdIncrementer()).listener(esSyncJobListener)
 				.flow(esStep).end().build();
 	}
 
@@ -65,52 +66,10 @@ public class VideoBatchConfiguration {
 
 	@Bean
 	public Step esStep(EsVideoItemWriter esVideoWriter, MyBatisPagingItemReader<Video> itemReader,
-			@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor) {
+			@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor, JobRepository jobRepository) {
 
-		return stepBuilderFactory.get("esStep").<Video, Video>chunk(1000).reader(itemReader).writer(esVideoWriter)
+		return new StepBuilder("esStep", jobRepository).<Video, Video>chunk(1000, platformTransactionManager).reader(itemReader).writer(esVideoWriter)
 				.taskExecutor(taskExecutor).build();
 	}
-
-	// @Bean
-	// @StepScope
-	// public Video9SSpiderReader video9SSpiderReader(RedisUtils redisUtils) {
-	// return new Video9SSpiderReader(redisUtils);
-	// }
-	//
-	// @Bean
-	// @StepScope
-	// public Video9sSpiderProcessor video9sSpiderProcessor() {
-	// return new Video9sSpiderProcessor();
-	// }
-	//
-	// @Bean
-	// @StepScope
-	// public VideoSpiderWriter videoSpiderWriter() {
-	// return new VideoSpiderWriter();
-	// }
-	//
-	// @Bean
-	// public Step videoSpiderStep(Video9SSpiderReader itemReader,
-	// Video9sSpiderProcessor video9sSpiderProcessor,
-	// VideoSpiderWriter videoSpiderWriter,
-	// @Qualifier("videoRequestExecutor") TaskExecutor taskExecutor) {
-	// SkipPolicy skipPolicy = new AlwaysSkipItemSkipPolicy();
-	//
-	// return stepBuilderFactory.get("videoSpiderStep")
-	// .<VideoParse, Video>chunk(100)
-	// .reader(itemReader).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-	// .processor(video9sSpiderProcessor).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-	// .writer(videoSpiderWriter).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-	// .taskExecutor(taskExecutor).build();
-	// }
-	//
-	// @Bean
-	// public Job videoSpiderJob(@Qualifier("videoSpiderStep") Step videoSpiderStep) {
-	// return jobBuilderFactory.get("videoSpiderJob")
-	// .incrementer(new RunIdIncrementer())
-	// .flow(videoSpiderStep)
-	// .end()
-	// .build();
-	// }
 
 }

@@ -5,7 +5,6 @@ import com.libre.video.config.VideoProperties;
 import com.libre.core.toolkit.StringPool;
 import com.libre.video.constant.SystemConstants;
 import com.libre.video.core.websocker.VideoDownloadMessage;
-import com.libre.video.core.websocker.WebSocketServer;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
 import lombok.RequiredArgsConstructor;
@@ -33,8 +32,6 @@ public class VideoEncoder {
 
 	private final VideoMapper videoMapper;
 
-	private final WebSocketServer webSocketServer;
-
 	private final static String MP4_FORMAT = "mp4";
 
 	@Async("downloadExecutor")
@@ -48,13 +45,13 @@ public class VideoEncoder {
 			VideoDownloadMessage message = new VideoDownloadMessage();
 			message.setVideoId(videoId);
 			message.setMessage(e.getMessage());
-			message.setType(2);
-			try {
-				webSocketServer.sendInfo(message, SystemConstants.WEBSOCKET_ENDPOINT);
-			}
-			catch (IOException ex) {
-				log.error(ex.getMessage());
-			}
+//			message.setType(2);
+//			try {
+//				webSocketServer.sendInfo(message, SystemConstants.WEBSOCKET_ENDPOINT);
+//			}
+//			catch (IOException ex) {
+//				log.error(ex.getMessage());
+//			}
 		}
 	}
 
@@ -73,8 +70,7 @@ public class VideoEncoder {
 			FFmpegOutputBuilder fFmpegOutputBuilder = getFfmpegOutputBuilder(videoPath, path);
 			FFmpegBuilder builder = fFmpegOutputBuilder.done();
 			FFmpegFormat info = in.getFormat();
-			FFmpegJob fFmpegJob = executor.createJob(builder,
-					new VideoProgressListener(video, info.duration, webSocketServer));
+			FFmpegJob fFmpegJob = executor.createJob(builder);
 			fFmpegJob.run();
 		}
 		catch (Exception e) {

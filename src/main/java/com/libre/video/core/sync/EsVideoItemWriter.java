@@ -4,6 +4,7 @@ import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.pojo.Video;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
@@ -20,9 +21,8 @@ public class EsVideoItemWriter implements ItemWriter<Video> {
 	private final VideoEsRepository videoEsRepository;
 
 	@Override
-	public void write(List<? extends Video> videos) throws Exception {
+	public void write(Chunk<? extends Video> chunk) throws Exception {
 		log.info("start to save videos to ES ....");
-		videoEsRepository.saveAll(videos);
+		videoEsRepository.saveAll(chunk.getItems());
 	}
-
 }

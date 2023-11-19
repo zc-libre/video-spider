@@ -20,6 +20,12 @@ import java.nio.charset.StandardCharsets;
 @UtilityClass
 public class JsEncodeUtil {
 
+	public static ScriptEngine engine;
+	static {
+		ScriptEngineManager manager = new ScriptEngineManager();
+		 engine = manager.getEngineByName("javascript");
+	}
+
 	public static String encodeRealVideoUrl(String html) {
 		System.setProperty("nashorn.args", "--no-deprecation-warning");
 		String regexEncode2 = "strencode2\\((.*?)\\)\\)";
@@ -40,9 +46,6 @@ public class JsEncodeUtil {
 	}
 
 	public static String strencode(String str1) {
-		ScriptEngineManager manager = new ScriptEngineManager();
-		ScriptEngine engine = manager.getEngineByName("javascript");
-
 		try {
 			ClassPathResource resource = new ClassPathResource("static/js/md2.js");
 			BufferedReader br = new BufferedReader(

@@ -2,26 +2,28 @@ package com.libre.video.core.spider;
 
 import com.google.common.collect.Maps;
 import com.libre.boot.autoconfigure.SpringContext;
-import com.libre.video.core.spider.processor.VideoSpiderProcessor;
-import com.libre.video.core.spider.reader.AbstractVideoSpiderReader;
-import com.libre.video.core.spider.writer.VideoSpiderWriter;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.VideoStepType;
 import com.libre.video.core.pojo.parse.VideoParse;
+import com.libre.video.core.spider.processor.VideoSpiderProcessor;
+import com.libre.video.core.spider.reader.AbstractVideoSpiderReader;
+import com.libre.video.core.spider.writer.VideoSpiderWriter;
 import com.libre.video.pojo.Video;
 import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
 import org.springframework.batch.core.step.skip.SkipPolicy;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
@@ -35,9 +37,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 
-	private final JobBuilderFactory jobBuilderFactory;
+	private final JobRepository jobRepository;
 
-	private final StepBuilderFactory stepBuilderFactory;
+	private final PlatformTransactionManager platformTransactionManager;
 
 	private final VideoSpiderWriter writer;
 
@@ -54,17 +56,31 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 		AbstractVideoSpiderReader<?> reader = readerContext.get(requestType);
 		VideoSpiderProcessor<?> processor = processorContext.get(requestType);
 		Step step = videoSpiderStep(requestTypeEnum.name(), reader, processor, writer);
-		return jobBuilderFactory.get("videoSpiderJob").incrementer(new RunIdIncrementer()).flow(step).end().build();
+		return new JobBuilder("videoSpiderJob", jobRepository).incrementer(new RunIdIncrementer())
+			.flow(step)
+			.end()
+			.build();
 	}
 
 	private Step videoSpiderStep(String stepName, AbstractVideoSpiderReader<?> reader,
 			VideoSpiderProcessor<?> processor, VideoSpiderWriter writer) {
 		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
 
-		return stepBuilderFactory.get(stepName).<VideoParse, Video>chunk(1).reader(reader).faultTolerant()
-				.skip(Exception.class).skipPolicy(skipPolicy).processor(processor).faultTolerant().skip(Exception.class)
-				.skipPolicy(skipPolicy).writer(writer).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy)
-				.taskExecutor(executor).build();
+		return new StepBuilder(stepName, jobRepository).<VideoParse, Video>chunk(1, platformTransactionManager)
+			.reader(reader)
+			.faultTolerant()
+			.skip(Exception.class)
+			.skipPolicy(skipPolicy)
+			.processor(processor)
+			.faultTolerant()
+			.skip(Exception.class)
+			.skipPolicy(skipPolicy)
+			.writer(writer)
+			.faultTolerant()
+			.skip(Exception.class)
+			.skipPolicy(skipPolicy)
+			.taskExecutor(executor)
+			.build();
 	}
 
 	@Override

@@ -2,10 +2,7 @@ package com.libre.video.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 
 /**
  * @author: Libre
@@ -25,5 +22,17 @@ public class VideoWebMvcConfiguration implements WebMvcConfigurer {
 		registry.addResourceHandler("/file/**").addResourceLocations(pathUtl).setCachePeriod(0);
 		registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
 	}
+
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/**")
+			.allowedOriginPatterns("*")
+			.allowedMethods("PUT", "DELETE", "GET", "POST", "OPTIONS")
+			.allowedHeaders("*")
+			.exposedHeaders("access-control-allow-headers", "access-control-allow-methods",
+				"access-control-allow-origin", "access-control-max-age", "X-Frame-Options")
+			.maxAge(3600);
+	}
+
 
 }

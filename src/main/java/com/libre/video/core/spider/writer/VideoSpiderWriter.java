@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.libre.video.core.event.VideoEventPublisher;
 import com.libre.video.pojo.Video;
 import lombok.RequiredArgsConstructor;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -18,9 +19,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VideoSpiderWriter implements ItemWriter<Video> {
 
-	@Override
-	public void write(@NonNull List<? extends Video> videos) throws Exception {
-		VideoEventPublisher.publishVideoSaveEvent(Lists.newArrayList(videos));
-	}
 
+	@Override
+	public void write(Chunk<? extends Video> chunk) throws Exception {
+		List<? extends Video> items = chunk.getItems();
+		VideoEventPublisher.publishVideoSaveEvent(Lists.newArrayList(items));
+	}
 }

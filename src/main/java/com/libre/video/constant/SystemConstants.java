@@ -8,7 +8,7 @@ public interface SystemConstants {
 
 	String WEBSOCKET_ENDPOINT = "libre";
 
-	String VIDEO_BUCKET_NAME = "video-spider";
+	String VIDEO_BUCKET_NAME = "video";
 
 	String MU38_SUFFIX = ".m3u8";
 

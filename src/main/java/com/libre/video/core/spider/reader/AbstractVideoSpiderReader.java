@@ -66,11 +66,6 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 		}
 	}
 
-	@Override
-	protected void doJumpToPage(int itemIndex) {
-		log.error("doJumpToPage, currentItemIndex is {}, currentPage is: {}", itemIndex, getPage());
-
-	}
 
 	@Override
 	public void update(@NotNull ExecutionContext executionContext) throws ItemStreamException {

@@ -33,6 +33,14 @@ public class WebClientUtils {
 
 	private final Random r = RandomHolder.RANDOM;
 
+
+	public static Map<String, String> getHeaders() {
+		Map<String, String> headersMap = headers.toSingleValueMap();
+		headersMap.put("X-Forwarded-For",
+			r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256));
+		return headersMap;
+
+	}
 	public static Mono<String> request(String url) {
 		log.debug("start request url: {}", url);
 		return webClient.get().uri(url).headers(httpHeaders -> httpHeaders.addAll(headers))

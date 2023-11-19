@@ -1,22 +1,20 @@
 package com.libre.video.service.impl;
 
-import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
 import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
-import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
+import com.libre.oss.support.OssTemplate;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.constant.SystemConstants;
-import com.libre.video.core.spider.VideoSpiderJobBuilder;
 import com.libre.video.core.download.M3u8Download;
 import com.libre.video.core.download.VideoEncoder;
-import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.event.VideoUploadEvent;
-import com.libre.video.core.pojo.dto.VideoRequestParam;
+import com.libre.video.core.spider.VideoSpiderJobBuilder;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
 import com.libre.video.pojo.dto.VideoQuery;
@@ -25,13 +23,8 @@ import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.unit.Fuzziness;
-import org.elasticsearch.index.query.*;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -39,12 +32,12 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHitSupport;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.SearchPage;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,6 +73,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	private final VideoProperties videoProperties;
 
+	private final OssTemplate ossTemplate;
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void download(List<Long> ids) {
@@ -102,68 +97,97 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		log.info("video save success, url: {}", video.getVideoPath());
 	}
 
-	// @Override
-	// public void saveVideoToOss(VideoUploadEvent event) {
-	// Video video = event.getVideo();
-	// String videoPath = video.getVideoPath();
-	// Resource resource = event.getResource();
-	//
-	// Assert.hasText(videoPath, "video path must not be null");
-	// Assert.notNull(resource, "video resource must not be null");
-	//
-	// try (InputStream inputStream = resource.getInputStream()) {
-	// ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, videoPath, inputStream);
-	// }
-	// catch (IOException e) {
-	// throw new LibreException("文件上传失败: " + e.getMessage());
-	// }
-	// this.updateById(video);
-	// log.info("video save success, url: {}", video.getVideoPath());
-	// }
+
+	@Override
+	public String saveVideoImageToOss(InputStream inputStream, String fileName) {
+		try  {
+			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, fileName, inputStream);
+		}
+		catch (IOException e) {
+			throw new LibreException("文件上传失败: " + e.getMessage());
+		}
+		finally{
+			IOUtils.closeQuietly(inputStream);
+		}
+		String objectURL = ossTemplate.getObjectURL(SystemConstants.VIDEO_BUCKET_NAME, fileName);
+		log.info("video save success, url: {}", objectURL);
+		return objectURL;
+	}
+
+//
+//
+//	 @Override
+//	 public void saveVideoToOss(VideoUploadEvent event) {
+//	 Video video = event.getVideo();
+//	 String videoPath = video.getVideoPath();
+//	 Resource resource = event.getResource();
+//
+//	 Assert.hasText(videoPath, "video path must not be null");
+//	 Assert.notNull(resource, "video resource must not be null");
+//
+//	 try (InputStream inputStream = resource.getInputStream()) {
+//	 ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, videoPath, inputStream);
+//	 }
+//	 catch (IOException e) {
+//	 throw new LibreException("文件上传失败: " + e.getMessage());
+//	 }
+//	 this.updateById(video);
+//	 log.info("video save success, url: {}", video.getVideoPath());
+//	 }
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery) {
 		PageRequest pageRequest = PageRequest.of((int) page.getCurrent(), (int) page.getSize());
-
-		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
-
+		NativeQueryBuilder nativeQueryBuilder = NativeQuery.builder();
 		String title = videoQuery.getTitle();
 		if (StringUtil.isNotBlank(title)) {
-			BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-			List<QueryBuilder> shouldQuery = boolQueryBuilder.should();
+			nativeQueryBuilder.withQuery(query -> {
+				query.bool(b -> b.should(should -> {
+					MatchPhraseQuery.Builder matchPhraseQueryBuilder = new MatchPhraseQuery.Builder();
+					matchPhraseQueryBuilder.field("title");
+					matchPhraseQueryBuilder.query(title);
+					matchPhraseQueryBuilder.boost(10F);
+				    should.matchPhrase(matchPhraseQueryBuilder.build());
 
-			MatchPhraseQueryBuilder matchPhraseQuery = QueryBuilders.matchPhraseQuery("title", title);
-			matchPhraseQuery.boost(10);
-			shouldQuery.add(matchPhraseQuery);
+					QueryStringQuery.Builder queryStringBuilder = new QueryStringQuery.Builder();
+					queryStringBuilder.fields("title", "title.keyword")
+						.query(title)
+						.fuzzyPrefixLength(2)
+						.fuzzyMaxExpansions(20)
+						.fuzzyTranspositions(true)
+						.allowLeadingWildcard(false)
+						.boost(9F);
+					should.queryString(queryStringBuilder.build());
 
-			QueryStringQueryBuilder stringQuery = QueryBuilders.queryStringQuery(title);
-			stringQuery.field("title").field("title.keyword").queryName(title).fuzziness(Fuzziness.AUTO)
-					.fuzzyPrefixLength(2).fuzzyMaxExpansions(20).fuzzyTranspositions(true).allowLeadingWildcard(false);
-			stringQuery.boost(9);
-			shouldQuery.add(stringQuery);
+					PrefixQuery.Builder perfixQueryBuilder = new PrefixQuery.Builder();
+					perfixQueryBuilder.field("title.keyword");
+					perfixQueryBuilder.value(title);
+					perfixQueryBuilder.boost(8F);
+					should.prefix(perfixQueryBuilder.build());
 
-			PrefixQueryBuilder prefixQuery = QueryBuilders.prefixQuery("title.keyword", title);
-			shouldQuery.add(prefixQuery);
 
-			MatchPhrasePrefixQueryBuilder matchPhrasePrefixQueryBuilder = QueryBuilders.matchPhrasePrefixQuery("title",
-					title);
-			shouldQuery.add(matchPhrasePrefixQueryBuilder);
+					MatchPhrasePrefixQuery.Builder matchPhrasePrefixQueryBuilder = new MatchPhrasePrefixQuery.Builder();
+					matchPhrasePrefixQueryBuilder.field("title");
+					matchPhrasePrefixQueryBuilder.query(title);
+					matchPhrasePrefixQueryBuilder.boost(7F);
+					should.matchPhrasePrefix(matchPhrasePrefixQueryBuilder.build());
 
-			MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("title", title);
-			matchQuery.boost(1);
-			shouldQuery.add(matchQuery);
-
-			nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
+					MatchQuery.Builder matchQueryBuilder = new MatchQuery.Builder();
+					matchQueryBuilder.field("title");
+					matchQueryBuilder.query(title);
+					matchQueryBuilder.boost(1F);
+					should.match(matchQueryBuilder.build());
+					return should;
+				}));
+				return query;
+			});
 		}
-
-		nativeSearchQueryBuilder.withTrackTotalHits(true);
-		nativeSearchQueryBuilder.withPageable(pageRequest);
-		// nativeSearchQueryBuilder.withSorts(sortBuilders(page));
-		NativeSearchQuery query = nativeSearchQueryBuilder.build();
-
-		SearchHits<Video> hits = elasticsearchOperations.search(query, Video.class);
-		SearchPage<Video> searchPage = SearchHitSupport.searchPageFor(hits, query.getPageable());
+		nativeQueryBuilder.withTrackTotalHits(true);
+		nativeQueryBuilder.withPageable(pageRequest);
+		NativeQuery nativeQuery = nativeQueryBuilder.build();
+		SearchHits<Video> hits = elasticsearchOperations.search(nativeQuery, Video.class);
+		SearchPage<Video> searchPage = SearchHitSupport.searchPageFor(hits, nativeQuery.getPageable());
 		return (Page<Video>) SearchHitSupport.unwrapSearchHits(searchPage);
 	}
 
@@ -230,25 +254,25 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		return requestBaseUrl;
 	}
 
-	private List<SortBuilder<?>> sortBuilders(PageDTO<Video> page) {
-		List<SortBuilder<?>> sortBuilders = Lists.newArrayList();
-		List<OrderItem> orderItems = page.getOrders();
-		if (CollectionUtil.isEmpty(orderItems)) {
-			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort("publishTime").order(SortOrder.DESC);
-			sortBuilders.add(fieldSortBuilder);
-		}
-
-		for (OrderItem orderItem : orderItems) {
-			String column = orderItem.getColumn();
-			boolean asc = orderItem.isAsc();
-			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort(column);
-			if (!asc) {
-				fieldSortBuilder.order(SortOrder.DESC);
-			}
-			sortBuilders.add(fieldSortBuilder);
-		}
-		return sortBuilders;
-	}
+//	private List<SortBuilder<?>> sortBuilders(PageDTO<Video> page) {
+//		List<SortBuilder<?>> sortBuilders = Lists.newArrayList();
+//		List<OrderItem> orderItems = page.getOrders();
+//		if (CollectionUtil.isEmpty(orderItems)) {
+//			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort("publishTime").order(SortOrder.DESC);
+//			sortBuilders.add(fieldSortBuilder);
+//		}
+//
+//		for (OrderItem orderItem : orderItems) {
+//			String column = orderItem.getColumn();
+//			boolean asc = orderItem.isAsc();
+//			FieldSortBuilder fieldSortBuilder = SortBuilders.fieldSort(column);
+//			if (!asc) {
+//				fieldSortBuilder.order(SortOrder.DESC);
+//			}
+//			sortBuilders.add(fieldSortBuilder);
+//		}
+//		return sortBuilders;
+//	}
 
 	@Override
 	public void syncToElasticsearch() {

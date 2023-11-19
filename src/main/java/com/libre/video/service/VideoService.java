@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Async;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public interface VideoService extends IService<Video> {
@@ -34,6 +35,8 @@ public interface VideoService extends IService<Video> {
 
 	void saveVideoToLocal(VideoUploadEvent videoUploadEvent);
 
+
+	String saveVideoImageToOss(InputStream inputStream, String fileName);
 	/**
 	 * es分页查询视频
 	 * @param page 分页参数
