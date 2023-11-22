@@ -11,9 +11,9 @@
     <description>Video91 spider</description>
 
     <properties>
-        <java.version>21</java.version>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.compiler.source>21</maven.compiler.source>
+        <java.version>17</java.version>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
 
         <lombok.version>1.18.30</lombok.version>
         <mapstruct.version>1.5.0.RC1</mapstruct.version>

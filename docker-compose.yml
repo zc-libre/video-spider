@@ -1,0 +1,60 @@
+version: '3'
+services:
+  libre-postgres:
+    build:
+      context: ./db
+    restart: always
+    container_name: postgresql
+    image: postgresql:15
+    ports:
+      - "2345:5432"
+    networks:
+      - libre_default
+
+  libre-redis:
+    image: redis:7.0.0
+    ports:
+      - "9736:6379"
+    restart: always
+    container_name: libre-redis
+    hostname: libre-redis
+    networks:
+      - libre_default
+
+  libre-es:
+    image: elasticsearch:8.7.0
+    ports:
+      - "9200:9200"
+    restart: always
+    container_name: libre-es
+    hostname: pig-es
+    networks:
+      - libre_default
+
+  libre-minio:
+    image: minio
+    ports:
+      - "9200:9200"
+    restart: always
+    container_name: libre-minio
+    hostname: libre-minio
+    networks:
+      - libre_default
+
+  libre-video:
+    build:
+      context: ./app
+    volumes:
+      - ~/docker/video:/app/video
+    restart: always
+    ports:
+      - "9000:9000"
+    container_name: video
+    hostname: libre-video
+    image: video
+    networks:
+      - libre_default
+
+networks:
+  libre_default:
+    driver: bridge
