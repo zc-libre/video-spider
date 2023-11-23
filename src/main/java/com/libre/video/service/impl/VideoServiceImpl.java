@@ -1,6 +1,9 @@
 package com.libre.video.service.impl;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
+import com.amazonaws.services.s3.model.ListMultipartUploadsRequest;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;

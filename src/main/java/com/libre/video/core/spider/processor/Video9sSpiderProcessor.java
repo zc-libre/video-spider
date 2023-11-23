@@ -104,11 +104,11 @@ public class Video9sSpiderProcessor extends AbstractVideoProcessor<Video9sParse>
 			VideoService videoService = SpringContext.getBean(VideoService.class);
 			Assert.notNull(videoService, "videoService must not be null");
 			String imageName = IdWorker.getId() + ".webp";
-			String imagePath = videoService.saveVideoImageToOss(inputStream, imageName);
-			video.setImage(imagePath);
+			Files.copy(inputStream, Path.of(properties.getImagePath() + File.separator + imageName));
+			video.setImage(imageName);
 		}
 		catch (Exception e) {
-			log.error("图片上传失败", Throwables.getRootCause(e));
+			log.error("图片写入失败", e);
 			IOUtils.closeQuietly();
 		}
 		return video;
