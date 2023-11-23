@@ -88,10 +88,10 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.zclibre</groupId>
-            <artifactId>libre-oss-boot-starter</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.zclibre</groupId>-->
+<!--            <artifactId>libre-oss-boot-starter</artifactId>-->
+<!--        </dependency>-->
 
 
         <dependency>

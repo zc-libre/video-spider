@@ -1,9 +1,6 @@
 package com.libre.video.service.impl;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
-import com.amazonaws.services.s3.model.ListMultipartUploadsRequest;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
@@ -11,7 +8,6 @@ import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
-import com.libre.oss.support.OssTemplate;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.constant.SystemConstants;
 import com.libre.video.core.download.M3u8Download;
@@ -76,7 +72,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	private final VideoProperties videoProperties;
 
-	private final OssTemplate ossTemplate;
+	//private final OssTemplate ossTemplate;
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
@@ -103,18 +99,19 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public String saveVideoImageToOss(InputStream inputStream, String fileName) {
-		try  {
-			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, fileName, inputStream);
-		}
-		catch (IOException e) {
-			throw new LibreException("文件上传失败: " + e.getMessage());
-		}
-		finally{
-			IOUtils.closeQuietly(inputStream);
-		}
-		String objectURL = ossTemplate.getObjectURL(SystemConstants.VIDEO_BUCKET_NAME, fileName);
-		log.info("video save success, url: {}", objectURL);
-		return objectURL;
+//		try  {
+//			ossTemplate.putObject(SystemConstants.VIDEO_BUCKET_NAME, fileName, inputStream);
+//		}
+//		catch (IOException e) {
+//			throw new LibreException("文件上传失败: " + e.getMessage());
+//		}
+//		finally{
+//			IOUtils.closeQuietly(inputStream);
+//		}
+//		String objectURL = ossTemplate.getObjectURL(SystemConstants.VIDEO_BUCKET_NAME, fileName);
+//		log.info("video save success, url: {}", objectURL);
+//		return objectURL;
+		return null;
 	}
 
 //
