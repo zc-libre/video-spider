@@ -16,6 +16,8 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
+import org.springframework.batch.core.step.skip.SkipPolicy;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,12 +33,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 @RequiredArgsConstructor
 public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 
-
 	private final PlatformTransactionManager platformTransactionManager;
 	@Bean
-	public Job esSyncJob(@Qualifier("esStep") Step esStep, EsSyncJobListener esSyncJobListener, JobRepository jobRepository) {
-		return new JobBuilder("esSyncJob", jobRepository).incrementer(new RunIdIncrementer()).listener(esSyncJobListener)
-				.flow(esStep).end().build();
+	public Job esSyncJob(@Qualifier("esStep") Step esStep, EsSyncJobListener esSyncJobListener,
+			JobRepository jobRepository) {
+		return new JobBuilder("esSyncJob", jobRepository).incrementer(new RunIdIncrementer())
+			.listener(esSyncJobListener)
+			.flow(esStep)
+			.end()
+			.build();
 	}
 
 	@Bean
@@ -45,6 +50,7 @@ public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 		MyBatisCursorItemReader<Video> itemReader = new MyBatisCursorItemReader<>();
 		itemReader.setQueryId("com.libre.video.mapper.VideoMapper.findAll");
 		itemReader.setSqlSessionFactory(sqlSessionFactory);
+		itemReader.setSaveState(false);
 		return itemReader;
 	}
 
@@ -68,8 +74,12 @@ public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 	public Step esStep(EsVideoItemWriter esVideoWriter, MyBatisPagingItemReader<Video> itemReader,
 			@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor, JobRepository jobRepository) {
 
-		return new StepBuilder("esStep", jobRepository).<Video, Video>chunk(1000, platformTransactionManager).reader(itemReader).writer(esVideoWriter)
-				.taskExecutor(taskExecutor).build();
+		return new StepBuilder("esStep", jobRepository)
+			.<Video, Video>chunk(1000, platformTransactionManager)
+			.reader(itemReader).faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy())
+			.writer(esVideoWriter).faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy())
+			.taskExecutor(taskExecutor)
+			.build();
 	}
 
 }
