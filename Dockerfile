@@ -1,4 +1,4 @@
-FROM registry.cn-shanghai.aliyuncs.com/libre/jdk:21
+FROM registry.cn-hangzhou.aliyuncs.com/libre/jdk:21
 
 MAINTAINER Libre "zc150622@gmail.com"
 
