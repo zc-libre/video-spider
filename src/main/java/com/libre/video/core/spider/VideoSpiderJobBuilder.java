@@ -68,7 +68,7 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 	private Step videoSpiderStep(String stepName, AbstractVideoSpiderReader<?> reader,
 			VideoSpiderProcessor<?> processor, VideoSpiderWriter writer) {
 
-		VirtualThreadTaskExecutor taskExecutor = new VirtualThreadTaskExecutor("virtual-executor-");
+		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
 		return new StepBuilder(stepName, jobRepository).<VideoParse, Video>chunk(1, platformTransactionManager)
 			.reader(reader)
 			.faultTolerant()
@@ -82,7 +82,7 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 			.faultTolerant()
 			.skip(Exception.class)
 			.skipPolicy(skipPolicy)
-			.taskExecutor(taskExecutor)
+			.taskExecutor(executor)
 			.build();
 	}
 
