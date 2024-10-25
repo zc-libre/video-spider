@@ -28,7 +28,7 @@ public class HttpClientUtils {
 			.readTimeout(Duration.ofSeconds(30))
 			.connectTimeout(Duration.ofSeconds(30))
 			.writeTimeout(Duration.ofSeconds(30))
-			.proxy("127.0.0.1", 7897)
+			//.proxy("127.0.0.1", 7897)
 			.execute()
 			.onFailed((response, e) -> log.error("", e))
 			.asString();
