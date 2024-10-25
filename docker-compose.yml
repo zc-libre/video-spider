@@ -7,7 +7,11 @@ services:
     container_name: postgresql
     image: postgresql:15
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: zc504879189..
+      POSTGRES_DB: libre_spider
+    volumes:
+      - ~/docker/postgresql/data:/var/lib/postgresql/data
     ports:
       - "2345:5432"
     networks:
@@ -17,9 +21,10 @@ services:
     image: redis:7.0.0
     ports:
       - "9736:6379"
-    environment:
-      - REDIS_PASSWORD=zc504879189..
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ~/docker/redis/conf:/usr/local/etc/redis/redis.conf  # 挂载自定义配置文件
+      - ~/docker/redis/data:/data  # 挂载数据目录
     restart: always
     container_name: libre-redis
     hostname: libre-redis
@@ -36,6 +41,8 @@ services:
     container_name: video
     hostname: libre-video
     image: video
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
     networks:
       - libre_default
 

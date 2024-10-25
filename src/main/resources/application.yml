@@ -72,7 +72,7 @@ spring:
     location: ../config/application.yml
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://libre-postgres:2543/libre_video
+    url: jdbc:postgresql://libre-postgres:2543/libre_spider
     username: postgres
     password: zc504879189..
     type: com.zaxxer.hikari.HikariDataSource
