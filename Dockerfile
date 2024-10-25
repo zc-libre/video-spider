@@ -26,8 +26,6 @@ ADD  target/*.tar.gz /libre
 
 ENV TZ=Asia/Shanghai JAVA_OPTS="-Xms128m -Xmx1024m -Djava.security.egd=file:/dev/./urandom"
 
-ENV LC_ALL zh_CN.UTF-8
-
 #ENV ALL_PROXY http://127.0.0.1:7890
 #ENV http_proxy http://127.0.0.1:7890
 #ENV https_proxy http://127.0.0.1:7890
@@ -36,4 +34,5 @@ EXPOSE 9870
 
 CMD java $JAVA_OPTS -jar app/boot/*.jar
 
-ENTRYPOINT ["sh","-c","java  ${JAVA_OPTS} -jar app/boot/*.jar --spinrg.profiles.active=${ACTIVE} --jasypt.encryptor.password=${VIDEO_PASSWORD}"]
+
+ENTRYPOINT ["sh","-c","java  ${JAVA_OPTS} -jar app/boot/*.jar --spinrg.profiles.active=${CONFIG_ACTIVE} --jasypt.encryptor.password=${VIDEO_PASSWORD}"]
