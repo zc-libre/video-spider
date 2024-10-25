@@ -4,6 +4,7 @@ import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.CollectionUtil;
 import com.libre.core.toolkit.StringPool;
 import com.libre.core.toolkit.StringUtil;
+import com.libre.core.toolkit.ThreadUtil;
 import com.libre.redis.cache.RedisUtils;
 import com.libre.spider.DomMapper;
 import com.libre.video.core.enums.RequestTypeEnum;
@@ -23,6 +24,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
+
+import static com.libre.video.core.constant.RequestConstant.TIME_DELAY;
 
 /**
  * @author: Libre
@@ -47,6 +50,7 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 	@Override
 	protected List<Video9sParse> doParse(Integer page) {
 		String requestVideoUrl = baseUrl + StringPool.SLASH + page;
+		ThreadUtil.sleep(TIME_DELAY);
 		String videoPageHtml = HttpClientUtils.request(requestVideoUrl);
 		Assert.notNull(videoPageHtml, "videoPageHtml is blank");
 		List<Video9sParse> parseList = readVideoParseList(videoPageHtml);

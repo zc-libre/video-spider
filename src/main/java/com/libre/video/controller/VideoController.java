@@ -35,7 +35,7 @@ public class VideoController {
 	private final M3u8Download m3u8Download;
 
 	@GetMapping("/spider/{type}")
-	public R<Boolean> spider(@PathVariable Integer type) {
+	public R<Boolean> spider(@PathVariable("type") Integer type) {
 		videoService.spider(type);
 		return R.status(true);
 	}
@@ -47,13 +47,13 @@ public class VideoController {
 	}
 
 	@GetMapping("/watch/{videoId}")
-	public R<String> watch(@PathVariable Long videoId) throws IOException {
+	public R<String> watch(@PathVariable("videoId") Long videoId) throws IOException {
 		String url = videoService.watch(videoId);
 		return R.data(url);
 	}
 
 	@GetMapping("/download/{id}")
-	public R<Boolean> download(@PathVariable Long id) {
+	public R<Boolean> download(@PathVariable("id") Long id) {
 		videoService.download(Lists.newArrayList(id));
 		return R.data(Boolean.TRUE);
 	}

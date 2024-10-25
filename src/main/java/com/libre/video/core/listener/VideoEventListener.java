@@ -10,9 +10,7 @@ import com.libre.video.core.event.VideoSaveEvent;
 import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.ErrorVideo;
 import com.libre.video.pojo.Video;
-import com.libre.video.service.ErrorVideoService;
 import com.libre.video.service.VideoService;
-import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.ExecutorType;
@@ -21,7 +19,6 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +36,6 @@ public class VideoEventListener {
 
 	private final SqlSessionTemplate sqlSessionTemplate;
 
-	private final ErrorVideoService errorVideoService;
 
 	private final M3u8Download download;
 
@@ -65,7 +61,7 @@ public class VideoEventListener {
 	@EventListener(ErrorVideo.class)
 	public void onErrorEvent(ErrorVideo errorVideo) {
 		log.info("start save error video, errorType: {}", errorVideo.getType());
-		errorVideoService.save(errorVideo);
+		//errorVideoService.save(errorVideo);
 	}
 
 	@Async("downloadExecutor")

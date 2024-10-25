@@ -1,5 +1,6 @@
 package com.libre.video.core.spider.reader;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.StringUtil;
@@ -33,10 +34,12 @@ public class VideoBaAvSpiderReader extends AbstractVideoSpiderReader<VideoBaAvPa
 
 	private final String urlTemplate;
 
+	private final String startPage = "574";
+
 	protected VideoBaAvSpiderReader(RedisUtils redisUtils) {
 		super(redisUtils);
 		this.baseUrl = getRequestType().getBaseUrl();
-		this.urlTemplate = baseUrl + "/list/300-{page}.html";
+		this.urlTemplate = baseUrl + "/list/" + startPage + "-{page}.html";
 	}
 
 	@Override
@@ -44,10 +47,17 @@ public class VideoBaAvSpiderReader extends AbstractVideoSpiderReader<VideoBaAvPa
 		Map<String, Object> params = Maps.newHashMap();
 		params.put("page", page);
 		String requestUrl = WebClientUtils.buildUrl(urlTemplate, params);
-		Mono<String> res = WebClientUtils.request(requestUrl);
-		String html = res.block();
+		String html;
+		try {
+			html = WebClientUtils.requestHtml(requestUrl);
+		}
+		catch (Exception e) {
+			log.error("请求失败， URL：{}", requestUrl);
+			return Lists.newArrayList();
+		}
 		if (StringUtil.isBlank(html)) {
-			throw new LibreException("html is blank, page: " + page);
+			log.error("html is blank, page: {}", page);
+			return Lists.newArrayList();
 		}
 		List<VideoBaAvParse> parseList = DomMapper.readList(html, VideoBaAvParse.class);
 		return parseList.stream().filter(parse -> StringUtil.isNotBlank(parse.getUrl())).collect(Collectors.toList());
@@ -55,9 +65,8 @@ public class VideoBaAvSpiderReader extends AbstractVideoSpiderReader<VideoBaAvPa
 
 	@Override
 	protected String requestIndexPage() {
-		String url = baseUrl + "/list/300.html";
-		Mono<String> mono = WebClientUtils.request(url);
-		return mono.block();
+		String url = baseUrl + "/list/" + startPage + ".html";
+		return WebClientUtils.requestHtml(url);
 	}
 
 	@Override
@@ -86,7 +95,7 @@ public class VideoBaAvSpiderReader extends AbstractVideoSpiderReader<VideoBaAvPa
 		if (StringUtil.isBlank(href)) {
 			return null;
 		}
-		int start = href.indexOf("300") + 4;
+		int start = href.indexOf(startPage) + 4;
 		int end = href.lastIndexOf(".html");
 		String pageSizeStr = href.substring(start, end);
 		if (StringUtil.isNotBlank(pageSizeStr)) {

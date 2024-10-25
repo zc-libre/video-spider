@@ -30,17 +30,6 @@ services:
     hostname: pig-es
     networks:
       - libre_default
-
-  libre-minio:
-    image: minio
-    ports:
-      - "9200:9200"
-    restart: always
-    container_name: libre-minio
-    hostname: libre-minio
-    networks:
-      - libre_default
-
   libre-video:
     build:
       context: ./app

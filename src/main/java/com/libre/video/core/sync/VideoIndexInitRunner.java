@@ -23,11 +23,11 @@ public class VideoIndexInitRunner implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-//		IndexOperations indexOperations = elasticsearchOperations.indexOps(Video.class);
-//		indexOperations.delete();
-//		HashMap<String, Object> map = Maps.newHashMap();
-//		map.put("max_result_window", 1000000);
-//		indexOperations.create(map);
+		IndexOperations indexOperations = elasticsearchOperations.indexOps(Video.class);
+		indexOperations.delete();
+		HashMap<String, Object> map = Maps.newHashMap();
+		map.put("max_result_window", 1000000);
+		indexOperations.create(map);
 	}
 
 }

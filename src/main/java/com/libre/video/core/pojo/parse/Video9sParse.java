@@ -9,7 +9,7 @@ import java.util.List;
 @CssQuery(value = ".colVideoList")
 public class Video9sParse implements VideoParse {
 
-	@CssQuery(value = ".video-elem .title", attr = "title")
+	@CssQuery(value = ".video-elem .text-sub-title", attr = "text")
 	private String title;
 
 	@CssQuery(value = ".video-elem > a:nth-child(1)", attr = "href")
@@ -21,10 +21,11 @@ public class Video9sParse implements VideoParse {
 	@CssQuery(value = ".video-elem > a > small", attr = "text")
 	private String duration;
 
-	@CssQuery(value = ".video-elem .text-sub-title a", attr = "text")
+	@CssQuery(value = ".video-elem > small > div:nth-child(1) > a", attr = "text")
 	private String author;
 
-	@CssQuery(value = ".video-elem >.text-sub-title > div:nth-child(2)", attr = "text", regex = "^\\d+")
+
+	@CssQuery(value = ".video-elem > small > div:nth-child(2)", attr = "text", regex = "^\\d+")
 	private String lookNum;
 
 }

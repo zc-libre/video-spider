@@ -37,8 +37,7 @@ public class VideoBaAvSpiderProcessor extends AbstractVideoProcessor<VideoBaAvPa
 	protected Video doProcess(VideoBaAvParse parse) throws Exception {
 		String url = parse.getUrl();
 		String realRequestUrl = baseUrl + StringPool.SLASH + "embed" + url;
-		Mono<String> request = WebClientUtils.request(realRequestUrl);
-		String body = request.block();
+		String body = WebClientUtils.requestHtml(realRequestUrl);
 		String realUrl = RegexUtil.matchM3u8Url(body);
 		VideoBaAvMapping mapping = VideoBaAvMapping.INSTANCE;
 		BaAvVideo baAvVideo = mapping.sourceToTarget(parse);

@@ -43,14 +43,13 @@ public class Video91VideoProcessor extends AbstractVideoProcessor<Video91Parse> 
 	}
 
 	public Video readVideo(Video91Parse video91Parse) {
+		Video video = null;
 		try {
 			String url = video91Parse.getUrl();
 			if (StringUtil.isBlank(url)) {
 				throw new LibreException("url is blank, url: " + url);
 			}
-			Mono<String> mono = WebClientUtils.request(url);
-			String body = mono.block();
-
+			String body = WebClientUtils.requestHtml(url);
 			if (StringUtil.isBlank(body)) {
 				throw new LibreException("body is blank, body: " + body);
 			}
@@ -60,7 +59,7 @@ public class Video91VideoProcessor extends AbstractVideoProcessor<Video91Parse> 
 				throw new LibreException("realVideoUrl is blank, realVideoUrl: " + body);
 			}
 			Video91Mapping mapping = Video91Mapping.INSTANCE;
-			Video video = mapping.sourceToTarget(video91Parse);
+			video = mapping.sourceToTarget(video91Parse);
 			Video91DetailParse video91DetailParse = null;
 			try {
 				video91DetailParse = DomMapper.readValue(body, Video91DetailParse.class);
@@ -72,15 +71,15 @@ public class Video91VideoProcessor extends AbstractVideoProcessor<Video91Parse> 
 			video.setVideoId(id);
 			video.setVideoWebsite(getRequestType().getType());
 			video.setRealUrl(realUrl);
-			Optional.ofNullable(video91DetailParse).ifPresent(dto -> video.setPublishTime(dto.getPublishTime()));
+			Video finalVideo = video;
+			Optional.ofNullable(video91DetailParse).ifPresent(dto -> finalVideo.setPublishTime(dto.getPublishTime()));
 			video.setUpdateTime(LocalDateTime.now());
 			ThreadUtil.sleep(TimeUnit.SECONDS, 3);
-
 		}
 		catch (Exception e) {
 			log.error("解析失败,", e);
 		}
-		return null;
+		return video;
 	}
 
 	private static long parseVideoId(String realUrl) {

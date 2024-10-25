@@ -50,10 +50,9 @@ public class Video91SpiderReader extends AbstractVideoSpiderReader<Video91Parse>
 		params.put("page", page);
 		String requestUrl = WebClientUtils.buildUrl(urlTemplate, params);
 
-		Mono<String> mono = WebClientUtils.request(requestUrl);
+		String html = WebClientUtils.requestHtml(requestUrl);
 		ThreadUtil.sleep(TimeUnit.SECONDS, 3L);
 
-		String html = mono.block();
 		return readVideoParseList(html);
 	}
 
@@ -72,8 +71,7 @@ public class Video91SpiderReader extends AbstractVideoSpiderReader<Video91Parse>
 
 	@Override
 	protected String requestIndexPage() {
-		Mono<String> mono = WebClientUtils.request(baseUrl);
-		return mono.block();
+		return WebClientUtils.requestHtml(baseUrl);
 	}
 
 	private void parseVideoInfo(String html, Video91Parse video91Parse) {

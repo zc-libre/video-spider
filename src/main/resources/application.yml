@@ -46,8 +46,8 @@ spring:
       on-profile: dev
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://192.168.1.13:5432/libre_video
-    username: postgres
+    url: jdbc:postgresql://127.0.0.1:5432/libre_video
+    username: libre
     password: 123456
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
@@ -57,13 +57,9 @@ spring:
       minimum-idle: 1
   elasticsearch:
     uris: http://127.0.0.1:9200
-    connection-timeout: 10s
-libre:
-  oss:
-    access-key: minioadmin
-    secret-key: minioadmin
-    bucket-name: video
-    endpoint: http://127.0.0.1:9000
+  threads:
+    virtual:
+      enabled: true
 
 video:
   download-path: /Users/libre/video/
@@ -78,23 +74,23 @@ spring:
     location: ../config/application.yml
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:mysql://127.0.0.1:6033/libre?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&useCursorFetch=true
-    username: root
-    password: ENC(pS3X2GTc99Gw5vhMMZWmHzdvtRRHO1o3)
+    url: jdbc:postgresql://postgres.cra92kmwqxdc.us-east-1.rds.amazonaws.com:2543/libre_video
+    username: libre
+    password: 123456
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      minimum-idle: 5
-      maximum-pool-size: 200
-      connection-test-query: select 1
-
+      connection-timeout: 1000000
+      maximum-pool-size: 5
+      max-lifetime: 1800000
+      minimum-idle: 1
   elasticsearch:
-    uris: http://172.17.0.3:9200
     username: elastic
-    password: ENC(hoWyhk+6Fzt7jqzr0DmeH3SP3Y/5hEMK)
+    password: zc504879189~~
+    uris: http://13.230.110.72:9201
   data:
     redis:
-      password: password
-      host: 127.0.0.1
+      password: 123456
+      host: 172.17.0.2
 
 video:
   download-path: /libre/video/

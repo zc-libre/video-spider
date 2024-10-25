@@ -20,20 +20,6 @@ import java.util.List;
 @UtilityClass
 public class PageUtil<T> {
 
-	public static <T> List<Sort.Order> getOrders(PageDTO<T> page) {
-		List<OrderItem> orderItems = page.getOrders();
-		if (CollectionUtil.isEmpty(orderItems)) {
-			return Collections.emptyList();
-		}
-
-		List<Sort.Order> orders = Lists.newArrayList();
-		for (OrderItem order : orderItems) {
-			if (StringUtil.isNotBlank(order.getColumn())) {
-				orders.add(new Sort.Order(getDirection(order.isAsc()), order.getColumn()));
-			}
-		}
-		return orders;
-	}
 
 	private Sort.Direction getDirection(Boolean isAsc) {
 		if (Boolean.TRUE.equals(isAsc)) {

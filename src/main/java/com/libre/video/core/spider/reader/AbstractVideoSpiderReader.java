@@ -31,6 +31,8 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 
 	protected RequestTypeEnum requestType;
 
+
+
 	protected AbstractVideoSpiderReader(RedisUtils redisUtils) {
 		this.redisUtils = redisUtils;
 	}

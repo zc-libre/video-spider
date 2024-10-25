@@ -4,6 +4,7 @@ import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.random.RandomHolder;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import net.dreamlu.mica.http.HttpRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -33,21 +34,35 @@ public class WebClientUtils {
 
 	private final Random r = RandomHolder.RANDOM;
 
-
 	public static Map<String, String> getHeaders() {
 		Map<String, String> headersMap = headers.toSingleValueMap();
 		headersMap.put("X-Forwarded-For",
-			r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256));
+				r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256));
 		return headersMap;
 
 	}
+
+	public static String requestHtml(String url) {
+		return HttpRequest.get(url)
+			.addHeader(headers.toSingleValueMap())
+			.proxy("127.0.0.1", 7897)
+			.addHeader("X-Forwarded-For",
+					r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256))
+			.execute()
+			.asString();
+	}
+
 	public static Mono<String> request(String url) {
 		log.debug("start request url: {}", url);
-		return webClient.get().uri(url).headers(httpHeaders -> httpHeaders.addAll(headers))
-				.header("X-Forwarded-For",
-						r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256))
-				.retrieve().bodyToMono(String.class)
-				.doOnError(e -> log.error("request error, url: {},message: {}", url, e.getMessage())).retry(3);
+		return webClient.get()
+			.uri(url)
+			.headers(httpHeaders -> httpHeaders.addAll(headers))
+			.header("X-Forwarded-For",
+					r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256) + "." + r.nextInt(256))
+			.retrieve()
+			.bodyToMono(String.class)
+			.doOnError(e -> log.error("request error, url: {},message: {}", url, e.getMessage()))
+			.retry(3);
 	}
 
 	public static String buildUrl(String urlTemplate, Map<String, Object> params) {

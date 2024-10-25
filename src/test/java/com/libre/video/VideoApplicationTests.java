@@ -88,7 +88,6 @@ class VideoApplicationTests {
 	@Test
 	void createIndex() {
 		IndexCoordinates indexCoordinates = IndexCoordinates.of("video");
-
 		elasticsearchRestTemplate.indexOps(indexCoordinates).getSettings().put("max_result_window", 100000);
 	}
 

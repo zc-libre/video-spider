@@ -6,6 +6,7 @@ import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.time.DatePattern;
 import com.libre.core.toolkit.StringUtil;
+import com.libre.core.toolkit.ThreadUtil;
 import com.libre.spider.DomMapper;
 import com.libre.video.config.VideoProperties;
 import com.libre.video.core.constant.RequestConstant;
@@ -42,6 +43,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+import static com.libre.video.core.constant.RequestConstant.TIME_DELAY;
+
 /**
  * @author: Libre
  * @Date: 2023/1/14 11:11 PM
@@ -77,11 +80,11 @@ public class Video9sSpiderProcessor extends AbstractVideoProcessor<Video9sParse>
 			url = RequestConstant.REQUEST_9S_BASE_URL + url;
 			video9SDTO.setUrl(url);
 		}
+		ThreadUtil.sleep(TIME_DELAY);
 		String body = HttpClientUtils.request(url);
 		if (StringUtil.isBlank(body)) {
 			throw new LibreException("body is blank, url: " + url);
 		}
-
 		parseVideoInfo(body, video9SDTO);
 		log.debug("解析到一条视频数据: {}", video9SDTO);
 		Video91Mapping video91Mapping = Video91Mapping.INSTANCE;
