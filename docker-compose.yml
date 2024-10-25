@@ -6,6 +6,8 @@ services:
     restart: always
     container_name: postgresql
     image: postgresql:15
+    environment:
+      POSTGRES_PASSWORD: zc504879189..
     ports:
       - "2345:5432"
     networks:
@@ -15,19 +17,12 @@ services:
     image: redis:7.0.0
     ports:
       - "9736:6379"
+    environment:
+      - REDIS_PASSWORD=zc504879189..
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     restart: always
     container_name: libre-redis
     hostname: libre-redis
-    networks:
-      - libre_default
-
-  libre-es:
-    image: elasticsearch:8.7.0
-    ports:
-      - "9200:9200"
-    restart: always
-    container_name: libre-es
-    hostname: pig-es
     networks:
       - libre_default
   libre-video:
@@ -47,3 +42,13 @@ services:
 networks:
   libre_default:
     driver: bridge
+
+#  libre-es:
+#    image: elasticsearch:8.7.0
+#    ports:
+#      - "9200:9200"
+#    restart: always
+#    container_name: libre-es
+#    hostname: pig-es
+#    networks:
+#      - libre_default

@@ -1,4 +1,4 @@
-FROM openjdk:17
+FROM openjdk:21
 
 MAINTAINER Libre "zc150622@gmail.com"
 
