@@ -295,7 +295,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	@Override
 	public void syncToElasticsearch() {
 		log.info("开始同步数据....");
-		videoEsRepository.deleteAll();
+		// videoEsRepository.deleteAll();
 		Job esSyncJob = SpringContext.getBean("esSyncJob");
 		Assert.notNull(esSyncJob, "esSyncJob must not be null");
 		try {
