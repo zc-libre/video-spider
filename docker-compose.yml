@@ -5,6 +5,7 @@ services:
       context: ./db
     restart: always
     container_name: libre-postgres
+    hostname: libre-postgres
     image: postgres:15
     environment:
       POSTGRES_USER: postgres
@@ -17,6 +18,11 @@ services:
     command: [ "postgres", "-c", "config_file=/etc/postgresql/postgresql.conf" ]
     ports:
       - "2345:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - libre_default
 
@@ -67,8 +73,10 @@ services:
     container_name: video
     hostname: libre-video
     depends_on:
-      - libre-postgres
-      - libre-es
+      libre-postgres:
+        condition: service_healthy
+      libre-es:
+        condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: "prod"
       DB_URL: "${DB_URL:-jdbc:postgresql://libre-postgres:5432/libre_spider}"
