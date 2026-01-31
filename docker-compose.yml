@@ -67,6 +67,7 @@ services:
     container_name: video
     hostname: libre-video
     depends_on:
+      - libre-postgres
       - libre-es
     environment:
       SPRING_PROFILES_ACTIVE: "prod"
