@@ -55,6 +55,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        MAVEN_USERNAME: ${MAVEN_USERNAME}
+        MAVEN_PASSWORD: ${MAVEN_PASSWORD}
     volumes:
       - ./video:/app/video
       - ./app/config:/app/config

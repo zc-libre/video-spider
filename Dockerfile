@@ -1,7 +1,14 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 
+ARG MAVEN_USERNAME
+ARG MAVEN_PASSWORD
+
+ENV MAVEN_USERNAME=${MAVEN_USERNAME}
+ENV MAVEN_PASSWORD=${MAVEN_PASSWORD}
+
 WORKDIR /build
 
+COPY settings.xml /root/.m2/settings.xml
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
