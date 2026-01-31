@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2/repository \
-    mvn package -DskipTests -B
+    mvn package -DskipTests -Dmaven.test.skip=true -B
 
 FROM registry.cn-hangzhou.aliyuncs.com/libre/jdk:21
 
