@@ -79,6 +79,19 @@ services:
     networks:
       - libre_default
 
+  libre-frontend:
+    build:
+      context: ./frontend
+    restart: always
+    container_name: libre-frontend
+    hostname: libre-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - libre-video
+    networks:
+      - libre_default
+
 networks:
   libre_default:
     driver: bridge
