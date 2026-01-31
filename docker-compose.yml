@@ -36,7 +36,8 @@ services:
     networks:
       - libre_default
   libre-es:
-    image: elasticsearch:8.6.0
+    build:
+      context: ./docker/elasticsearch
     container_name: libre-es
     hostname: libre-es
     restart: always

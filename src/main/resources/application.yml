@@ -72,6 +72,9 @@ spring:
     activate:
       on-profile: prod
     location: ../config/application.yml
+  batch:
+    jdbc:
+      initialize-schema: always
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${DB_URL:jdbc:postgresql://libre-postgres:5432/libre_spider}
