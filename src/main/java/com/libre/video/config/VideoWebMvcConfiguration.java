@@ -15,6 +15,14 @@ public class VideoWebMvcConfiguration implements WebMvcConfigurer {
 
 	private final VideoProperties videoProperties;
 
+	private final AuthInterceptor authInterceptor;
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(authInterceptor).addPathPatterns("/api/**", "/video/**")
+				.excludePathPatterns("/video/user/login", "/file/**");
+	}
+
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		String path = videoProperties.getDownloadPath();

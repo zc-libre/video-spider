@@ -1,13 +1,15 @@
-import { Video, Bell } from 'lucide-react'
+import { Video, Bell, LogOut } from 'lucide-react'
 import { SearchBar } from './SearchBar'
 
 interface HeaderProps {
   searchValue: string
   onSearchChange: (value: string) => void
   onSearch: (query: string) => void
+  onLogout?: () => void
+  username?: string
 }
 
-export function Header({ searchValue, onSearchChange, onSearch }: HeaderProps) {
+export function Header({ searchValue, onSearchChange, onSearch, onLogout, username }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
@@ -33,11 +35,25 @@ export function Header({ searchValue, onSearchChange, onSearch }: HeaderProps) {
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
 
+          {username && (
+            <span className="text-sm text-slate-600 hidden sm:block">{username}</span>
+          )}
+
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-0.5 cursor-pointer hover:scale-105 transition-transform">
             <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
               <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
             </div>
           </div>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+              title="退出登录"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
 

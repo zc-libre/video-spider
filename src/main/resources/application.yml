@@ -60,6 +60,10 @@ spring:
   threads:
     virtual:
       enabled: true
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
 
 video:
   download-path: ./video/

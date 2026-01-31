@@ -16,7 +16,12 @@ const SORT_TABS = [
   { label: '最多收藏', sort: 'collectNum', sortOrder: 0 },
 ] as const
 
-export function HomePage() {
+interface HomePageProps {
+  onLogout?: () => void
+  username?: string
+}
+
+export function HomePage({ onLogout, username }: HomePageProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm, 500)
   const [activeTab, setActiveTab] = useState<number | null>(null)
@@ -80,7 +85,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header searchValue={searchTerm} onSearchChange={setSearchTerm} onSearch={handleSearch} />
+      <Header searchValue={searchTerm} onSearchChange={setSearchTerm} onSearch={handleSearch} onLogout={onLogout} username={username} />
 
       <main className="container mx-auto px-4 py-8">
         {/* 排序标签 */}
