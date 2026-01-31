@@ -9,6 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: zc504879189..
       POSTGRES_DB: libre_spider
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - ./postgresql/data:/var/lib/postgresql/data
     ports:
