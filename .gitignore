@@ -59,3 +59,10 @@ Servers
 upload
 gen_code
 rocksdb
+
+### docker data ###
+postgresql/data/
+redis/data/
+elasticsearch/data/
+video/
+.env

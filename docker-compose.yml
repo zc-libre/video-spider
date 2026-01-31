@@ -11,9 +11,9 @@ services:
       POSTGRES_PASSWORD: zc504879189..
       POSTGRES_DB: libre_spider
     volumes:
-      - ~/docker/postgresql/data:/var/lib/postgresql/data
-      - ~/docker/postgresql/conf/postgresql.conf:/etc/postgresql/postgresql.conf  # 挂载配置文件
-      - ~/docker/postgresql/conf/pg_hba.conf:/etc/postgresql/pg_hba.conf    # 挂载访问控制配置文件
+      - ./postgresql/data:/var/lib/postgresql/data
+      - ./postgresql/conf/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./postgresql/conf/pg_hba.conf:/etc/postgresql/pg_hba.conf
     command: [ "postgres", "-c", "config_file=/etc/postgresql/postgresql.conf" ]
     ports:
       - "2345:5432"
@@ -26,27 +26,56 @@ services:
       - "9736:6379"
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     volumes:
-      - ~/docker/redis/conf:/usr/local/etc/redis/redis.conf  # 挂载自定义配置文件
-      - ~/docker/redis/data:/data  # 挂载数据目录
+      - ./redis/conf:/usr/local/etc/redis/redis.conf
+      - ./redis/data:/data
     restart: always
     container_name: libre-redis
     hostname: libre-redis
     networks:
       - libre_default
+  libre-es:
+    image: elasticsearch:8.6.0
+    container_name: libre-es
+    hostname: libre-es
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ES_PASSWORD:-elastic}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms512m -Xmx512m}
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    ports:
+      - "9201:9200"
+    networks:
+      - libre_default
+
   libre-video:
     build:
       context: ./app
     volumes:
-      - ~/docker/video:/app/video
-      - ~/docker/app/config:/app/config
+      - ./video:/app/video
+      - ./app/config:/app/config
     restart: always
     ports:
       - "9000:9000"
     container_name: video
     hostname: libre-video
     image: registry.cn-hangzhou.aliyuncs.com/libre/spider:last
+    depends_on:
+      - libre-es
     environment:
       SPRING_PROFILES_ACTIVE: "prod"
+      DB_URL: "${DB_URL:-jdbc:postgresql://libre-postgres:5432/libre_spider}"
+      DB_USERNAME: "${DB_USERNAME:-postgres}"
+      DB_PASSWORD: "${DB_PASSWORD:-postgres}"
+      REDIS_HOST: "${REDIS_HOST:-libre-redis}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      ES_URIS: "${ES_URIS:-http://libre-es:9200}"
+      ES_USERNAME: "${ES_USERNAME:-elastic}"
+      ES_PASSWORD: "${ES_PASSWORD:-elastic}"
+      VIDEO_DOWNLOAD_PATH: "${VIDEO_DOWNLOAD_PATH:-/app/video/}"
     networks:
       - libre_default
 

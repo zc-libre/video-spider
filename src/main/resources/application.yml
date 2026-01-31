@@ -62,7 +62,7 @@ spring:
       enabled: true
 
 video:
-  download-path: /Users/libre/video/
+  download-path: ./video/
   ffmpeg-path: /usr/local/Cellar/ffmpeg/5.0.1/bin/
   mp4box-path: MP4Box/
 
@@ -74,9 +74,9 @@ spring:
     location: ../config/application.yml
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://libre-postgres:2543/libre_spider
-    username: postgres
-    password: zc504879189..
+    url: ${DB_URL:jdbc:postgresql://libre-postgres:5432/libre_spider}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       connection-timeout: 1000000
@@ -84,17 +84,15 @@ spring:
       max-lifetime: 1800000
       minimum-idle: 1
   elasticsearch:
-    username: elastic
-    password: zc504879189~~
-    uris: http://13.230.110.72:9201
+    username: ${ES_USERNAME:elastic}
+    password: ${ES_PASSWORD:elastic}
+    uris: ${ES_URIS:http://libre-es:9200}
   data:
     redis:
-      password: zc504879189..
-      host: libre-redis
+      password: ${REDIS_PASSWORD:}
+      host: ${REDIS_HOST:libre-redis}
   liquibase:
     change-log: classpath:/db/changelog/changelog-master.xml
 
 video:
-  download-path: /app/video/
-  ffmpeg-path: /usr/bin/
-  mp4box-path: /libre/gpac/gpac_public/bin/gcc/MP4Box/
+  download-path: ${VIDEO_DOWNLOAD_PATH:/app/video/}

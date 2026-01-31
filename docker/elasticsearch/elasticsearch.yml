@@ -1,0 +1,7 @@
+cluster.name: libre-es
+network.host: 0.0.0.0
+
+# 安全认证（密码通过环境变量 ELASTIC_PASSWORD 设置）
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: false
+xpack.security.http.ssl.enabled: false
