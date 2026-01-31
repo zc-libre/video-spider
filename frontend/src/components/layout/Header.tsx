@@ -1,4 +1,4 @@
-import { Video, Bell, LogOut } from 'lucide-react'
+import { Video, Bell, LogOut, Settings } from 'lucide-react'
 import { SearchBar } from './SearchBar'
 
 interface HeaderProps {
@@ -6,10 +6,11 @@ interface HeaderProps {
   onSearchChange: (value: string) => void
   onSearch: (query: string) => void
   onLogout?: () => void
+  onShowAdmin?: () => void
   username?: string
 }
 
-export function Header({ searchValue, onSearchChange, onSearch, onLogout, username }: HeaderProps) {
+export function Header({ searchValue, onSearchChange, onSearch, onLogout, onShowAdmin, username }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
@@ -34,6 +35,16 @@ export function Header({ searchValue, onSearchChange, onSearch, onLogout, userna
             <Bell className="w-6 h-6" />
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
+
+          {onShowAdmin && (
+            <button
+              onClick={onShowAdmin}
+              className="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+              title="管理面板"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          )}
 
           {username && (
             <span className="text-sm text-slate-600 hidden sm:block">{username}</span>

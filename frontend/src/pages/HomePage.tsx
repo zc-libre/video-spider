@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Header } from '@/components/layout/Header'
 import { VideoGrid } from '@/components/video/VideoGrid'
 import { VideoModal } from '@/components/video/VideoModal'
+import { AdminPanel } from '@/components/admin/AdminPanel'
 import { Pagination } from '@/components/video/Pagination'
 import { Loading } from '@/components/common/Loading'
 import { useVideos } from '@/hooks/useVideos'
@@ -43,6 +44,7 @@ export function HomePage({ onLogout, username }: HomePageProps) {
 
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
 
   // 搜索词变化时触发搜索
   useEffect(() => {
@@ -85,7 +87,7 @@ export function HomePage({ onLogout, username }: HomePageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header searchValue={searchTerm} onSearchChange={setSearchTerm} onSearch={handleSearch} onLogout={onLogout} username={username} />
+      <Header searchValue={searchTerm} onSearchChange={setSearchTerm} onSearch={handleSearch} onLogout={onLogout} onShowAdmin={() => setShowAdmin(true)} username={username} />
 
       <main className="container mx-auto px-4 py-8">
         {/* 排序标签 */}
@@ -166,6 +168,9 @@ export function HomePage({ onLogout, username }: HomePageProps) {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
       />
+
+      {/* 管理面板 */}
+      <AdminPanel isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
     </div>
   )
 }
