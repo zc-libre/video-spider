@@ -4,7 +4,7 @@ services:
     build:
       context: ./db
     restart: always
-    container_name: postgresql
+    container_name: libre-postgres
     image: postgres:15
     environment:
       POSTGRES_USER: postgres
