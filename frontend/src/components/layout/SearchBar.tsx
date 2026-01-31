@@ -1,16 +1,15 @@
-import { useState } from 'react'
 import { Search } from 'lucide-react'
 
 interface SearchBarProps {
+  value: string
+  onChange: (value: string) => void
   onSearch: (query: string) => void
 }
 
-export function SearchBar({ onSearch }: SearchBarProps) {
-  const [query, setQuery] = useState('')
-
+export function SearchBar({ value, onChange, onSearch }: SearchBarProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSearch(query)
+    onSearch(value)
   }
 
   return (
@@ -18,8 +17,8 @@ export function SearchBar({ onSearch }: SearchBarProps) {
       <div className="relative group">
         <input
           type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           placeholder="搜索视频..."
           className="w-full pl-12 pr-4 py-3 bg-slate-100 border-transparent rounded-full focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300 shadow-sm hover:shadow-md text-slate-700"
         />

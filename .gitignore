@@ -64,5 +64,5 @@ rocksdb
 postgresql/data/
 redis/data/
 elasticsearch/data/
-video/
+/video/
 .env

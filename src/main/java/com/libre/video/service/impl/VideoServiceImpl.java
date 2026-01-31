@@ -146,19 +146,15 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	@Override
 	@SuppressWarnings("unchecked")
 	public Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery) {
-		PageRequest pageRequest = PageRequest.of((int) page.getCurrent(), (int) page.getSize());
+		PageRequest pageRequest = PageRequest.of(Math.max((int) page.getCurrent() - 1, 0), (int) page.getSize());
 		NativeQueryBuilder nativeQueryBuilder = NativeQuery.builder();
 		String title = videoQuery.getTitle();
 		if (StringUtil.isNotBlank(title)) {
-			buildQuery(nativeQueryBuilder, title);
+			buildSearchQuery(nativeQueryBuilder, title);
 		}
-		else {
-			Sort sort = Sort.by(Sort.Direction.DESC, "lookNum");
-			pageRequest.withSort(sort);
-			nativeQueryBuilder.withSort(sort);
-		}
+		buildFilter(nativeQueryBuilder, videoQuery);
+		buildSort(nativeQueryBuilder, videoQuery);
 
-		nativeQueryBuilder.withTrackTotalHits(true);
 		nativeQueryBuilder.withPageable(pageRequest);
 		NativeQuery nativeQuery = nativeQueryBuilder.build();
 		SearchHits<Video> hits = elasticsearchOperations.search(nativeQuery, Video.class);
@@ -166,41 +162,45 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		return (Page<Video>) SearchHitSupport.unwrapSearchHits(searchPage);
 	}
 
-	private static void buildQuery(NativeQueryBuilder nativeQueryBuilder, String title) {
-		nativeQueryBuilder.withQuery(query -> {
-			query.bool(b -> b.should(should -> {
-				MatchPhraseQuery.Builder matchPhraseQueryBuilder = new MatchPhraseQuery.Builder();
-				matchPhraseQueryBuilder.field("title");
-				matchPhraseQueryBuilder.query(title);
-				matchPhraseQueryBuilder.boost(10F);
-				should.matchPhrase(matchPhraseQueryBuilder.build());
+	private static void buildSearchQuery(NativeQueryBuilder nativeQueryBuilder, String title) {
+		nativeQueryBuilder.withQuery(query -> query.bool(b -> b
+				.minimumShouldMatch("1")
+				// 1. 精确短语匹配 - 最高优先级
+				.should(s -> s.matchPhrase(mp -> mp
+						.field("title")
+						.query(title)
+						.slop(1)
+						.boost(10F)))
+				// 2. 所有词都必须命中 - 高优先级
+				.should(s -> s.match(m -> m
+						.field("title")
+						.query(title)
+						.operator(Operator.And)
+						.boost(5F)))
+				// 3. 任意词命中 - 宽泛召回
+				.should(s -> s.match(m -> m
+						.field("title")
+						.query(title)
+						.operator(Operator.Or)
+						.boost(1F)))
+		));
+	}
 
-				QueryStringQuery.Builder queryStringBuilder = new QueryStringQuery.Builder();
-				queryStringBuilder.fields("title", "title.keyword").query(title).fuzzyPrefixLength(2)
-						.fuzzyMaxExpansions(20).fuzzyTranspositions(true).allowLeadingWildcard(false).boost(9F);
-				should.queryString(queryStringBuilder.build());
+	private static void buildFilter(NativeQueryBuilder nativeQueryBuilder, VideoQuery videoQuery) {
+		String author = videoQuery.getAuthor();
+		if (StringUtil.isNotBlank(author)) {
+			nativeQueryBuilder.withFilter(query -> query.term(t -> t.field("author").value(author)));
+		}
+	}
 
-				PrefixQuery.Builder perfixQueryBuilder = new PrefixQuery.Builder();
-				perfixQueryBuilder.field("title.keyword");
-				perfixQueryBuilder.value(title);
-				perfixQueryBuilder.boost(8F);
-				should.prefix(perfixQueryBuilder.build());
-
-				MatchPhrasePrefixQuery.Builder matchPhrasePrefixQueryBuilder = new MatchPhrasePrefixQuery.Builder();
-				matchPhrasePrefixQueryBuilder.field("title");
-				matchPhrasePrefixQueryBuilder.query(title);
-				matchPhrasePrefixQueryBuilder.boost(7F);
-				should.matchPhrasePrefix(matchPhrasePrefixQueryBuilder.build());
-
-				MatchQuery.Builder matchQueryBuilder = new MatchQuery.Builder();
-				matchQueryBuilder.field("title");
-				matchQueryBuilder.query(title);
-				matchQueryBuilder.boost(1F);
-				should.match(matchQueryBuilder.build());
-				return should;
-			}));
-			return query;
-		});
+	private static void buildSort(NativeQueryBuilder nativeQueryBuilder, VideoQuery videoQuery) {
+		String sortField = videoQuery.getSort();
+		if (StringUtil.isBlank(sortField)) {
+			sortField = "lookNum";
+		}
+		Sort.Direction direction = Integer.valueOf(1).equals(videoQuery.getSortOrder())
+				? Sort.Direction.ASC : Sort.Direction.DESC;
+		nativeQueryBuilder.withSort(Sort.by(direction, sortField));
 	}
 
 	@Override

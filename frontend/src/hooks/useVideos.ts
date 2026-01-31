@@ -38,7 +38,22 @@ export function useVideos(options: UseVideosOptions = {}) {
   }, [fetchVideos])
 
   const search = useCallback((title: string) => {
-    setQuery({ title: title || undefined })
+    setQuery(prev => ({ ...prev, title: title || undefined }))
+    setPage(0)
+  }, [])
+
+  const updateSort = useCallback((sort: string, sortOrder?: number) => {
+    setQuery(prev => ({ ...prev, sort, sortOrder }))
+    setPage(0)
+  }, [])
+
+  const updateAuthor = useCallback((author: string) => {
+    setQuery(prev => ({ ...prev, author: author || undefined }))
+    setPage(0)
+  }, [])
+
+  const resetQuery = useCallback(() => {
+    setQuery({})
     setPage(0)
   }, [])
 
@@ -53,7 +68,11 @@ export function useVideos(options: UseVideosOptions = {}) {
     page,
     totalPages,
     totalElements,
+    query,
     search,
+    updateSort,
+    updateAuthor,
+    resetQuery,
     goToPage,
     refetch: fetchVideos,
   }

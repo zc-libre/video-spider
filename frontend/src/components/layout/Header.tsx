@@ -2,10 +2,12 @@ import { Video, Bell } from 'lucide-react'
 import { SearchBar } from './SearchBar'
 
 interface HeaderProps {
+  searchValue: string
+  onSearchChange: (value: string) => void
   onSearch: (query: string) => void
 }
 
-export function Header({ onSearch }: HeaderProps) {
+export function Header({ searchValue, onSearchChange, onSearch }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
@@ -21,7 +23,7 @@ export function Header({ onSearch }: HeaderProps) {
 
         {/* Search */}
         <div className="flex-1 max-w-2xl hidden md:block">
-          <SearchBar onSearch={onSearch} />
+          <SearchBar value={searchValue} onChange={onSearchChange} onSearch={onSearch} />
         </div>
 
         {/* Actions */}
