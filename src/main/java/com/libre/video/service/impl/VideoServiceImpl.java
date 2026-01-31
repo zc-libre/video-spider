@@ -156,6 +156,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		buildSort(nativeQueryBuilder, videoQuery);
 
 		nativeQueryBuilder.withPageable(pageRequest);
+		nativeQueryBuilder.withTrackTotalHits(true);
 		NativeQuery nativeQuery = nativeQueryBuilder.build();
 		SearchHits<Video> hits = elasticsearchOperations.search(nativeQuery, Video.class);
 		SearchPage<Video> searchPage = SearchHitSupport.searchPageFor(hits, nativeQuery.getPageable());
