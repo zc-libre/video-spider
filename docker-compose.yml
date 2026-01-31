@@ -50,6 +50,11 @@ services:
       - ./docker/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     ports:
       - "9201:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
     networks:
       - libre_default
 
@@ -72,7 +77,7 @@ services:
       libre-postgres:
         condition: service_healthy
       libre-es:
-        condition: service_started
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: "prod"
       DB_URL: "${DB_URL:-jdbc:postgresql://libre-postgres:5432/libre_spider}"
