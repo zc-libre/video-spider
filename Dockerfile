@@ -10,6 +10,7 @@ WORKDIR /build
 
 COPY settings.xml /root/.m2/settings.xml
 COPY pom.xml .
+COPY src/main/resources/lib ./src/main/resources/lib
 RUN mvn dependency:go-offline -B
 
 COPY src ./src
