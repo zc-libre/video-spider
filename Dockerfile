@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 FROM maven:3.9-eclipse-temurin-21 AS build
 
 ARG MAVEN_USERNAME
@@ -11,10 +12,20 @@ WORKDIR /build
 COPY settings.xml /root/.m2/settings.xml
 COPY pom.xml .
 COPY src/main/resources/lib ./src/main/resources/lib
-RUN mvn dependency:go-offline -B
+
+# 安装本地 jar 到 Maven 仓库
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn install:install-file -Dfile=src/main/resources/lib/jave-1.0.2.jar \
+        -DgroupId=it.sauronsoftware -DartifactId=jave -Dversion=1.0.2 -Dpackaging=jar && \
+    mvn install:install-file -Dfile=src/main/resources/lib/bcprov-jdk16-139.jar \
+        -DgroupId=org.bouncycastle -DartifactId=bcprov-jdk16-139 -Dversion=1.0.0 -Dpackaging=jar
+
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn dependency:go-offline -B
 
 COPY src ./src
-RUN mvn package -DskipTests -B
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn package -DskipTests -B
 
 FROM registry.cn-hangzhou.aliyuncs.com/libre/jdk:21
 
