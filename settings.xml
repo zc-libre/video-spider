@@ -3,15 +3,6 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
-    <mirrors>
-        <mirror>
-            <id>mirror</id>
-            <mirrorOf>central,jcenter,!rdc-releases,!rdc-snapshots</mirrorOf>
-            <name>mirror</name>
-            <url>https://maven.aliyun.com/nexus/content/groups/public</url>
-        </mirror>
-    </mirrors>
-
     <servers>
         <server>
             <id>rdc-releases</id>
@@ -29,9 +20,10 @@
         <profile>
             <id>rdc</id>
             <repositories>
+                <!-- Maven 官方中央仓库 -->
                 <repository>
                     <id>central</id>
-                    <url>https://maven.aliyun.com/nexus/content/groups/public</url>
+                    <url>https://repo.maven.apache.org/maven2</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -39,6 +31,7 @@
                         <enabled>false</enabled>
                     </snapshots>
                 </repository>
+                <!-- 私有仓库用于 com.zclibre 依赖 -->
                 <repository>
                     <id>rdc-releases</id>
                     <url>https://packages.aliyun.com/maven/repository/2059171-release-ApooKZ/</url>
