@@ -1,38 +1,25 @@
+FROM maven:3.9-eclipse-temurin-21 AS build
+
+WORKDIR /build
+
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+COPY src ./src
+RUN mvn package -DskipTests -B
+
 FROM registry.cn-hangzhou.aliyuncs.com/libre/jdk:21
 
-MAINTAINER Libre "zc150622@gmail.com"
-
-VOLUME  /tmp
+LABEL maintainer="Libre <zc150622@gmail.com>"
 
 WORKDIR /libre
 
-ADD  target/*.tar.gz /libre
+COPY --from=build /build/target/*.tar.gz /libre/
+RUN tar -xzf *.tar.gz && rm *.tar.gz
 
-#RUN mkdir /opt/clash && cd /opt/clash \
-#            &&  wget https://dl3.ssrss.club/clash-linux-amd64-v1.9.0.gz  \
-#            && wget -O /opt/clash/config.yaml "https://new.ssrss.de/xxx" \
-#            && wget https://dl3.ssrss.club/Country.mmdb \
-#            && gunzip -c *.gz > clash && chmod +x clash \
-#            && cat > /usr/lib/systemd/system/clash.service <'EOF' \
-#              [Unit] \
-#              Description=clash \
-#              [Service] \
-#              TimeoutStartSec=0 \
-#              ExecStart=/opt/clash/clash -d /opt/clash \
-#              [Install] \
-#              WantedBy=multi-user.target \
-#              EOF \
-#           && nohup /opt/clash/clash -d /opt/clash > /dev/null 2>&1 &
+ENV TZ=Asia/Shanghai
+ENV JAVA_OPTS="-Xms128m -Xmx1024m -Djava.security.egd=file:/dev/./urandom"
 
-ENV TZ=Asia/Shanghai JAVA_OPTS="-Xms128m -Xmx1024m -Djava.security.egd=file:/dev/./urandom"
+EXPOSE 9000
 
-#ENV ALL_PROXY http://127.0.0.1:7890
-#ENV http_proxy http://127.0.0.1:7890
-#ENV https_proxy http://127.0.0.1:7890
-
-EXPOSE 9870
-
-CMD java $JAVA_OPTS -jar app/boot/*.jar
-
-
-ENTRYPOINT ["sh","-c","java  ${JAVA_OPTS} -jar app/boot/*.jar --spinrg.profiles.active=${CONFIG_ACTIVE} --jasypt.encryptor.password=${VIDEO_PASSWORD}"]
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app/boot/*.jar"]

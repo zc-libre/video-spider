@@ -53,7 +53,8 @@ services:
 
   libre-video:
     build:
-      context: ./app
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - ./video:/app/video
       - ./app/config:/app/config
@@ -62,7 +63,6 @@ services:
       - "9000:9000"
     container_name: video
     hostname: libre-video
-    image: registry.cn-hangzhou.aliyuncs.com/libre/spider:last
     depends_on:
       - libre-es
     environment:
