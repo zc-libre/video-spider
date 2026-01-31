@@ -5,13 +5,16 @@ services:
       context: ./db
     restart: always
     container_name: postgresql
-    image: postgresql:15
+    image: postgres:15
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: zc504879189..
       POSTGRES_DB: libre_spider
     volumes:
       - ~/docker/postgresql/data:/var/lib/postgresql/data
+      - ~/docker/postgresql/conf/postgresql.conf:/etc/postgresql/postgresql.conf  # 挂载配置文件
+      - ~/docker/postgresql/conf/pg_hba.conf:/etc/postgresql/pg_hba.conf    # 挂载访问控制配置文件
+    command: [ "postgres", "-c", "config_file=/etc/postgresql/postgresql.conf" ]
     ports:
       - "2345:5432"
     networks:
@@ -35,12 +38,13 @@ services:
       context: ./app
     volumes:
       - ~/docker/video:/app/video
+      - ~/docker/app/config:/app/config
     restart: always
     ports:
       - "9000:9000"
     container_name: video
     hostname: libre-video
-    image: video
+    image: registry.cn-hangzhou.aliyuncs.com/libre/spider:last
     environment:
       SPRING_PROFILES_ACTIVE: "prod"
     networks:
@@ -50,12 +54,3 @@ networks:
   libre_default:
     driver: bridge
 
-#  libre-es:
-#    image: elasticsearch:8.7.0
-#    ports:
-#      - "9200:9200"
-#    restart: always
-#    container_name: libre-es
-#    hostname: pig-es
-#    networks:
-#      - libre_default

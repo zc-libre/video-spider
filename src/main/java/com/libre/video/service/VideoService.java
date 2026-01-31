@@ -35,8 +35,8 @@ public interface VideoService extends IService<Video> {
 
 	void saveVideoToLocal(VideoUploadEvent videoUploadEvent);
 
-
 	String saveVideoImageToOss(InputStream inputStream, String fileName);
+
 	/**
 	 * es分页查询视频
 	 * @param page 分页参数

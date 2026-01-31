@@ -31,8 +31,6 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 
 	protected RequestTypeEnum requestType;
 
-
-
 	protected AbstractVideoSpiderReader(RedisUtils redisUtils) {
 		this.redisUtils = redisUtils;
 	}
@@ -68,14 +66,19 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 		}
 	}
 
-
 	@Override
 	public void update(@NotNull ExecutionContext executionContext) throws ItemStreamException {
 		super.update(executionContext);
 		int currentPage = this.getPage();
 		log.info("{} parse video is executing, currentPage is: {}, totalPage is: {}", requestType.name(), currentPage,
 				maxPageSize);
-		redisUtils.set(PAGE_CACHE_KEY + requestType.name(), this.getPage());
+
+		if (currentPage == maxPageSize) {
+			redisUtils.set(PAGE_CACHE_KEY + requestType.name(), 1);
+		}
+		else {
+			redisUtils.set(PAGE_CACHE_KEY + requestType.name(), this.getPage());
+		}
 	}
 
 	@Override

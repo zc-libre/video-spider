@@ -36,7 +36,6 @@ public class VideoEventListener {
 
 	private final SqlSessionTemplate sqlSessionTemplate;
 
-
 	private final M3u8Download download;
 
 	@Async("downloadExecutor")
@@ -61,7 +60,7 @@ public class VideoEventListener {
 	@EventListener(ErrorVideo.class)
 	public void onErrorEvent(ErrorVideo errorVideo) {
 		log.info("start save error video, errorType: {}", errorVideo.getType());
-		//errorVideoService.save(errorVideo);
+		// errorVideoService.save(errorVideo);
 	}
 
 	@Async("downloadExecutor")

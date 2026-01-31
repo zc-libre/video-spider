@@ -19,10 +19,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VideoSpiderWriter implements ItemWriter<Video> {
 
-
 	@Override
 	public void write(Chunk<? extends Video> chunk) throws Exception {
 		List<? extends Video> items = chunk.getItems();
 		VideoEventPublisher.publishVideoSaveEvent(Lists.newArrayList(items));
 	}
+
 }

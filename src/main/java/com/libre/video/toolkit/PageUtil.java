@@ -20,7 +20,6 @@ import java.util.List;
 @UtilityClass
 public class PageUtil<T> {
 
-
 	private Sort.Direction getDirection(Boolean isAsc) {
 		if (Boolean.TRUE.equals(isAsc)) {
 			return Sort.Direction.ASC;

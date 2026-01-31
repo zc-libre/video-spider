@@ -21,28 +21,25 @@ public class VideoProperties implements InitializingBean {
 
 	private String mp4boxPath;
 
-	private String downloadPath;
+	private String downloadPath = "~/app/video/";
 
-	private String imagePath = "image";
+	private String imagePath;
 
-	public String getImagePath()  {
-		String image = downloadPath + imagePath;
-		try {
-			Path imageDir = Paths.get(image);
-			if (StringUtil.isNotBlank(image) && !Files.exists(imageDir)) {
-				Files.createDirectory(imageDir);
-			}
-		}
-		catch (IOException e) {
-		    log.error("create image dir error", e);
-		}
-		return image;
-	}
+	private String pron9sDomain = "";
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (!Files.exists(Paths.get(downloadPath))) {
-			Files.createDirectory(Paths.get(downloadPath));
+			Files.createDirectories(Paths.get(downloadPath));
+		}
+
+		// 在配置注入后设置 imagePath
+		if (StringUtil.isBlank(imagePath)) {
+			imagePath = downloadPath + "image";
+		}
+
+		if (!Files.exists(Paths.get(imagePath))) {
+			Files.createDirectories(Paths.get(imagePath));
 		}
 	}
 

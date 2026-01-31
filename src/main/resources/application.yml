@@ -15,6 +15,8 @@ spring:
       initialize-schema: always
     job:
       enabled: false
+  liquibase:
+    change-log: classpath:/db/changelog/changelog-master.xml
 
 mybatis-plus:
   global-config:

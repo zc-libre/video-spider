@@ -23,7 +23,7 @@ public class JsEncodeUtil {
 	public static ScriptEngine engine;
 	static {
 		ScriptEngineManager manager = new ScriptEngineManager();
-		 engine = manager.getEngineByName("javascript");
+		engine = manager.getEngineByName("javascript");
 	}
 
 	public static String encodeRealVideoUrl(String html) {

@@ -1,7 +1,6 @@
 package com.libre.video.core.spider.processor;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.google.common.base.Throwables;
 import com.libre.boot.autoconfigure.SpringContext;
 import com.libre.core.exception.LibreException;
 import com.libre.core.time.DatePattern;
@@ -24,7 +23,6 @@ import com.libre.video.service.VideoService;
 import com.libre.video.toolkit.HttpClientUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.util.Asserts;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -34,11 +32,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -76,15 +72,18 @@ public class Video9sSpiderProcessor extends AbstractVideoProcessor<Video9sParse>
 		if (StringUtil.isBlank(url)) {
 			throw new LibreException("url is blank, url: " + url);
 		}
+
 		if (StringUtil.isNotBlank(url)) {
 			url = RequestConstant.REQUEST_9S_BASE_URL + url;
 			video9SDTO.setUrl(url);
 		}
+
 		ThreadUtil.sleep(TIME_DELAY);
-		String body = HttpClientUtils.request(url);
+		String body = HttpClientUtils.get(url);
 		if (StringUtil.isBlank(body)) {
 			throw new LibreException("body is blank, url: " + url);
 		}
+
 		parseVideoInfo(body, video9SDTO);
 		log.debug("解析到一条视频数据: {}", video9SDTO);
 		Video91Mapping video91Mapping = Video91Mapping.INSTANCE;
@@ -93,15 +92,14 @@ public class Video9sSpiderProcessor extends AbstractVideoProcessor<Video9sParse>
 		if (StringUtil.isBlank(image)) {
 			return video;
 		}
-		Mono<Resource> mono = webClient.get()
-			.uri("https:" + image)
-			.accept(MediaType.APPLICATION_OCTET_STREAM)
-			.retrieve()
-			.bodyToMono(Resource.class);
+
+		Mono<Resource> mono = webClient.get().uri("https:" + image).accept(MediaType.APPLICATION_OCTET_STREAM)
+				.retrieve().bodyToMono(Resource.class);
 		Resource resource = mono.block();
 		if (Objects.isNull(resource)) {
 			return video;
 		}
+
 		try {
 			InputStream inputStream = resource.getInputStream();
 			VideoService videoService = SpringContext.getBean(VideoService.class);

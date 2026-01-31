@@ -45,13 +45,13 @@ public class VideoEncoder {
 			VideoDownloadMessage message = new VideoDownloadMessage();
 			message.setVideoId(videoId);
 			message.setMessage(e.getMessage());
-//			message.setType(2);
-//			try {
-//				webSocketServer.sendInfo(message, SystemConstants.WEBSOCKET_ENDPOINT);
-//			}
-//			catch (IOException ex) {
-//				log.error(ex.getMessage());
-//			}
+			// message.setType(2);
+			// try {
+			// webSocketServer.sendInfo(message, SystemConstants.WEBSOCKET_ENDPOINT);
+			// }
+			// catch (IOException ex) {
+			// log.error(ex.getMessage());
+			// }
 		}
 	}
 

@@ -95,16 +95,16 @@ public class Video91SpiderReader extends AbstractVideoSpiderReader<Video91Parse>
 		TextNode lookNode = (TextNode) nodes.get(14);
 		String lookText = lookNode.text();
 		if (StringUtil.isNotBlank(lookText)) {
-			video91Parse.setLookNum(Integer.parseInt(StringUtil.trimWhitespace(lookText)));
+			video91Parse.setLookNum(Integer.parseInt(lookText.strip()));
 		}
 		TextNode collectNode = (TextNode) nodes.get(16);
 		String collectText = collectNode.text();
 		if (StringUtil.isNotBlank(collectText)) {
-			video91Parse.setCollectNum(Integer.parseInt(StringUtil.trimWhitespace(collectText)));
+			video91Parse.setCollectNum(Integer.parseInt(collectText.strip()));
 		}
 		String author = video91Parse.getAuthor();
 		if (StringUtil.isNotBlank(author)) {
-			video91Parse.setAuthor(StringUtil.trimWhitespace(author));
+			video91Parse.setAuthor(author.strip());
 		}
 	}
 

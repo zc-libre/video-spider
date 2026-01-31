@@ -10,9 +10,9 @@ import java.util.List;
 public class JsTests {
 
 	public static void main(String[] args) {
-//		ScriptEngineManager manager = new ScriptEngineManager();
-//		ScriptEngine engine = manager.getEngineByName("javascript");
-//       	System.out.println(engine);
+		// ScriptEngineManager manager = new ScriptEngineManager();
+		// ScriptEngine engine = manager.getEngineByName("javascript");
+		// System.out.println(engine);
 		request();
 
 	}
@@ -21,4 +21,5 @@ public class JsTests {
 		String string = HttpRequest.get("https://ternity.net/vodplay/76656.shtml").execute().asString();
 		System.out.println(string);
 	}
+
 }

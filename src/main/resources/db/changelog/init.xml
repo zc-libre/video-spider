@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- 创建 video 分区表（按 create_time 按天分区） -->
+    <changeSet id="20241025-create-video-partitioned-table" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="video" schemaName="public"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE public.video (
+                id            bigint NOT NULL,
+                video_id      bigint,
+                url           varchar(512),
+                real_url      varchar(1024),
+                title         varchar(512),
+                image         varchar(1024),
+                duration      varchar(32),
+                author        varchar(32),
+                look_num      integer,
+                collect_num   integer,
+                m3u8_content  text,
+                video_path    varchar(1024),
+                video_website integer,
+                publish_time  timestamp,
+                create_time   timestamp NOT NULL,
+                update_time   timestamp,
+                CONSTRAINT video_pk PRIMARY KEY (id, create_time)
+            ) PARTITION BY RANGE (create_time);
+        </sql>
+    </changeSet>
+
+    <!-- 创建默认分区（兜底，防止插入失败） -->
+    <changeSet id="20241025-create-video-default-partition" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="video_default" schemaName="public"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE public.video_default PARTITION OF public.video DEFAULT;
+        </sql>
+    </changeSet>
+
+    <!-- 创建自动分区管理函数 -->
+    <changeSet id="20241025-create-partition-function" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM pg_proc WHERE proname = 'create_video_partition'
+            </sqlCheck>
+        </preConditions>
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION public.create_video_partition(target_date DATE DEFAULT CURRENT_DATE)
+            RETURNS TEXT AS $$
+            DECLARE
+                partition_name TEXT;
+                start_date DATE;
+                end_date DATE;
+            BEGIN
+                -- 计算分区名称和日期范围
+                partition_name := 'video_' || to_char(target_date, 'YYYY_MM_DD');
+                start_date := target_date;
+                end_date := target_date + INTERVAL '1 day';
+
+                -- 检查分区是否已存在
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_tables
+                    WHERE schemaname = 'public' AND tablename = partition_name
+                ) THEN
+                    -- 创建新分区
+                    EXECUTE format(
+                        'CREATE TABLE public.%I PARTITION OF public.video FOR VALUES FROM (%L) TO (%L)',
+                        partition_name, start_date, end_date
+                    );
+                    RETURN 'Created partition: ' || partition_name;
+                ELSE
+                    RETURN 'Partition already exists: ' || partition_name;
+                END IF;
+            END;
+            $$ LANGUAGE plpgsql;
+        </sql>
+    </changeSet>
+
+    <!-- 创建批量预创建分区函数（预创建未来N天的分区） -->
+    <changeSet id="20241025-create-batch-partition-function" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM pg_proc WHERE proname = 'create_video_partitions_ahead'
+            </sqlCheck>
+        </preConditions>
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION public.create_video_partitions_ahead(days_ahead INTEGER DEFAULT 7)
+            RETURNS TEXT AS $$
+            DECLARE
+                i INTEGER;
+                result TEXT := '';
+                single_result TEXT;
+            BEGIN
+                FOR i IN 0..days_ahead LOOP
+                    SELECT public.create_video_partition(CURRENT_DATE + i) INTO single_result;
+                    result := result || single_result || E'\n';
+                END LOOP;
+                RETURN result;
+            END;
+            $$ LANGUAGE plpgsql;
+        </sql>
+    </changeSet>
+
+    <!-- 安装 pg_cron 扩展（如果可用）并创建定时任务 -->
+    <changeSet id="20241025-create-partition-cron-job" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM pg_available_extensions WHERE name = 'pg_cron'
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM cron.job WHERE jobname = 'create_video_daily_partition'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE EXTENSION IF NOT EXISTS pg_cron;
+            -- 每天凌晨 1 点执行，预创建未来 7 天的分区
+            SELECT cron.schedule(
+                'create_video_daily_partition',
+                '0 1 * * *',
+                $$SELECT public.create_video_partitions_ahead(7)$$
+            );
+        </sql>
+    </changeSet>
+
+    <!-- 初始化：创建当前及未来7天的分区 -->
+    <changeSet id="20241025-init-partitions" author="libre" runOnChange="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="video" schemaName="public"/>
+        </preConditions>
+        <sql>
+            SELECT public.create_video_partitions_ahead(7);
+        </sql>
+    </changeSet>
+
+    <!-- 创建 video_id 索引 -->
+    <changeSet id="20241025-create-video-video-id-index" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="video_video_id_index" tableName="video" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="video_video_id_index" tableName="video" schemaName="public">
+            <column name="video_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- 创建 create_time 索引 -->
+    <changeSet id="20241025-create-video-create-time-index" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="video_create_time_index" tableName="video" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="video_create_time_index" tableName="video" schemaName="public">
+            <column name="create_time"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- 创建 video_website 索引 -->
+    <changeSet id="20241025-create-video-website-index" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="video_video_website_index" tableName="video" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="video_video_website_index" tableName="video" schemaName="public">
+            <column name="video_website"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

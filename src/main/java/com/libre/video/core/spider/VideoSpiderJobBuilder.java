@@ -59,10 +59,8 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 		AbstractVideoSpiderReader<?> reader = readerContext.get(requestType);
 		VideoSpiderProcessor<?> processor = processorContext.get(requestType);
 		Step step = videoSpiderStep(requestTypeEnum.name(), reader, processor, writer);
-		return new JobBuilder("videoSpiderJob", jobRepository).incrementer(new RunIdIncrementer())
-			.flow(step)
-			.end()
-			.build();
+		return new JobBuilder("videoSpiderJob", jobRepository).incrementer(new RunIdIncrementer()).flow(step).end()
+				.build();
 	}
 
 	private Step videoSpiderStep(String stepName, AbstractVideoSpiderReader<?> reader,
@@ -70,20 +68,9 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 
 		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
 		return new StepBuilder(stepName, jobRepository).<VideoParse, Video>chunk(1, platformTransactionManager)
-			.reader(reader)
-			.faultTolerant()
-			.skip(Exception.class)
-			.skipPolicy(skipPolicy)
-			.processor(processor)
-			.faultTolerant()
-			.skip(Exception.class)
-			.skipPolicy(skipPolicy)
-			.writer(writer)
-			.faultTolerant()
-			.skip(Exception.class)
-			.skipPolicy(skipPolicy)
-			.taskExecutor(executor)
-			.build();
+				.reader(reader).faultTolerant().skip(Exception.class).skipPolicy(skipPolicy).processor(processor)
+				.faultTolerant().skip(Exception.class).skipPolicy(skipPolicy).writer(writer).faultTolerant()
+				.skip(Exception.class).skipPolicy(skipPolicy).taskExecutor(executor).build();
 	}
 
 	@Override

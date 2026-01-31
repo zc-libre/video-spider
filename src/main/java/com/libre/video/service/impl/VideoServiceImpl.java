@@ -176,13 +176,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 				should.matchPhrase(matchPhraseQueryBuilder.build());
 
 				QueryStringQuery.Builder queryStringBuilder = new QueryStringQuery.Builder();
-				queryStringBuilder.fields("title", "title.keyword")
-					.query(title)
-					.fuzzyPrefixLength(2)
-					.fuzzyMaxExpansions(20)
-					.fuzzyTranspositions(true)
-					.allowLeadingWildcard(false)
-					.boost(9F);
+				queryStringBuilder.fields("title", "title.keyword").query(title).fuzzyPrefixLength(2)
+						.fuzzyMaxExpansions(20).fuzzyTranspositions(true).allowLeadingWildcard(false).boost(9F);
 				should.queryString(queryStringBuilder.build());
 
 				PrefixQuery.Builder perfixQueryBuilder = new PrefixQuery.Builder();
@@ -212,7 +207,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	public String watch(Long videoId) throws IOException {
 		log.info("video watch id is: {}", videoId);
 		Video video = Optional.ofNullable(this.getById(videoId))
-			.orElseThrow(() -> new LibreException(String.format("video not exist, videoId: %d", videoId)));
+				.orElseThrow(() -> new LibreException(String.format("video not exist, videoId: %d", videoId)));
 
 		String realUrl = video.getRealUrl();
 		if (StringUtil.isBlank(realUrl)) {

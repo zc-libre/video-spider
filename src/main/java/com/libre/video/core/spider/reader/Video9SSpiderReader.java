@@ -12,7 +12,6 @@ import com.libre.video.core.enums.VideoStepType;
 import com.libre.video.core.pojo.parse.Video9sParse;
 import com.libre.video.core.spider.VideoRequest;
 import com.libre.video.toolkit.HttpClientUtils;
-import com.libre.video.toolkit.WebClientUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,7 +19,6 @@ import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,14 +42,14 @@ public class Video9SSpiderReader extends AbstractVideoSpiderReader<Video9sParse>
 
 	@Override
 	protected String requestIndexPage() {
-		return HttpClientUtils.request(baseUrl);
+		return HttpClientUtils.get(baseUrl);
 	}
 
 	@Override
 	protected List<Video9sParse> doParse(Integer page) {
 		String requestVideoUrl = baseUrl + StringPool.SLASH + page;
 		ThreadUtil.sleep(TIME_DELAY);
-		String videoPageHtml = HttpClientUtils.request(requestVideoUrl);
+		String videoPageHtml = HttpClientUtils.get(requestVideoUrl);
 		Assert.notNull(videoPageHtml, "videoPageHtml is blank");
 		List<Video9sParse> parseList = readVideoParseList(videoPageHtml);
 		if (CollectionUtil.isEmpty(parseList)) {

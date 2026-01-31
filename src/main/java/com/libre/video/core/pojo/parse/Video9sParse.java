@@ -24,7 +24,6 @@ public class Video9sParse implements VideoParse {
 	@CssQuery(value = ".video-elem > small > div:nth-child(1) > a", attr = "text")
 	private String author;
 
-
 	@CssQuery(value = ".video-elem > small > div:nth-child(2)", attr = "text", regex = "^\\d+")
 	private String lookNum;
 

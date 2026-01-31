@@ -34,14 +34,12 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 
 	private final PlatformTransactionManager platformTransactionManager;
+
 	@Bean
 	public Job esSyncJob(@Qualifier("esStep") Step esStep, EsSyncJobListener esSyncJobListener,
 			JobRepository jobRepository) {
 		return new JobBuilder("esSyncJob", jobRepository).incrementer(new RunIdIncrementer())
-			.listener(esSyncJobListener)
-			.flow(esStep)
-			.end()
-			.build();
+				.listener(esSyncJobListener).flow(esStep).end().build();
 	}
 
 	@Bean
@@ -74,12 +72,9 @@ public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 	public Step esStep(EsVideoItemWriter esVideoWriter, MyBatisPagingItemReader<Video> itemReader,
 			@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor, JobRepository jobRepository) {
 
-		return new StepBuilder("esStep", jobRepository)
-			.<Video, Video>chunk(1000, platformTransactionManager)
-			.reader(itemReader).faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy())
-			.writer(esVideoWriter).faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy())
-			.taskExecutor(taskExecutor)
-			.build();
+		return new StepBuilder("esStep", jobRepository).<Video, Video>chunk(1000, platformTransactionManager)
+				.reader(itemReader).faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy()).writer(esVideoWriter)
+				.faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy()).taskExecutor(taskExecutor).build();
 	}
 
 }
