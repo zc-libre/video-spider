@@ -1,8 +1,6 @@
 version: '3'
 services:
   libre-postgres:
-    build:
-      context: ./db
     restart: always
     container_name: libre-postgres
     hostname: libre-postgres
@@ -13,9 +11,6 @@ services:
       POSTGRES_DB: libre_spider
     volumes:
       - ./postgresql/data:/var/lib/postgresql/data
-      - ./postgresql/conf/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./postgresql/conf/pg_hba.conf:/etc/postgresql/pg_hba.conf
-    command: [ "postgres", "-c", "config_file=/etc/postgresql/postgresql.conf" ]
     ports:
       - "2345:5432"
     healthcheck:
