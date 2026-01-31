@@ -43,7 +43,7 @@ export function Header({ searchValue, onSearchChange, onSearch }: HeaderProps) {
 
       {/* Mobile Search */}
       <div className="md:hidden px-4 pb-3">
-        <SearchBar onSearch={onSearch} />
+        <SearchBar value={searchValue} onChange={onSearchChange} onSearch={onSearch} />
       </div>
     </header>
   )
