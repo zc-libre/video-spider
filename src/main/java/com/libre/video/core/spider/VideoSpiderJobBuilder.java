@@ -59,7 +59,8 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 		AbstractVideoSpiderReader<?> reader = readerContext.get(requestType);
 		VideoSpiderProcessor<?> processor = processorContext.get(requestType);
 		Step step = videoSpiderStep(requestTypeEnum.name(), reader, processor, writer);
-		return new JobBuilder("videoSpiderJob", jobRepository).incrementer(new RunIdIncrementer())
+		String jobName = "videoSpiderJob-" + requestTypeEnum.name();
+		return new JobBuilder(jobName, jobRepository).incrementer(new RunIdIncrementer())
 			.flow(step)
 			.end()
 			.build();
@@ -70,17 +71,8 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 
 		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
 		return new StepBuilder(stepName, jobRepository).<VideoParse, Video>chunk(1, platformTransactionManager)
-			// reader
 			.reader(reader)
-			.faultTolerant()
-			.skip(Exception.class)
-			.skipPolicy(skipPolicy)
-			// processor
 			.processor(processor)
-			.faultTolerant()
-			.skip(Exception.class)
-			.skipPolicy(skipPolicy)
-			// writer
 			.writer(writer)
 			.faultTolerant()
 			.skip(Exception.class)

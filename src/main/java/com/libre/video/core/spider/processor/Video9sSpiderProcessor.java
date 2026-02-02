@@ -1,7 +1,7 @@
 package com.libre.video.core.spider.processor;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.libre.boot.autoconfigure.SpringContext;
+
 import com.libre.core.exception.LibreException;
 import com.libre.core.time.DatePattern;
 import com.libre.core.toolkit.StringUtil;
@@ -19,15 +19,15 @@ import com.libre.video.core.pojo.parse.Video9sDetailParse;
 import com.libre.video.core.pojo.parse.Video9sParse;
 import com.libre.video.core.spider.VideoRequest;
 import com.libre.video.pojo.Video;
-import com.libre.video.service.VideoService;
+
 import com.libre.video.toolkit.HttpClientUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -100,17 +100,13 @@ public class Video9sSpiderProcessor extends AbstractVideoProcessor<Video9sParse>
 			return video;
 		}
 
-		try {
-			InputStream inputStream = resource.getInputStream();
-			VideoService videoService = SpringContext.getBean(VideoService.class);
-			Assert.notNull(videoService, "videoService must not be null");
+		try (InputStream inputStream = resource.getInputStream()) {
 			String imageName = IdWorker.getId() + ".webp";
 			Files.copy(inputStream, Path.of(properties.getImagePath() + File.separator + imageName));
 			video.setImage(imageName);
 		}
 		catch (Exception e) {
 			log.error("图片写入失败", e);
-			IOUtils.closeQuietly();
 		}
 		return video;
 	}
