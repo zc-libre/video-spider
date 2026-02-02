@@ -166,11 +166,12 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private static void buildSearchQuery(NativeQueryBuilder nativeQueryBuilder, String title) {
 		nativeQueryBuilder.withQuery(query -> query.bool(b -> b
 				.minimumShouldMatch("1")
-				// 1. 精确短语匹配 - 最高优先级
+				// 1. 精确短语匹配 - 最高优先级（指定与索引相同的分词器，避免位置不一致导致短语匹配失败）
 				.should(s -> s.matchPhrase(mp -> mp
 						.field("title")
 						.query(title)
 						.slop(1)
+						.analyzer("ik_max_word")
 						.boost(10F)))
 				// 2. 所有词都必须命中 - 高优先级
 				.should(s -> s.match(m -> m
@@ -201,7 +202,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		}
 		Sort.Direction direction = Integer.valueOf(1).equals(videoQuery.getSortOrder())
 				? Sort.Direction.ASC : Sort.Direction.DESC;
-		nativeQueryBuilder.withSort(Sort.by(direction, sortField));
+		nativeQueryBuilder.withSort(Sort.by(new Sort.Order(direction, sortField), new Sort.Order(Sort.Direction.DESC, "_id")));
 	}
 
 	@Override
