@@ -197,12 +197,17 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	private static void buildSort(NativeQueryBuilder nativeQueryBuilder, VideoQuery videoQuery) {
 		String sortField = videoQuery.getSort();
-		if (StringUtil.isBlank(sortField)) {
-			sortField = "lookNum";
+		log.info("buildSort - sortField: {}, title: {}", sortField, videoQuery.getTitle());
+		// 只有明确指定排序字段时才设置排序，否则使用ES默认的相关性评分排序
+		if (StringUtil.isNotBlank(sortField)) {
+			Sort.Direction direction = Integer.valueOf(1).equals(videoQuery.getSortOrder())
+					? Sort.Direction.ASC : Sort.Direction.DESC;
+			// 使用 id 字段（Keyword 类型）替代 _id 元字段，因为 ES 默认禁止对 _id 启用 fielddata
+			nativeQueryBuilder.withSort(Sort.by(new Sort.Order(direction, sortField), new Sort.Order(Sort.Direction.DESC, "id")));
+			log.info("buildSort - using custom sort: {} {}", sortField, direction);
+		} else {
+			log.info("buildSort - using default _score sort");
 		}
-		Sort.Direction direction = Integer.valueOf(1).equals(videoQuery.getSortOrder())
-				? Sort.Direction.ASC : Sort.Direction.DESC;
-		nativeQueryBuilder.withSort(Sort.by(new Sort.Order(direction, sortField), new Sort.Order(Sort.Direction.DESC, "_id")));
 	}
 
 	@Override

@@ -48,6 +48,8 @@ services:
     volumes:
       - ./elasticsearch/data:/usr/share/elasticsearch/data
       - ./docker/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./docker/elasticsearch/ik/custom.dic:/usr/share/elasticsearch/config/analysis-ik/custom.dic
+      - ./docker/elasticsearch/ik/IKAnalyzer.cfg.xml:/usr/share/elasticsearch/config/analysis-ik/IKAnalyzer.cfg.xml
     ports:
       - "127.0.0.1:9201:9200"
     healthcheck:
