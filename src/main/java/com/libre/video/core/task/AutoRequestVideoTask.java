@@ -26,7 +26,7 @@ public class AutoRequestVideoTask {
 	@Scheduled(cron = "0 0 3 * * ?")
 	public void execute() {
 		log.info("autoRequestVideo9sTask is start....");
-		videoService.spider(2);
+		videoService.spider(2, 100);
 	}
 
 }

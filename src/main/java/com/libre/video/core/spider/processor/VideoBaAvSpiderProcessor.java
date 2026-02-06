@@ -36,12 +36,13 @@ public class VideoBaAvSpiderProcessor extends AbstractVideoProcessor<VideoBaAvPa
 	@Override
 	protected Video doProcess(VideoBaAvParse parse) throws Exception {
 		String url = parse.getUrl();
-		String realRequestUrl = baseUrl + StringPool.SLASH + "embed" + url;
-		String body = WebClientUtils.requestHtml(realRequestUrl);
+		// URL 格式: /v/827573.html，提取 ID 后拼接 embed URL
+		Long id = parseId(url);
+		String embedUrl = baseUrl + "/embed/" + id + ".html";
+		String body = WebClientUtils.requestHtml(embedUrl);
 		String realUrl = RegexUtil.matchM3u8Url(body);
 		VideoBaAvMapping mapping = VideoBaAvMapping.INSTANCE;
 		BaAvVideo baAvVideo = mapping.sourceToTarget(parse);
-		Long id = parseId(url);
 		baAvVideo.setVideoId(id);
 		baAvVideo.setUrl(baseUrl + url);
 		baAvVideo.setRealUrl(realUrl);
@@ -57,11 +58,12 @@ public class VideoBaAvSpiderProcessor extends AbstractVideoProcessor<VideoBaAvPa
 	}
 
 	private Long parseId(String url) {
-		int start = url.indexOf(StringPool.SLASH) + 1;
+		// URL 格式: /v/827573.html
+		int start = url.lastIndexOf(StringPool.SLASH) + 1;
 		int end = url.indexOf(".html");
 		String idStr = url.substring(start, end);
 		if (StringUtil.isBlank(idStr)) {
-			throw new LibreException("id parse error");
+			throw new LibreException("id parse error, url: " + url);
 		}
 		return Long.parseLong(idStr);
 	}

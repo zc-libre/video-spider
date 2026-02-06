@@ -27,12 +27,18 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 
 	protected Integer maxPageSize;
 
+	private Integer maxCrawlPages;
+
 	protected final RedisUtils redisUtils;
 
 	protected RequestTypeEnum requestType;
 
 	protected AbstractVideoSpiderReader(RedisUtils redisUtils) {
 		this.redisUtils = redisUtils;
+	}
+
+	public void setMaxCrawlPages(Integer maxCrawlPages) {
+		this.maxCrawlPages = maxCrawlPages;
 	}
 
 	@Override
@@ -52,15 +58,21 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 		super.doOpen();
 		String indexPageHtml = requestIndexPage();
 		Integer totalPageSize = parsePageSize(indexPageHtml);
-		this.maxPageSize = totalPageSize;
+		if (maxCrawlPages != null && maxCrawlPages > 0) {
+			this.maxPageSize = Math.min(totalPageSize, maxCrawlPages);
+		}
+		else {
+			this.maxPageSize = totalPageSize;
+		}
 		List<P> video9sParses = readVideoParseList(indexPageHtml);
 		if (CollectionUtil.isNotEmpty(video9sParses)) {
-			this.setMaxItemCount(totalPageSize * video9sParses.size());
+			this.setMaxItemCount(this.maxPageSize * video9sParses.size());
 		}
 
 		Integer videoCurrentPage = redisUtils.get(PAGE_CACHE_KEY + requestType.name());
 		int page = this.getPage();
-		if (Objects.nonNull(videoCurrentPage) && videoCurrentPage > page) {
+		if (Objects.nonNull(videoCurrentPage) && videoCurrentPage > page
+				&& videoCurrentPage <= this.maxPageSize) {
 			this.setPageSize(video9sParses.size());
 			this.setCurrentItemCount(videoCurrentPage * video9sParses.size());
 		}

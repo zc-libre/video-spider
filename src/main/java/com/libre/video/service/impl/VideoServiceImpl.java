@@ -75,8 +75,6 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	private final VideoSpiderJobBuilder videoSpiderJobBuilder;
 
-	private final VideoProperties videoProperties;
-
 	private final VideoEsRepository videoEsRepository;
 
 	// private final OssTemplate ossTemplate;
@@ -164,28 +162,21 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	}
 
 	private static void buildSearchQuery(NativeQueryBuilder nativeQueryBuilder, String title) {
-		nativeQueryBuilder.withQuery(query -> query.bool(b -> b
-				.minimumShouldMatch("1")
-				// 1. 精确短语匹配 - 最高优先级（指定与索引相同的分词器，避免位置不一致导致短语匹配失败）
-				.should(s -> s.matchPhrase(mp -> mp
-						.field("title")
-						.query(title)
-						.slop(1)
-						.analyzer("ik_max_word")
-						.boost(10F)))
-				// 2. 所有词都必须命中 - 高优先级
-				.should(s -> s.match(m -> m
-						.field("title")
-						.query(title)
-						.operator(Operator.And)
-						.boost(5F)))
-				// 3. 任意词命中 - 宽泛召回
-				.should(s -> s.match(m -> m
-						.field("title")
-						.query(title)
-						.operator(Operator.Or)
-						.boost(1F)))
-		));
+		nativeQueryBuilder.withQuery(query -> query.bool(b -> b.minimumShouldMatch("1")
+			// 1. 精确短语匹配 - 最高优先级（指定与索引相同的分词器，避免位置不一致导致短语匹配失败）
+			.should(s -> s.matchPhrase(mp -> mp.field("title").query(title).slop(1).analyzer("ik_max_word").boost(10F)))
+			// 2. 短语前缀匹配 - 支持用户输入未完成的搜索词（如"中华人民"匹配"中华人民共和国"）
+			.should(s -> s.matchPhrasePrefix(mpp -> mpp.field("title").query(title).boost(7F).maxExpansions(10)))
+			// 3. 所有词都必须命中 - 高优先级
+			.should(s -> s.match(m -> m.field("title").query(title).operator(Operator.And).boost(5F)))
+			// 4. 任意词命中 + 模糊匹配 - 宽泛召回，容忍拼写错误
+			.should(s -> s.match(m -> m.field("title")
+				.query(title)
+				.operator(Operator.Or)
+				.fuzziness("AUTO")
+				.prefixLength(2)
+				.maxExpansions(10)
+				.boost(1F)))));
 	}
 
 	private static void buildFilter(NativeQueryBuilder nativeQueryBuilder, VideoQuery videoQuery) {
@@ -198,14 +189,22 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private static void buildSort(NativeQueryBuilder nativeQueryBuilder, VideoQuery videoQuery) {
 		String sortField = videoQuery.getSort();
 		log.info("buildSort - sortField: {}, title: {}", sortField, videoQuery.getTitle());
-		// 只有明确指定排序字段时才设置排序，否则使用ES默认的相关性评分排序
 		if (StringUtil.isNotBlank(sortField)) {
-			Sort.Direction direction = Integer.valueOf(1).equals(videoQuery.getSortOrder())
-					? Sort.Direction.ASC : Sort.Direction.DESC;
+			Sort.Direction direction = Integer.valueOf(1).equals(videoQuery.getSortOrder()) ? Sort.Direction.ASC
+					: Sort.Direction.DESC;
 			// 使用 id 字段（Keyword 类型）替代 _id 元字段，因为 ES 默认禁止对 _id 启用 fielddata
-			nativeQueryBuilder.withSort(Sort.by(new Sort.Order(direction, sortField), new Sort.Order(Sort.Direction.DESC, "id")));
+			nativeQueryBuilder
+				.withSort(Sort.by(new Sort.Order(direction, sortField), new Sort.Order(Sort.Direction.DESC, "id")));
 			log.info("buildSort - using custom sort: {} {}", sortField, direction);
-		} else {
+		}
+		else if (StringUtil.isBlank(videoQuery.getTitle())) {
+			// 无搜索词且无排序字段时，match_all 所有文档评分相同，分页顺序不确定，需指定默认排序保证分页稳定
+			nativeQueryBuilder.withSort(Sort.by(new Sort.Order(Sort.Direction.DESC, "publishTime"),
+					new Sort.Order(Sort.Direction.DESC, "id")));
+			log.info("buildSort - no query, using default publishTime desc sort");
+		}
+		else {
+			// 有搜索词时，使用 ES 默认的相关性评分排序
 			log.info("buildSort - using default _score sort");
 		}
 	}
@@ -214,7 +213,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	public String watch(Long videoId) throws IOException {
 		log.info("video watch id is: {}", videoId);
 		Video video = Optional.ofNullable(this.getById(videoId))
-				.orElseThrow(() -> new LibreException(String.format("video not exist, videoId: %d", videoId)));
+			.orElseThrow(() -> new LibreException(String.format("video not exist, videoId: %d", videoId)));
 
 		String realUrl = video.getRealUrl();
 		if (StringUtil.isBlank(realUrl)) {
@@ -310,9 +309,14 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public void spider(Integer type) {
+		spider(type, null);
+	}
+
+	@Override
+	public void spider(Integer type, Integer maxPages) {
 		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 		executor.execute(() -> {
-			Job videoSpiderJob = videoSpiderJobBuilder.videoSpiderJob(type);
+			Job videoSpiderJob = videoSpiderJobBuilder.videoSpiderJob(type, maxPages);
 			try {
 				jobLauncher.run(videoSpiderJob, createJobParams());
 			}

@@ -52,11 +52,12 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 
 	private final Map<Integer, VideoSpiderProcessor<?>> processorContext = Maps.newHashMap();
 
-	public Job videoSpiderJob(Integer requestType) {
+	public Job videoSpiderJob(Integer requestType, Integer maxPages) {
 		RequestTypeEnum requestTypeEnum = RequestTypeEnum.find(requestType);
 		Assert.notNull(requestTypeEnum, "requestTypeEnum must not be null");
 
 		AbstractVideoSpiderReader<?> reader = readerContext.get(requestType);
+		reader.setMaxCrawlPages(maxPages);
 		VideoSpiderProcessor<?> processor = processorContext.get(requestType);
 		Step step = videoSpiderStep(requestTypeEnum.name(), reader, processor, writer);
 		String jobName = "videoSpiderJob-" + requestTypeEnum.name();

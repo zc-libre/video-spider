@@ -35,8 +35,9 @@ public class VideoController {
 	private final M3u8Download m3u8Download;
 
 	@GetMapping("/spider/{type}")
-	public R<Boolean> spider(@PathVariable("type") Integer type) {
-		videoService.spider(type);
+	public R<Boolean> spider(@PathVariable("type") Integer type,
+			@RequestParam(value = "maxPages", required = false) Integer maxPages) {
+		videoService.spider(type, maxPages);
 		return R.status(true);
 	}
 

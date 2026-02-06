@@ -66,3 +66,4 @@ redis/data/
 elasticsearch/data/
 /video/
 .env
+.ace-tool/

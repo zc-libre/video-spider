@@ -21,11 +21,19 @@ public interface VideoService extends IService<Video> {
 	void syncToElasticsearch();
 
 	/**
-	 * 爬取视频
+	 * 爬取视频（全量）
 	 * @param type 请求类型
 	 */
 	@Async("videoRequestExecutor")
 	void spider(Integer type);
+
+	/**
+	 * 爬取视频
+	 * @param type 请求类型
+	 * @param maxPages 最大爬取页数，null 表示全量爬取
+	 */
+	@Async("videoRequestExecutor")
+	void spider(Integer type, Integer maxPages);
 
 	/**
 	 * 通过视频id下载视频
