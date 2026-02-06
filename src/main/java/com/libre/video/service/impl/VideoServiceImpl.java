@@ -238,7 +238,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		String[] lines = StringUtils.split(m3u8Content, StringPool.NEWLINE);
 		List<String> m3u8Lines = Lists.newArrayList();
 		for (String line : lines) {
-			if (line.endsWith(SystemConstants.TS_SUFFIX)) {
+			if (line.endsWith(SystemConstants.TS_SUFFIX) && !line.startsWith("http")) {
 				line = requestBaseUrl + StringPool.SLASH + line;
 			}
 			m3u8Lines.add(line);

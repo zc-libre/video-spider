@@ -30,6 +30,7 @@ import reactor.core.scheduler.Schedulers;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -74,23 +75,114 @@ public class M3u8Download {
 
 	public void downloadAndReadM3u8File(Video video) throws Exception {
 		String url = video.getRealUrl();
-		Mono<Resource> mono = webClient.get().uri(url).accept(MediaType.APPLICATION_OCTET_STREAM).retrieve()
+		String content = downloadM3u8Content(url, video);
+		if (StringUtil.isBlank(content)) {
+			log.error("m3u8文件读取失败, 文件内容为空, url: {}", url);
+			return;
+		}
+		// 如果是 master playlist，解析出实际的 media playlist URL 并重新下载
+		if (content.contains("#EXT-X-STREAM-INF")) {
+			String mediaUrl = resolveMediaPlaylistUrl(url, content);
+			if (StringUtil.isBlank(mediaUrl)) {
+				log.error("master playlist 解析 media playlist 路径失败, url: {}", url);
+				return;
+			}
+			log.info("检测到 master playlist, 解析 media playlist: {}", mediaUrl);
+			video.setRealUrl(mediaUrl);
+			content = downloadM3u8Content(mediaUrl, video);
+			if (StringUtil.isBlank(content)) {
+				log.error("media playlist 下载失败, url: {}", mediaUrl);
+				return;
+			}
+		}
+		// 将 m3u8 内容中的相对 .ts 路径改写为绝对 URL
+		content = rewriteTsUrls(video.getRealUrl(), content);
+		String fileName = video.getId() + SystemConstants.MU38_SUFFIX;
+		video.setVideoPath(fileName);
+		video.setM3u8Content(content);
+		String videoTempDir = getVideoTempDir(video.getId());
+		FileUtils.deleteDirectory(new File(videoTempDir));
+	}
+
+	private String downloadM3u8Content(String url, Video video) throws IOException {
+		Mono<Resource> mono = webClient.get().uri(url)
+				.accept(MediaType.APPLICATION_OCTET_STREAM)
+				.retrieve()
 				.bodyToMono(Resource.class);
 		Resource resource = mono.block();
 		if (Objects.isNull(resource)) {
 			log.error("m3u8文件下载失败, url: {}", url);
-			return;
+			return null;
 		}
-		String fileName = video.getId() + SystemConstants.MU38_SUFFIX;
-		video.setVideoPath(fileName);
-		String content = readM3u8File(resource.getInputStream(), video);
-		if (StringUtil.isBlank(content)) {
-			log.error("m3u8文件读取失败, 文件内容为空");
-			return;
+		return readM3u8File(resource.getInputStream(), video);
+	}
+
+	/**
+	 * 从 master playlist 内容中解析出 media playlist 的完整 URL。
+	 * master playlist 格式示例：
+	 * <pre>
+	 * #EXTM3U
+	 * #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2000000,RESOLUTION=1280x720
+	 * /20260202/OmaJOVNH/2000kb/hls/index.m3u8
+	 * </pre>
+	 */
+	private String resolveMediaPlaylistUrl(String masterUrl, String content) {
+		String[] lines = content.split("\\R");
+		for (int i = 0; i < lines.length; i++) {
+			if (lines[i].startsWith("#EXT-X-STREAM-INF") && i + 1 < lines.length) {
+				String mediaPath = lines[i + 1].trim();
+				if (StringUtil.isBlank(mediaPath) || mediaPath.startsWith("#")) {
+					continue;
+				}
+				// 已经是完整 URL
+				if (mediaPath.startsWith("http")) {
+					return mediaPath;
+				}
+				// 相对路径，拼接 origin
+				URI uri = URI.create(masterUrl);
+				String origin = uri.getScheme() + "://" + uri.getAuthority();
+				return origin + (mediaPath.startsWith("/") ? mediaPath : "/" + mediaPath);
+			}
 		}
-		video.setM3u8Content(content);
-		String videoTempDir = getVideoTempDir(video.getId());
-		FileUtils.deleteDirectory(new File(videoTempDir));
+		return null;
+	}
+
+	/**
+	 * 将 m3u8 内容中的相对 .ts 路径改写为绝对 URL。
+	 * <p>处理三种 .ts 路径格式：</p>
+	 * <ul>
+	 *   <li>已经是完整 URL（http 开头）→ 不处理</li>
+	 *   <li>服务器绝对路径（/ 开头，如 /20251210/xxx.ts）→ 拼接 origin</li>
+	 *   <li>相对文件名（如 00.ts）→ 拼接 baseUrl</li>
+	 * </ul>
+	 */
+	private String rewriteTsUrls(String m3u8Url, String content) {
+		URI uri = URI.create(m3u8Url);
+		String origin = uri.getScheme() + "://" + uri.getAuthority();
+		String baseUrl = m3u8Url.substring(0, m3u8Url.lastIndexOf('/'));
+
+		String[] lines = content.split("\\R");
+		StringBuilder sb = new StringBuilder();
+		for (String line : lines) {
+			String trimmed = line.trim();
+			if (!trimmed.isEmpty() && !trimmed.startsWith("#") && trimmed.contains(".ts")) {
+				if (trimmed.startsWith("http")) {
+					// 已经是完整 URL，不处理
+				}
+				else if (trimmed.startsWith("/")) {
+					trimmed = origin + trimmed;
+				}
+				else {
+					trimmed = baseUrl + "/" + trimmed;
+				}
+				sb.append(trimmed);
+			}
+			else {
+				sb.append(line);
+			}
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 
 	public String readM3u8File(InputStream inputStream, Video video) {
@@ -207,12 +299,9 @@ public class M3u8Download {
 	}
 
 	private String copyM3u8FileToString(InputStream inputStream, Path m3u8FilePath) {
-		if (Files.exists(m3u8FilePath)) {
-			throw new LibreException("文件已经存在, m3u8FilePath: " + m3u8FilePath);
-		}
 		String content;
 		try {
-			Files.copy(inputStream, m3u8FilePath);
+			Files.copy(inputStream, m3u8FilePath, StandardCopyOption.REPLACE_EXISTING);
 			content = Files.readString(m3u8FilePath);
 		}
 		catch (IOException e) {

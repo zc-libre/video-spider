@@ -22,7 +22,7 @@ public class EsVideoItemWriter implements ItemWriter<Video> {
 
 	@Override
 	public void write(Chunk<? extends Video> chunk) throws Exception {
-		log.info("start to save videos to ES ....");
+		log.debug("start to save videos to ES ....");
 		videoEsRepository.saveAll(chunk.getItems());
 	}
 
