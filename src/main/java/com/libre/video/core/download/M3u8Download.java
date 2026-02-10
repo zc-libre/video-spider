@@ -177,12 +177,35 @@ public class M3u8Download {
 				}
 				sb.append(trimmed);
 			}
+			else if (trimmed.startsWith("#EXT-X-KEY") && trimmed.contains("URI=\"")) {
+				sb.append(rewriteKeyUri(trimmed, origin, baseUrl));
+			}
 			else {
 				sb.append(line);
 			}
 			sb.append("\n");
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * 将 #EXT-X-KEY 行中的相对 URI 改写为绝对 URL。
+	 */
+	private String rewriteKeyUri(String line, String origin, String baseUrl) {
+		int uriStart = line.indexOf("URI=\"") + 5;
+		int uriEnd = line.indexOf("\"", uriStart);
+		String keyUri = line.substring(uriStart, uriEnd);
+		if (keyUri.startsWith("http")) {
+			return line;
+		}
+		String absoluteUri;
+		if (keyUri.startsWith("/")) {
+			absoluteUri = origin + keyUri;
+		}
+		else {
+			absoluteUri = baseUrl + "/" + keyUri;
+		}
+		return line.substring(0, uriStart) + absoluteUri + line.substring(uriEnd);
 	}
 
 	public String readM3u8File(InputStream inputStream, Video video) {
