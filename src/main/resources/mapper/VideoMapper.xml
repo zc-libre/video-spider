@@ -45,7 +45,9 @@
     </select>
 
     <select id="findByBatchPage" resultType="com.libre.video.pojo.Video">
-        SELECT *
+        SELECT id, image, duration, title, author, look_num, url, real_url,
+               collect_num, publish_time, create_time, update_time,
+               video_path, video_id, video_website
         FROM video
         ORDER BY id
         LIMIT #{_pagesize} OFFSET #{_skiprows}

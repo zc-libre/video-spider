@@ -58,7 +58,7 @@ public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 		MyBatisPagingItemReader<Video> itemReader = new MyBatisPagingItemReader<>();
 		itemReader.setQueryId("com.libre.video.mapper.VideoMapper.findByBatchPage");
 		itemReader.setSqlSessionFactory(sqlSessionFactory);
-		itemReader.setPageSize(10000);
+		itemReader.setPageSize(2000);
 		return itemReader;
 	}
 
@@ -72,7 +72,7 @@ public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 	public Step esStep(EsVideoItemWriter esVideoWriter, MyBatisPagingItemReader<Video> itemReader,
 			@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor, JobRepository jobRepository) {
 
-		return new StepBuilder("esStep", jobRepository).<Video, Video>chunk(1000, platformTransactionManager)
+		return new StepBuilder("esStep", jobRepository).<Video, Video>chunk(200, platformTransactionManager)
 				.reader(itemReader).faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy()).writer(esVideoWriter)
 				.faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy()).taskExecutor(taskExecutor).build();
 	}

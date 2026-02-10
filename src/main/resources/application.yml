@@ -94,6 +94,8 @@ spring:
     username: ${ES_USERNAME:elastic}
     password: ${ES_PASSWORD:elastic}
     uris: ${ES_URIS:http://libre-es:9200}
+    connection-timeout: 5s
+    socket-timeout: 60s
   data:
     redis:
       password: ${REDIS_PASSWORD:}

@@ -44,7 +44,7 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=true
       - ELASTIC_PASSWORD=${ES_PASSWORD:-elastic}
-      - ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms512m -Xmx512m}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms1g -Xmx1g}
     volumes:
       - ./elasticsearch/data:/usr/share/elasticsearch/data
       - ./docker/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
@@ -82,6 +82,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: "prod"
+      JAVA_OPTS: "-Xms256m -Xmx2048m -Djava.security.egd=file:/dev/./urandom"
       DB_URL: "${DB_URL:-jdbc:postgresql://libre-postgres:5432/libre_spider}"
       DB_USERNAME: "${DB_USERNAME:-postgres}"
       DB_PASSWORD: "${DB_PASSWORD:-postgres}"
