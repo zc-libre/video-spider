@@ -1,26 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0a0a12;
-  --color-foreground: #f1f5f9;
-  --color-card: rgba(255, 255, 255, 0.05);
-  --color-card-foreground: #f1f5f9;
-  --color-popover: #12121e;
-  --color-popover-foreground: #f1f5f9;
-  --color-primary: #e11d48;
+  --color-background: #000000;
+  --color-foreground: #F5F5F7;
+  --color-card: #1C1C1E;
+  --color-card-foreground: #F5F5F7;
+  --color-popover: #2C2C2E;
+  --color-popover-foreground: #F5F5F7;
+  --color-primary: #0A84FF;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #8b5cf6;
-  --color-secondary-foreground: #f1f5f9;
-  --color-muted: rgba(255, 255, 255, 0.05);
-  --color-muted-foreground: #64748b;
-  --color-accent: #e11d48;
+  --color-secondary: #5E5CE6;
+  --color-secondary-foreground: #F5F5F7;
+  --color-muted: #1C1C1E;
+  --color-muted-foreground: #8E8E93;
+  --color-accent: #0A84FF;
   --color-accent-foreground: #ffffff;
-  --color-destructive: #ef4444;
+  --color-destructive: #FF453A;
   --color-destructive-foreground: #ffffff;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-input: rgba(255, 255, 255, 0.08);
-  --color-ring: #e11d48;
-  --radius: 0.5rem;
+  --color-border: rgba(84, 84, 88, 0.65);
+  --color-input: #1C1C1E;
+  --color-ring: #0A84FF;
+  --radius: 0.75rem;
 }
 
 * {
@@ -28,9 +28,8 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(135deg, #0a0a12 0%, #0f0f1a 50%, #0a0a12 100%);
-  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  background: #000000;
   color: var(--color-foreground);
   min-height: 100vh;
 }
@@ -46,25 +45,23 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(84, 84, 88, 0.5);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(84, 84, 88, 0.8);
 }
 
-/* 毛玻璃卡片 */
+/* iOS 风格卡片 */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1C1C1E;
+  border: 1px solid rgba(84, 84, 88, 0.65);
 }
 
 .glass-nav {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(84, 84, 88, 0.65);
 }

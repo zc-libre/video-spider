@@ -79,18 +79,18 @@ export function HomePage({ onLogout, username }: HomePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a12]">
+    <div className="min-h-screen bg-black">
       <Header searchValue={searchTerm} onSearchChange={setSearchTerm} onSearch={handleSearch} onLogout={onLogout} onShowAdmin={() => setShowAdmin(true)} username={username} />
 
       <main className="container mx-auto px-4 py-8">
-        {/* 排序标签 */}
+        {/* 排序标签 - iOS Segment Control 风格 */}
         <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
           <button
             onClick={handleResetAll}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === null && !query.title && !query.author
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/20'
-                : 'bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 hover:text-slate-200'
+                ? 'bg-[#0A84FF] text-white'
+                : 'bg-[#1C1C1E] text-[#8E8E93] hover:bg-[#2C2C2E] hover:text-[#F5F5F7]'
             }`}
           >
             全部
@@ -99,10 +99,10 @@ export function HomePage({ onLogout, username }: HomePageProps) {
             <button
               key={tab.label}
               onClick={() => handleTabClick(i)}
-              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === i
-                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/20'
-                  : 'bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 hover:text-slate-200'
+                  ? 'bg-[#0A84FF] text-white'
+                  : 'bg-[#1C1C1E] text-[#8E8E93] hover:bg-[#2C2C2E] hover:text-[#F5F5F7]'
               }`}
             >
               {tab.label}
@@ -116,12 +116,12 @@ export function HomePage({ onLogout, username }: HomePageProps) {
         {/* 作者过滤标签 */}
         {query.author && (
           <div className="flex items-center gap-2 pb-4">
-            <span className="text-sm text-slate-500">筛选：</span>
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-500/10 text-rose-400 text-sm font-medium rounded-full border border-rose-500/20">
+            <span className="text-sm text-[#636366]">筛选：</span>
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-[#0A84FF]/10 text-[#0A84FF] text-sm font-medium rounded-full">
               作者：{query.author}
               <button
                 onClick={clearAuthorFilter}
-                className="ml-0.5 p-0.5 hover:bg-rose-500/20 rounded-full transition-colors"
+                className="ml-0.5 p-0.5 hover:bg-[#0A84FF]/20 rounded-full transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -131,7 +131,7 @@ export function HomePage({ onLogout, username }: HomePageProps) {
 
         {/* 统计信息 */}
         {!loading && !error && (
-          <div className="text-sm text-slate-500 mb-4">
+          <div className="text-sm text-[#636366] mb-4">
             共 {totalElements} 个视频
           </div>
         )}
@@ -140,7 +140,7 @@ export function HomePage({ onLogout, username }: HomePageProps) {
         {loading ? (
           <Loading />
         ) : error ? (
-          <div className="text-center py-20 text-red-400">{error.message}</div>
+          <div className="text-center py-20 text-[#FF453A]">{error.message}</div>
         ) : (
           <VideoGrid videos={videos} onVideoClick={handleVideoClick} onAuthorClick={handleAuthorClick} />
         )}

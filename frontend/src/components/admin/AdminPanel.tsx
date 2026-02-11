@@ -8,9 +8,9 @@ interface AdminPanelProps {
 }
 
 const SPIDER_SOURCES = [
-  { type: 1, label: '91porn', color: 'from-pink-500 to-rose-600' },
-  { type: 2, label: '九色', color: 'from-amber-500 to-orange-600' },
-  { type: 3, label: 'baav', color: 'from-cyan-500 to-blue-600' },
+  { type: 1, label: '91porn', color: 'bg-[#0A84FF]' },
+  { type: 2, label: '九色', color: 'bg-[#FF9F0A]' },
+  { type: 3, label: 'baav', color: 'bg-[#5E5CE6]' },
 ] as const
 
 type ActionKey = `spider-${number}` | 'sync' | 'shutdown'
@@ -63,53 +63,61 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     const r = resultMap[key]
     if (!r) return null
     return (
-      <p className={`mt-2 text-xs ${r.ok ? 'text-green-400' : 'text-red-400'}`}>
+      <p className={`mt-2 text-xs ${r.ok ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>
         {r.msg}
       </p>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Panel */}
-      <div className="relative bg-[#12121e]/95 backdrop-blur-2xl border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+      {/* Panel - iOS Settings Style */}
+      <div className="relative bg-[#1C1C1E] w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300">
+        {/* 顶部拖拽指示器 (移动端) */}
+        <div className="sm:hidden flex justify-center pt-2 pb-1">
+          <div className="w-9 h-1 bg-[#3A3A3C] rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
-          <h2 className="text-lg font-bold text-slate-100">管理面板</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(84,84,88,0.65)]">
+          <h2 className="text-lg font-bold text-[#F5F5F7]">管理面板</h2>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-white/10 rounded-full transition-colors"
+            className="p-1.5 text-[#8E8E93] hover:text-[#F5F5F7] hover:bg-[#2C2C2E] rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
-          {/* 爬虫操作区 */}
+          {/* 爬虫操作区 - iOS 分组列表风格 */}
           <section>
-            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+            <h3 className="text-xs font-semibold text-[#8E8E93] uppercase tracking-wide mb-3 px-1">
               爬虫触发
             </h3>
-            <div className="grid grid-cols-3 gap-3">
-              {SPIDER_SOURCES.map(({ type, label, color }) => {
+            <div className="bg-[#2C2C2E] rounded-xl overflow-hidden">
+              {SPIDER_SOURCES.map(({ type, label, color }, index) => {
                 const key: ActionKey = `spider-${type}`
                 const isLoading = !!loadingMap[key]
                 return (
-                  <div key={type} className="flex flex-col">
+                  <div key={type}>
+                    {index > 0 && <div className="mx-4 border-t border-[rgba(84,84,88,0.65)]" />}
                     <button
                       disabled={isLoading}
                       onClick={() => exec(key, () => adminApi.triggerSpider(type))}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br ${color} text-white font-medium text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-60 shadow-lg`}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#3A3A3C]/50 transition-colors disabled:opacity-60"
                     >
-                      {isLoading ? (
-                        <Loader2 className="w-6 h-6 animate-spin" />
-                      ) : (
-                        <Bug className="w-6 h-6" />
-                      )}
-                      {label}
+                      <div className={`w-8 h-8 ${color} rounded-lg flex items-center justify-center`}>
+                        {isLoading ? (
+                          <Loader2 className="w-4 h-4 text-white animate-spin" />
+                        ) : (
+                          <Bug className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-[#F5F5F7]">{label}</span>
                     </button>
                     {renderResult(key)}
                   </div>
@@ -118,45 +126,47 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             </div>
           </section>
 
-          {/* 系统操作区 */}
+          {/* 系统操作区 - iOS 分组列表风格 */}
           <section>
-            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+            <h3 className="text-xs font-semibold text-[#8E8E93] uppercase tracking-wide mb-3 px-1">
               系统操作
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="bg-[#2C2C2E] rounded-xl overflow-hidden">
               {/* 同步到 ES */}
-              <div className="flex flex-col">
-                <button
-                  disabled={!!loadingMap['sync']}
-                  onClick={() => exec('sync', adminApi.syncToEs)}
-                  className="flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 border border-white/[0.08] text-slate-300 font-medium text-sm hover:bg-white/10 active:scale-95 transition-all disabled:opacity-60"
-                >
+              <button
+                disabled={!!loadingMap['sync']}
+                onClick={() => exec('sync', adminApi.syncToEs)}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#3A3A3C]/50 transition-colors disabled:opacity-60"
+              >
+                <div className="w-8 h-8 bg-[#30D158] rounded-lg flex items-center justify-center">
                   {loadingMap['sync'] ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 text-white animate-spin" />
                   ) : (
-                    <RefreshCw className="w-5 h-5" />
+                    <RefreshCw className="w-4 h-4 text-white" />
                   )}
-                  同步到 ES
-                </button>
-                {renderResult('sync')}
-              </div>
+                </div>
+                <span className="text-sm font-medium text-[#F5F5F7]">同步到 ES</span>
+              </button>
+              {renderResult('sync')}
+
+              <div className="mx-4 border-t border-[rgba(84,84,88,0.65)]" />
 
               {/* 停止爬虫 */}
-              <div className="flex flex-col">
-                <button
-                  disabled={!!loadingMap['shutdown']}
-                  onClick={() => exec('shutdown', adminApi.shutdownSpider)}
-                  className="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium text-sm hover:bg-red-500/20 active:scale-95 transition-all disabled:opacity-60"
-                >
+              <button
+                disabled={!!loadingMap['shutdown']}
+                onClick={() => exec('shutdown', adminApi.shutdownSpider)}
+                className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#3A3A3C]/50 transition-colors disabled:opacity-60"
+              >
+                <div className="w-8 h-8 bg-[#FF453A] rounded-lg flex items-center justify-center">
                   {loadingMap['shutdown'] ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 text-white animate-spin" />
                   ) : (
-                    <StopCircle className="w-5 h-5" />
+                    <StopCircle className="w-4 h-4 text-white" />
                   )}
-                  停止爬虫
-                </button>
-                {renderResult('shutdown')}
-              </div>
+                </div>
+                <span className="text-sm font-medium text-[#FF453A]">停止爬虫</span>
+              </button>
+              {renderResult('shutdown')}
             </div>
           </section>
         </div>

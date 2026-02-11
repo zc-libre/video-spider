@@ -22,60 +22,59 @@ export function LoginPage({ onLogin, loading }: LoginPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a12] flex items-center justify-center px-4 relative overflow-hidden">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.15),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(225,29,72,0.1),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 relative overflow-hidden">
+      {/* 背景装饰 - 微妙蓝色渐变 */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(10,132,255,0.08),transparent_50%)]" />
 
       <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="p-2 bg-gradient-to-br from-rose-600 to-violet-600 rounded-lg shadow-lg shadow-rose-600/20">
+          <div className="p-2 bg-[#0A84FF] rounded-xl">
             <Video className="w-6 h-6 text-white" />
           </div>
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-violet-500">
+          <span className="text-2xl font-bold text-[#F5F5F7]">
             VideoHub
           </span>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 space-y-4 shadow-2xl">
-          <h2 className="text-lg font-semibold text-slate-100 text-center">登录</h2>
+        {/* Form - iOS Grouped Style */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <h2 className="text-lg font-semibold text-[#F5F5F7] text-center mb-6">登录</h2>
 
           {error && (
-            <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</div>
+            <div className="text-sm text-[#FF453A] bg-[#FF453A]/10 rounded-xl px-4 py-2.5">{error}</div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">用户名</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
-              placeholder="请输入用户名"
-              required
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">密码</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500/50 transition-all"
-              placeholder="请输入密码"
-              required
-            />
+          <div className="bg-[#1C1C1E] rounded-xl overflow-hidden">
+            <div className="px-4 py-3 flex items-center border-b border-[rgba(84,84,88,0.65)]">
+              <label className="text-sm text-[#8E8E93] w-16 shrink-0">用户名</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="flex-1 bg-transparent text-sm text-[#F5F5F7] placeholder-[#636366] focus:outline-none"
+                placeholder="请输入用户名"
+                required
+                autoFocus
+              />
+            </div>
+            <div className="px-4 py-3 flex items-center">
+              <label className="text-sm text-[#8E8E93] w-16 shrink-0">密码</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="flex-1 bg-transparent text-sm text-[#F5F5F7] placeholder-[#636366] focus:outline-none"
+                placeholder="请输入密码"
+                required
+              />
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-gradient-to-r from-rose-600 to-rose-500 text-white text-sm font-medium rounded-lg hover:from-rose-500 hover:to-rose-400 transition-all shadow-lg shadow-rose-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-[#0A84FF] text-white text-sm font-semibold rounded-xl hover:bg-[#0A84FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? '登录中...' : '登录'}
           </button>
