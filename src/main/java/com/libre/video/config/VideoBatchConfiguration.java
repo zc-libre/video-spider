@@ -59,6 +59,7 @@ public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 		itemReader.setQueryId("com.libre.video.mapper.VideoMapper.findByBatchPage");
 		itemReader.setSqlSessionFactory(sqlSessionFactory);
 		itemReader.setPageSize(2000);
+		itemReader.setSaveState(false);
 		return itemReader;
 	}
 
@@ -73,8 +74,9 @@ public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 			@Qualifier("videoRequestExecutor") TaskExecutor taskExecutor, JobRepository jobRepository) {
 
 		return new StepBuilder("esStep", jobRepository).<Video, Video>chunk(200, platformTransactionManager)
-				.reader(itemReader).faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy()).writer(esVideoWriter)
-				.faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy()).taskExecutor(taskExecutor).build();
+				.reader(itemReader).writer(esVideoWriter)
+				.faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy())
+				.taskExecutor(taskExecutor).build();
 	}
 
 }
