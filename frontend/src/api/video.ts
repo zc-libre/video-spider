@@ -20,6 +20,13 @@ export const videoApi = {
   },
 
   /**
+   * 搜索建议
+   */
+  getSuggestions: async (q: string, size = 10): Promise<string[]> => {
+    return apiClient.get('/video/suggest', { params: { q, size } })
+  },
+
+  /**
    * 获取视频播放地址
    */
   getWatchUrl: async (videoId: number): Promise<string> => {

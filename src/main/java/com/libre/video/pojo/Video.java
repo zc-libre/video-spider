@@ -11,10 +11,12 @@ import com.libre.core.time.DatePattern;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.CompletionField;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.core.suggest.Completion;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -67,6 +69,10 @@ public class Video implements Serializable {
 	@JsonFormat(pattern = DatePattern.NORM_DATE_PATTERN)
 	@Field(type = FieldType.Date, format = DateFormat.date)
 	private LocalDate publishTime;
+
+	@CompletionField(analyzer = "ik_max_word", searchAnalyzer = "ik_smart", maxInputLength = 100)
+	@TableField(exist = false)
+	private Completion titleSuggest;
 
 	@TableField(fill = FieldFill.INSERT)
 	@JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)

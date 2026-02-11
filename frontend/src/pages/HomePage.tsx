@@ -79,7 +79,7 @@ export function HomePage({ onLogout, username }: HomePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0a0a12]">
       <Header searchValue={searchTerm} onSearchChange={setSearchTerm} onSearch={handleSearch} onLogout={onLogout} onShowAdmin={() => setShowAdmin(true)} username={username} />
 
       <main className="container mx-auto px-4 py-8">
@@ -87,10 +87,10 @@ export function HomePage({ onLogout, username }: HomePageProps) {
         <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
           <button
             onClick={handleResetAll}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               activeTab === null && !query.title && !query.author
-                ? 'bg-slate-900 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/20'
+                : 'bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 hover:text-slate-200'
             }`}
           >
             全部
@@ -99,10 +99,10 @@ export function HomePage({ onLogout, username }: HomePageProps) {
             <button
               key={tab.label}
               onClick={() => handleTabClick(i)}
-              className={`flex items-center gap-1 px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 activeTab === i
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/20'
+                  : 'bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 hover:text-slate-200'
               }`}
             >
               {tab.label}
@@ -117,11 +117,11 @@ export function HomePage({ onLogout, username }: HomePageProps) {
         {query.author && (
           <div className="flex items-center gap-2 pb-4">
             <span className="text-sm text-slate-500">筛选：</span>
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full">
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-500/10 text-rose-400 text-sm font-medium rounded-full border border-rose-500/20">
               作者：{query.author}
               <button
                 onClick={clearAuthorFilter}
-                className="ml-0.5 p-0.5 hover:bg-blue-100 rounded-full transition-colors"
+                className="ml-0.5 p-0.5 hover:bg-rose-500/20 rounded-full transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -140,7 +140,7 @@ export function HomePage({ onLogout, username }: HomePageProps) {
         {loading ? (
           <Loading />
         ) : error ? (
-          <div className="text-center py-20 text-red-500">{error.message}</div>
+          <div className="text-center py-20 text-red-400">{error.message}</div>
         ) : (
           <VideoGrid videos={videos} onVideoClick={handleVideoClick} onAuthorClick={handleAuthorClick} />
         )}

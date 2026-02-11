@@ -56,7 +56,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
       <button
         onClick={() => onPageChange(Math.max(0, currentPage - 1))}
         disabled={currentPage === 0}
-        className="p-2 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-600"
+        className="p-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
@@ -64,7 +64,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
       {getPageNumbers().map((page, index) => {
         if (page === '...') {
           return (
-            <span key={`ellipsis-${index}`} className="px-2 text-slate-400">
+            <span key={`ellipsis-${index}`} className="px-2 text-slate-500">
               ...
             </span>
           )
@@ -80,8 +80,8 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
             className={`
               w-10 h-10 rounded-lg font-medium transition-all duration-200
               ${isActive
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-105'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-blue-600'}
+                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30 scale-105'
+                : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}
             `}
           >
             {pageNum + 1}
@@ -92,7 +92,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
       <button
         onClick={() => onPageChange(Math.min(totalPages - 1, currentPage + 1))}
         disabled={currentPage === totalPages - 1}
-        className="p-2 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-600"
+        className="p-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronRight className="w-5 h-5" />
       </button>

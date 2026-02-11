@@ -56,19 +56,19 @@ export function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative bg-white w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-300">
+      <div className="relative bg-[#12121e]/95 backdrop-blur-2xl border border-white/10 w-full max-w-5xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-300">
         {/* Video Player */}
         <div className="relative aspect-video bg-black w-full">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+            className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors backdrop-blur-sm"
           >
             <X className="w-5 h-5" />
           </button>
 
           {loading && (
             <div className="w-full h-full flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-rose-600/30 border-t-rose-600 rounded-full animate-spin" />
             </div>
           )}
 
@@ -85,20 +85,20 @@ export function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
 
         {/* Details */}
         <div className="p-6 overflow-y-auto">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">
+          <h2 className="text-2xl font-bold text-slate-100 mb-2">
             {video.title}
           </h2>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-violet-600 flex items-center justify-center text-white font-bold">
                 {(video.author || '未知')[0]}
               </div>
               <div>
-                <h4 className="font-semibold text-slate-900">
+                <h4 className="font-semibold text-slate-100">
                   {video.author || '未知'}
                 </h4>
-                <p className="text-sm text-slate-500 flex items-center gap-1">
+                <p className="text-sm text-slate-400 flex items-center gap-1">
                   <Eye className="w-3.5 h-3.5" />
                   {formatViewCount(video.lookNum)} 观看
                 </p>
@@ -106,18 +106,18 @@ export function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors text-sm font-medium">
+              <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/[0.08] rounded-full hover:bg-white/10 transition-colors text-sm font-medium text-slate-300">
                 <ThumbsUp className="w-4 h-4" />
                 {formatViewCount(video.collectNum)}
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors text-sm font-medium">
+              <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/[0.08] rounded-full hover:bg-white/10 transition-colors text-sm font-medium text-slate-300">
                 <Share2 className="w-4 h-4" />
                 分享
               </button>
             </div>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl text-sm text-slate-600">
+          <div className="bg-white/5 border border-white/[0.08] p-4 rounded-xl text-sm text-slate-400">
             <p>发布时间：{video.publishTime || '未知'}</p>
           </div>
         </div>

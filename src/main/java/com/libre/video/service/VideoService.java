@@ -53,6 +53,14 @@ public interface VideoService extends IService<Video> {
 	 */
 	Page<Video> findByPage(PageDTO<Video> page, VideoQuery videoQuery);
 
+	/**
+	 * 搜索建议
+	 * @param prefix 用户输入的前缀
+	 * @param size 返回数量
+	 * @return 标题建议列表
+	 */
+	List<String> suggest(String prefix, int size);
+
 	String watch(Long videoId) throws IOException;
 
 	void shutdown();

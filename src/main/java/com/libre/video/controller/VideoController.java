@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -45,6 +46,12 @@ public class VideoController {
 	public R<Page<Video>> page(PageDTO<Video> page, VideoQuery videoQuery) {
 		Page<Video> videoPage = videoService.findByPage(page, videoQuery);
 		return R.data(videoPage);
+	}
+
+	@GetMapping("/suggest")
+	public R<List<String>> suggest(@RequestParam("q") String q,
+			@RequestParam(value = "size", defaultValue = "10") int size) {
+		return R.data(videoService.suggest(q, size));
 	}
 
 	@GetMapping("/watch/{videoId}")

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.data.elasticsearch.core.suggest.Completion;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -23,6 +24,11 @@ public class EsVideoItemWriter implements ItemWriter<Video> {
 	@Override
 	public void write(Chunk<? extends Video> chunk) throws Exception {
 		log.debug("start to save videos to ES ....");
+		for (Video video : chunk.getItems()) {
+			if (video.getTitle() != null) {
+				video.setTitleSuggest(new Completion(new String[] { video.getTitle() }));
+			}
+		}
 		videoEsRepository.saveAll(chunk.getItems());
 	}
 

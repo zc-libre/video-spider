@@ -1,7 +1,10 @@
 package com.libre.video.service.impl;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.CompletionSuggestOption;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
@@ -64,6 +67,8 @@ import java.util.concurrent.Executors;
 public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements VideoService {
 
 	private final VideoEncoder videoEncoder;
+
+	private final ElasticsearchClient elasticsearchClient;
 
 	private final ElasticsearchOperations elasticsearchOperations;
 
@@ -206,6 +211,32 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		else {
 			// 有搜索词时，使用 ES 默认的相关性评分排序
 			log.info("buildSort - using default _score sort");
+		}
+	}
+
+	@Override
+	public List<String> suggest(String prefix, int size) {
+		try {
+			SearchResponse<Void> response = elasticsearchClient.search(s -> s.index("video")
+				.size(0)
+				.suggest(sg -> sg.suggesters("title-suggest",
+						fs -> fs.prefix(prefix)
+							.completion(c -> c.field("titleSuggest")
+								.size(size)
+								.skipDuplicates(true)
+								.fuzzy(f -> f.fuzziness("AUTO"))))),
+				Void.class);
+
+			return response.suggest()
+				.getOrDefault("title-suggest", List.of())
+				.stream()
+				.flatMap(s -> s.completion().options().stream())
+				.map(CompletionSuggestOption::text)
+				.toList();
+		}
+		catch (IOException e) {
+			log.error("搜索建议查询失败", e);
+			return List.of();
 		}
 	}
 

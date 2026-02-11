@@ -30,6 +30,20 @@ export function formatDate(dateStr: string | null | undefined): string {
   return `${Math.floor(days / 365)}年前`
 }
 
+const VIDEO_WEBSITE_MAP: Record<number, string> = {
+  1: '91',
+  2: '九色',
+  3: 'BaAV',
+}
+
+/**
+ * 获取视频网站名称
+ */
+export function getWebsiteLabel(type: number | null | undefined): string {
+  if (type === null || type === undefined) return '未知'
+  return VIDEO_WEBSITE_MAP[type] || '未知'
+}
+
 /**
  * 获取图片完整 URL
  * - 完整 URL（http/https）→ 直接返回

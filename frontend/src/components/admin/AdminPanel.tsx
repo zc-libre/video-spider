@@ -63,7 +63,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     const r = resultMap[key]
     if (!r) return null
     return (
-      <p className={`mt-2 text-xs ${r.ok ? 'text-green-600' : 'text-red-500'}`}>
+      <p className={`mt-2 text-xs ${r.ok ? 'text-green-400' : 'text-red-400'}`}>
         {r.msg}
       </p>
     )
@@ -72,16 +72,16 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+      <div className="relative bg-[#12121e]/95 backdrop-blur-2xl border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900">管理面板</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08]">
+          <h2 className="text-lg font-bold text-slate-100">管理面板</h2>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-white/10 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -102,7 +102,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     <button
                       disabled={isLoading}
                       onClick={() => exec(key, () => adminApi.triggerSpider(type))}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br ${color} text-white font-medium text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-60`}
+                      className={`flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-br ${color} text-white font-medium text-sm hover:opacity-90 active:scale-95 transition-all disabled:opacity-60 shadow-lg`}
                     >
                       {isLoading ? (
                         <Loader2 className="w-6 h-6 animate-spin" />
@@ -129,7 +129,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 <button
                   disabled={!!loadingMap['sync']}
                   onClick={() => exec('sync', adminApi.syncToEs)}
-                  className="flex items-center justify-center gap-2 p-3 rounded-xl bg-slate-100 text-slate-700 font-medium text-sm hover:bg-slate-200 active:scale-95 transition-all disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 border border-white/[0.08] text-slate-300 font-medium text-sm hover:bg-white/10 active:scale-95 transition-all disabled:opacity-60"
                 >
                   {loadingMap['sync'] ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -146,7 +146,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 <button
                   disabled={!!loadingMap['shutdown']}
                   onClick={() => exec('shutdown', adminApi.shutdownSpider)}
-                  className="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-50 text-red-600 font-medium text-sm hover:bg-red-100 active:scale-95 transition-all disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium text-sm hover:bg-red-500/20 active:scale-95 transition-all disabled:opacity-60"
                 >
                   {loadingMap['shutdown'] ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
