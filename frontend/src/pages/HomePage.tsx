@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Header } from '@/components/layout/Header'
 import { VideoGrid } from '@/components/video/VideoGrid'
 import { VideoModal } from '@/components/video/VideoModal'
@@ -6,7 +6,6 @@ import { AdminPanel } from '@/components/admin/AdminPanel'
 import { Pagination } from '@/components/video/Pagination'
 import { Loading } from '@/components/common/Loading'
 import { useVideos } from '@/hooks/useVideos'
-import { useDebounce } from '@/hooks/useDebounce'
 import type { Video } from '@/types/video'
 import { ArrowUpDown, X } from 'lucide-react'
 
@@ -24,7 +23,6 @@ interface HomePageProps {
 
 export function HomePage({ onLogout, username }: HomePageProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const debouncedSearch = useDebounce(searchTerm, 500)
   const [activeTab, setActiveTab] = useState<number | null>(null)
 
   const {
@@ -46,18 +44,13 @@ export function HomePage({ onLogout, username }: HomePageProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
 
-  // 搜索词变化时触发搜索
-  useEffect(() => {
-    search(debouncedSearch)
-  }, [debouncedSearch, search])
-
   const handleVideoClick = (video: Video) => {
     setSelectedVideo(video)
     setModalOpen(true)
   }
 
   const handleSearch = (query: string) => {
-    setSearchTerm(query)
+    search(query)
   }
 
   const handleResetAll = () => {

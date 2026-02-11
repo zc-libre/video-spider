@@ -18,7 +18,7 @@ public class AutoSyncVideoTask {
 
 	private final VideoService videoService;
 
-	@Scheduled(cron = "*/30 * * * * ?")
+	@Scheduled(cron = "*/59 * * * * ?")
 	public void execute() {
 		log.info("sync task is start ......");
 		videoService.syncToElasticsearch();
