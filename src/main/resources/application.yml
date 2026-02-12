@@ -51,7 +51,7 @@ spring:
     password: 123456
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      connection-timeout: 1000000
+      connection-timeout: 30000
       maximum-pool-size: 5
       max-lifetime: 1800000
       minimum-idle: 1
@@ -86,7 +86,7 @@ spring:
     password: ${DB_PASSWORD:postgres}
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      connection-timeout: 1000000
+      connection-timeout: 30000
       maximum-pool-size: 5
       max-lifetime: 1800000
       minimum-idle: 1

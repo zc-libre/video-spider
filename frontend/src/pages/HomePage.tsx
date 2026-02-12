@@ -38,7 +38,10 @@ export function HomePage({ onLogout, username }: HomePageProps) {
     updateAuthor,
     resetQuery,
     goToPage,
-  } = useVideos({ pageSize: 24 })
+    pageSize,
+    pageSizeOptions,
+    changePageSize,
+  } = useVideos()
 
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -151,6 +154,9 @@ export function HomePage({ onLogout, username }: HomePageProps) {
             currentPage={page}
             totalPages={totalPages}
             onPageChange={goToPage}
+            pageSize={pageSize}
+            pageSizeOptions={pageSizeOptions}
+            onPageSizeChange={changePageSize}
           />
         )}
       </main>

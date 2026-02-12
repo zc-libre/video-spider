@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- P0: id 字段独立索引，解决 getById 全分区扫描 -->
+    <changeSet id="20260213-create-video-id-index" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="video_id_index" tableName="video" schemaName="public"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="video_id_index" tableName="video" schemaName="public">
+            <column name="id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- P1: (video_website, video_id) 唯一约束，防止重复数据（分区表要求包含分区键 create_time） -->
+    <changeSet id="20260213-create-video-website-videoid-unique-index" author="libre">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="video_website_video_id_unique" tableName="video" schemaName="public"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE UNIQUE INDEX video_website_video_id_unique
+                ON public.video (video_website, video_id, create_time);
+        </sql>
+    </changeSet>
+
+    <!-- P1: 分区粒度从按天改为按月 —— 替换分区创建函数 -->
+    <changeSet id="20260213-update-partition-function-to-monthly" author="libre">
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION public.create_video_partition(target_date DATE DEFAULT CURRENT_DATE)
+            RETURNS TEXT AS $$
+            DECLARE
+                partition_name TEXT;
+                start_date DATE;
+                end_date DATE;
+            BEGIN
+                partition_name := 'video_' || to_char(target_date, 'YYYY_MM');
+                start_date := date_trunc('month', target_date);
+                end_date := (date_trunc('month', target_date) + INTERVAL '1 month')::date;
+
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_tables
+                    WHERE schemaname = 'public' AND tablename = partition_name
+                ) THEN
+                    EXECUTE format(
+                        'CREATE TABLE public.%I PARTITION OF public.video FOR VALUES FROM (%L) TO (%L)',
+                        partition_name, start_date, end_date
+                    );
+                    RETURN 'Created partition: ' || partition_name;
+                ELSE
+                    RETURN 'Partition already exists: ' || partition_name;
+                END IF;
+            EXCEPTION WHEN OTHERS THEN
+                RETURN 'Skipped partition: ' || partition_name || ' - ' || SQLERRM;
+            END;
+            $$ LANGUAGE plpgsql;
+        </sql>
+    </changeSet>
+
+    <!-- P1: 替换预创建函数，按月预创建 -->
+    <changeSet id="20260213-update-batch-partition-function-to-monthly" author="libre">
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION public.create_video_partitions_ahead(months_ahead INTEGER DEFAULT 3)
+            RETURNS TEXT AS $$
+            DECLARE
+                i INTEGER;
+                result TEXT := '';
+                single_result TEXT;
+            BEGIN
+                FOR i IN 0..months_ahead LOOP
+                    SELECT public.create_video_partition(
+                        (date_trunc('month', CURRENT_DATE) + (i || ' month')::interval)::date
+                    ) INTO single_result;
+                    result := result || single_result || E'\n';
+                END LOOP;
+                RETURN result;
+            END;
+            $$ LANGUAGE plpgsql;
+        </sql>
+    </changeSet>
+
+    <!-- 立即预创建未来 3 个月的分区 -->
+    <changeSet id="20260213-init-monthly-partitions" author="libre">
+        <sql>
+            SELECT public.create_video_partitions_ahead(3);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

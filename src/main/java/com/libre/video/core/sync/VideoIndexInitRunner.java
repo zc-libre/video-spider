@@ -28,7 +28,7 @@ public class VideoIndexInitRunner implements ApplicationRunner {
 			indexOperations.delete();
 		}
 		HashMap<String, Object> map = Maps.newHashMap();
-		map.put("max_result_window", 1000000);
+		map.put("max_result_window", 10000);
 		indexOperations.create(map);
 		indexOperations.putMapping(indexOperations.createMapping());
 	}

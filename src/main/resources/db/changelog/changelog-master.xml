@@ -8,4 +8,5 @@
     <include file="classpath:/db/changelog/init.xml"/>
     <include file="classpath:/db/changelog/spring-batch-schema.xml"/>
     <include file="classpath:/db/changelog/video-user.xml"/>
+    <include file="classpath:/db/changelog/video-optimize.xml"/>
 </databaseChangeLog>

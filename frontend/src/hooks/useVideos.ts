@@ -4,19 +4,27 @@ import type { Video, VideoQuery } from '@/types/video'
 
 interface UseVideosOptions {
   initialPage?: number
-  pageSize?: number
+  initialPageSize?: number
 }
 
+const PAGE_SIZE_OPTIONS = [50, 100, 200] as const
+
 export function useVideos(options: UseVideosOptions = {}) {
-  const { initialPage = 0, pageSize = 24 } = options
+  const { initialPage = 0, initialPageSize = PAGE_SIZE_OPTIONS[0] } = options
 
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const [page, setPage] = useState(initialPage)
+  const [pageSize, setPageSize] = useState(initialPageSize)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const [query, setQuery] = useState<VideoQuery>({})
+
+  const changePageSize = useCallback((size: number) => {
+    setPageSize(size)
+    setPage(0)
+  }, [])
 
   const fetchVideos = useCallback(async () => {
     setLoading(true)
@@ -66,6 +74,8 @@ export function useVideos(options: UseVideosOptions = {}) {
     loading,
     error,
     page,
+    pageSize,
+    pageSizeOptions: PAGE_SIZE_OPTIONS,
     totalPages,
     totalElements,
     query,
@@ -74,6 +84,7 @@ export function useVideos(options: UseVideosOptions = {}) {
     updateAuthor,
     resetQuery,
     goToPage,
+    changePageSize,
     refetch: fetchVideos,
   }
 }

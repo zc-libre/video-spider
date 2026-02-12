@@ -4,9 +4,12 @@ interface PaginationProps {
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
+  pageSize: number
+  pageSizeOptions: readonly number[]
+  onPageSizeChange: (size: number) => void
 }
 
-export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, onPageChange, pageSize, pageSizeOptions, onPageSizeChange }: PaginationProps) {
   if (totalPages <= 1) return null
 
   // 生成页码数组
@@ -53,6 +56,22 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
 
   return (
     <div className="flex items-center justify-center space-x-2 py-8">
+      <div className="flex items-center gap-1 mr-4">
+        {pageSizeOptions.map(size => (
+          <button
+            key={size}
+            onClick={() => onPageSizeChange(size)}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+              size === pageSize
+                ? 'bg-[#0A84FF] text-white'
+                : 'text-[#8E8E93] hover:bg-[#1C1C1E] hover:text-[#F5F5F7]'
+            }`}
+          >
+            {size}条
+          </button>
+        ))}
+      </div>
+
       <button
         onClick={() => onPageChange(Math.max(0, currentPage - 1))}
         disabled={currentPage === 0}
