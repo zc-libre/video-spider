@@ -24,7 +24,7 @@ public interface VideoService extends IService<Video> {
 	 * 爬取视频（全量）
 	 * @param type 请求类型
 	 */
-	@Async("videoRequestExecutor")
+	@Async
 	void spider(Integer type);
 
 	/**
@@ -32,7 +32,7 @@ public interface VideoService extends IService<Video> {
 	 * @param type 请求类型
 	 * @param maxPages 最大爬取页数，null 表示全量爬取
 	 */
-	@Async("videoRequestExecutor")
+	@Async
 	void spider(Integer type, Integer maxPages);
 
 	/**

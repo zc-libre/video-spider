@@ -56,8 +56,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -343,16 +341,13 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public void spider(Integer type, Integer maxPages) {
-		ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-		executor.execute(() -> {
-			Job videoSpiderJob = videoSpiderJobBuilder.videoSpiderJob(type, maxPages);
-			try {
-				jobLauncher.run(videoSpiderJob, createJobParams());
-			}
-			catch (Exception e) {
-				throw new LibreException(e);
-			}
-		});
+		Job videoSpiderJob = videoSpiderJobBuilder.videoSpiderJob(type, maxPages);
+		try {
+			jobLauncher.run(videoSpiderJob, createJobParams());
+		}
+		catch (Exception e) {
+			throw new LibreException(e);
+		}
 	}
 
 	private static JobParameters createJobParams() {

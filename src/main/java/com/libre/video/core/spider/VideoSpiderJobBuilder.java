@@ -9,7 +9,6 @@ import com.libre.video.core.spider.processor.VideoSpiderProcessor;
 import com.libre.video.core.spider.reader.AbstractVideoSpiderReader;
 import com.libre.video.core.spider.writer.VideoSpiderWriter;
 import com.libre.video.pojo.Video;
-import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -21,6 +20,7 @@ import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
 import org.springframework.batch.core.step.skip.SkipPolicy;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
@@ -39,6 +39,8 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 	private final JobRepository jobRepository;
 
 	private final PlatformTransactionManager platformTransactionManager;
+
+	private final TaskExecutor taskExecutor;
 
 	private final VideoSpiderWriter writer;
 
@@ -66,7 +68,6 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 	private Step videoSpiderStep(String stepName, AbstractVideoSpiderReader<?> reader,
 			VideoSpiderProcessor<?> processor, VideoSpiderWriter writer) {
 
-		var executor = ThreadPoolUtil.videoRequestExecutor();
 		return new StepBuilder(stepName, jobRepository).<VideoParse, Video>chunk(1, platformTransactionManager)
 			.reader(reader)
 			.processor(processor)
@@ -74,7 +75,7 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 			.faultTolerant()
 			.skip(Exception.class)
 			.skipPolicy(skipPolicy)
-			.taskExecutor(executor)
+			.taskExecutor(taskExecutor)
 			.build();
 	}
 

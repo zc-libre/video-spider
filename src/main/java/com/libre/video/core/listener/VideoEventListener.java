@@ -38,7 +38,7 @@ public class VideoEventListener {
 
 	private final M3u8Download download;
 
-	@Async("downloadExecutor")
+	@Async
 	@EventListener(VideoSaveEvent.class)
 	@Transactional(rollbackFor = Exception.class)
 	public void onSaveEvent(VideoSaveEvent videoSaveEvent) {
@@ -63,7 +63,7 @@ public class VideoEventListener {
 		// errorVideoService.save(errorVideo);
 	}
 
-	@Async("downloadExecutor")
+	@Async
 	@EventListener(VideoUploadEvent.class)
 	public void onDownloadEvent(VideoUploadEvent downloadEvent) {
 		videoService.saveVideoToLocal(downloadEvent);

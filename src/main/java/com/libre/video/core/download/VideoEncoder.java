@@ -34,7 +34,7 @@ public class VideoEncoder {
 
 	private final static String MP4_FORMAT = "mp4";
 
-	@Async("downloadExecutor")
+	@Async
 	public void encodeAndWrite(Long videoId) {
 		try {
 			Video video = Optional.ofNullable(videoMapper.selectById(videoId))

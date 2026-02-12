@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: video-spider
+  main:
+    keep-alive: true
+  threads:
+    virtual:
+      enabled: true
   servlet:
     multipart:
       max-file-size: 512MB
@@ -57,9 +62,6 @@ spring:
       minimum-idle: 1
   elasticsearch:
     uris: http://127.0.0.1:9200
-  threads:
-    virtual:
-      enabled: true
   data:
     redis:
       host: 127.0.0.1
