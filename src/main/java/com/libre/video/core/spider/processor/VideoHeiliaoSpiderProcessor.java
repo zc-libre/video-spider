@@ -1,9 +1,11 @@
 package com.libre.video.core.spider.processor;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.StringUtil;
+import com.libre.video.config.VideoProperties;
 import com.libre.video.core.download.M3u8Download;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.VideoStepType;
@@ -13,8 +15,15 @@ import com.libre.video.core.spider.VideoRequest;
 import com.libre.video.pojo.Video;
 import com.libre.video.toolkit.WebClientUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,8 +48,15 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-	protected VideoHeiliaoSpiderProcessor(M3u8Download m3u8Download) {
+	private final WebClient webClient;
+
+	private final VideoProperties properties;
+
+	protected VideoHeiliaoSpiderProcessor(M3u8Download m3u8Download, WebClient webClient,
+			VideoProperties properties) {
 		super(m3u8Download);
+		this.webClient = webClient;
+		this.properties = properties;
 	}
 
 	@Override
@@ -82,12 +98,51 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 			video.setTitle(video.getTitle().strip());
 		}
 
+		downloadImage(video);
 		return video;
 	}
 
 	@Override
 	public RequestTypeEnum getRequestType() {
 		return RequestTypeEnum.REQUEST_HEILIAO;
+	}
+
+	/**
+	 * 下载图片到本地，存储文件名到 video.image
+	 */
+	private void downloadImage(Video video) {
+		String image = video.getImage();
+		if (StringUtil.isBlank(image)) {
+			return;
+		}
+
+		String imageUrl = image;
+		if (imageUrl.startsWith("//")) {
+			imageUrl = "https:" + imageUrl;
+		}
+		else if (!imageUrl.startsWith("http")) {
+			imageUrl = BASE_URL + imageUrl;
+		}
+
+		try {
+			Resource resource = webClient.get()
+				.uri(imageUrl)
+				.accept(MediaType.APPLICATION_OCTET_STREAM)
+				.retrieve()
+				.bodyToMono(Resource.class)
+				.block();
+			if (resource == null) {
+				return;
+			}
+			try (InputStream inputStream = resource.getInputStream()) {
+				String imageName = IdWorker.getId() + ".jpg";
+				Files.copy(inputStream, Path.of(properties.getImagePath() + File.separator + imageName));
+				video.setImage(imageName);
+			}
+		}
+		catch (Exception e) {
+			log.error("图片下载失败, url: {}", image, e);
+		}
 	}
 
 	/**
