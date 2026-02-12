@@ -63,10 +63,11 @@
         </sql>
     </changeSet>
 
-    <!-- P1: 替换预创建函数，按月预创建 -->
+    <!-- P1: 替换预创建函数，按月预创建（PG 不允许 CREATE OR REPLACE 修改参数名，需先 DROP） -->
     <changeSet id="20260213-update-batch-partition-function-to-monthly" author="libre">
         <sql splitStatements="false">
-            CREATE OR REPLACE FUNCTION public.create_video_partitions_ahead(months_ahead INTEGER DEFAULT 3)
+            DROP FUNCTION IF EXISTS public.create_video_partitions_ahead(integer);
+            CREATE FUNCTION public.create_video_partitions_ahead(months_ahead INTEGER DEFAULT 3)
             RETURNS TEXT AS $$
             DECLARE
                 i INTEGER;
