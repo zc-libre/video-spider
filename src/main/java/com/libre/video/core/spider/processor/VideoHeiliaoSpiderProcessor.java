@@ -15,13 +15,15 @@ import com.libre.video.core.spider.VideoRequest;
 import com.libre.video.pojo.Video;
 import com.libre.video.toolkit.WebClientUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
@@ -47,6 +49,11 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 			"config='(\\{.*?\"video\":\\{.*?\\}.*?\\})'", Pattern.DOTALL);
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+	/** 图片 AES-128-CBC 解密密钥和 IV */
+	private static final byte[] IMAGE_AES_KEY = "f5d965df75336270".getBytes(StandardCharsets.UTF_8);
+
+	private static final byte[] IMAGE_AES_IV = "97b60394abc2fbe1".getBytes(StandardCharsets.UTF_8);
 
 	private final WebClient webClient;
 
@@ -108,7 +115,7 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 	}
 
 	/**
-	 * 下载图片到本地，存储文件名到 video.image
+	 * 下载加密图片，AES 解密后存储到本地
 	 */
 	private void downloadImage(Video video) {
 		String image = video.getImage();
@@ -125,24 +132,34 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 		}
 
 		try {
-			Resource resource = webClient.get()
+			byte[] encryptedBytes = webClient.get()
 				.uri(imageUrl)
 				.accept(MediaType.APPLICATION_OCTET_STREAM)
 				.retrieve()
-				.bodyToMono(Resource.class)
+				.bodyToMono(byte[].class)
 				.block();
-			if (resource == null) {
+			if (encryptedBytes == null || encryptedBytes.length == 0) {
 				return;
 			}
-			try (InputStream inputStream = resource.getInputStream()) {
-				String imageName = IdWorker.getId() + ".jpg";
-				Files.copy(inputStream, Path.of(properties.getImagePath() + File.separator + imageName));
-				video.setImage(imageName);
-			}
+
+			byte[] decryptedBytes = decryptImage(encryptedBytes);
+			String imageName = IdWorker.getId() + ".jpg";
+			Files.write(Path.of(properties.getImagePath() + File.separator + imageName), decryptedBytes);
+			video.setImage(imageName);
 		}
 		catch (Exception e) {
 			log.error("图片下载失败, url: {}", image, e);
 		}
+	}
+
+	/**
+	 * AES-128-CBC 解密图片数据（NoPadding）
+	 */
+	private byte[] decryptImage(byte[] encrypted) throws Exception {
+		Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+		cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(IMAGE_AES_KEY, "AES"),
+				new IvParameterSpec(IMAGE_AES_IV));
+		return cipher.doFinal(encrypted);
 	}
 
 	/**
