@@ -23,7 +23,6 @@ import com.libre.video.mapper.VideoMapper;
 import com.libre.video.pojo.Video;
 import com.libre.video.pojo.dto.VideoQuery;
 import com.libre.video.service.VideoService;
-import com.libre.video.toolkit.ThreadPoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -43,7 +42,6 @@ import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHitSupport;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.SearchPage;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -363,9 +361,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
 	@Override
 	public void shutdown() {
-		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
-		executor.shutdown();
-		executor.initialize();
+		// 虚拟线程由 JVM 管理生命周期，无需手动 shutdown
 	}
 
 }

@@ -21,16 +21,12 @@ import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
 import org.springframework.batch.core.step.skip.SkipPolicy;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.VirtualThreadTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author: Libre
@@ -70,7 +66,7 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 	private Step videoSpiderStep(String stepName, AbstractVideoSpiderReader<?> reader,
 			VideoSpiderProcessor<?> processor, VideoSpiderWriter writer) {
 
-		ThreadPoolTaskExecutor executor = ThreadPoolUtil.videoRequestExecutor();
+		var executor = ThreadPoolUtil.videoRequestExecutor();
 		return new StepBuilder(stepName, jobRepository).<VideoParse, Video>chunk(1, platformTransactionManager)
 			.reader(reader)
 			.processor(processor)
