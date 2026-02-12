@@ -87,7 +87,7 @@ public class M3u8Download {
 				log.error("master playlist 解析 media playlist 路径失败, url: {}", url);
 				return;
 			}
-			log.info("检测到 master playlist, 解析 media playlist: {}", mediaUrl);
+			log.debug("检测到 master playlist, 解析 media playlist: {}", mediaUrl);
 			video.setRealUrl(mediaUrl);
 			content = downloadM3u8Content(mediaUrl, video);
 			if (StringUtil.isBlank(content)) {
@@ -165,7 +165,7 @@ public class M3u8Download {
 		StringBuilder sb = new StringBuilder();
 		for (String line : lines) {
 			String trimmed = line.trim();
-			if (!trimmed.isEmpty() && !trimmed.startsWith("#") && trimmed.contains(".ts")) {
+			if (!trimmed.startsWith("#") && trimmed.contains(".ts")) {
 				if (trimmed.startsWith("http")) {
 					// 已经是完整 URL，不处理
 				}

@@ -20,7 +20,12 @@ public enum RequestTypeEnum {
 	/**
 	 * baav
 	 */
-	REQUEST_BA_AV(3, "https://www.tasexy.com");
+	REQUEST_BA_AV(3, "https://www.tasexy.com"),
+
+	/**
+	 * 黑料网
+	 */
+	REQUEST_HEILIAO(4, "https://heiliao.com");
 
 	private final int type;
 
