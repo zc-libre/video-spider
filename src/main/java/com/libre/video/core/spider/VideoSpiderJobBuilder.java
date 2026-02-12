@@ -40,7 +40,7 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 
 	private final PlatformTransactionManager platformTransactionManager;
 
-	private final TaskExecutor taskExecutor;
+	private final TaskExecutor applicationTaskExecutor;
 
 	private final VideoSpiderWriter writer;
 
@@ -75,7 +75,7 @@ public class VideoSpiderJobBuilder implements SmartInitializingSingleton {
 			.faultTolerant()
 			.skip(Exception.class)
 			.skipPolicy(skipPolicy)
-			.taskExecutor(taskExecutor)
+			.taskExecutor(applicationTaskExecutor)
 			.build();
 	}
 
