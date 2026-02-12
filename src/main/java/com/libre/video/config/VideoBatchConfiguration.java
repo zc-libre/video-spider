@@ -71,12 +71,12 @@ public class VideoBatchConfiguration extends DefaultBatchConfiguration {
 
 	@Bean
 	public Step esStep(EsVideoItemWriter esVideoWriter, MyBatisPagingItemReader<Video> itemReader,
-			@Qualifier("applicationTaskExecutor") TaskExecutor taskExecutor, JobRepository jobRepository) {
+			TaskExecutor applicationTaskExecutor, JobRepository jobRepository) {
 
 		return new StepBuilder("esStep", jobRepository).<Video, Video>chunk(200, platformTransactionManager)
 				.reader(itemReader).writer(esVideoWriter)
 				.faultTolerant().skipPolicy(new AlwaysSkipItemSkipPolicy())
-				.taskExecutor(taskExecutor).build();
+				.taskExecutor(applicationTaskExecutor).build();
 	}
 
 }

@@ -283,6 +283,7 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <parameters>true</parameters>
                 </configuration>
             </plugin>
             <!-- 将项目中代码文件打成jar包 -->
