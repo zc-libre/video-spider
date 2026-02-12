@@ -35,6 +35,7 @@ public abstract class AbstractVideoSpiderReader<P extends VideoParse> extends Ab
 
 	protected AbstractVideoSpiderReader(RedisUtils redisUtils) {
 		this.redisUtils = redisUtils;
+		setSaveState(false);
 	}
 
 	public void setMaxCrawlPages(Integer maxCrawlPages) {
