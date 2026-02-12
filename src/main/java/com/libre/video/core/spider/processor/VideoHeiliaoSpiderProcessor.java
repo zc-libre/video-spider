@@ -143,7 +143,8 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 			}
 
 			byte[] decryptedBytes = decryptImage(encryptedBytes);
-			String imageName = IdWorker.getId() + ".jpg";
+			String ext = imageUrl.substring(imageUrl.lastIndexOf('.'));
+			String imageName = IdWorker.getId() + ext;
 			Files.write(Path.of(properties.getImagePath() + File.separator + imageName), decryptedBytes);
 			video.setImage(imageName);
 		}
