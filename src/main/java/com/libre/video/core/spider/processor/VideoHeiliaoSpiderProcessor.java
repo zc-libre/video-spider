@@ -2,7 +2,6 @@ package com.libre.video.core.spider.processor;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.libre.core.exception.LibreException;
 import com.libre.core.toolkit.StringUtil;
 import com.libre.video.config.VideoProperties;
@@ -11,6 +10,7 @@ import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.enums.VideoStepType;
 import com.libre.video.core.mapstruct.VideoHeiliaoMapping;
 import com.libre.video.core.pojo.parse.VideoHeiliaoParse;
+import com.libre.video.core.spider.HeiliaoM3u8Resolver;
 import com.libre.video.core.spider.VideoRequest;
 import com.libre.video.pojo.Video;
 import com.libre.video.toolkit.WebClientUtils;
@@ -26,8 +26,6 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 黑料网视频爬虫 Processor
@@ -41,27 +39,21 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 
 	private static final String BASE_URL = RequestTypeEnum.REQUEST_HEILIAO.getBaseUrl();
 
-	/**
-	 * 匹配 DPlayer config 属性中的 JSON 内容。
-	 * HTML 格式: config='{"live":false,...,"video":{"url":"..."}}'
-	 */
-	private static final Pattern CONFIG_PATTERN = Pattern.compile(
-			"config='(\\{.*?\"video\":\\{.*?\\}.*?\\})'", Pattern.DOTALL);
-
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
 	/** 图片 AES-128-CBC 解密密钥和 IV */
 	private static final byte[] IMAGE_AES_KEY = "f5d965df75336270".getBytes(StandardCharsets.UTF_8);
 
 	private static final byte[] IMAGE_AES_IV = "97b60394abc2fbe1".getBytes(StandardCharsets.UTF_8);
 
+	private final HeiliaoM3u8Resolver heiliaoM3u8Resolver;
+
 	private final WebClient webClient;
 
 	private final VideoProperties properties;
 
-	protected VideoHeiliaoSpiderProcessor(M3u8Download m3u8Download, WebClient webClient,
-			VideoProperties properties) {
+	protected VideoHeiliaoSpiderProcessor(M3u8Download m3u8Download, HeiliaoM3u8Resolver heiliaoM3u8Resolver,
+			WebClient webClient, VideoProperties properties) {
 		super(m3u8Download);
+		this.heiliaoM3u8Resolver = heiliaoM3u8Resolver;
 		this.webClient = webClient;
 		this.properties = properties;
 	}
@@ -80,17 +72,17 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 		}
 
 		// 从 HTML 中提取并解析 DPlayer config JSON
-		JsonNode videoNode = parseVideoConfig(html);
+		JsonNode videoNode = heiliaoM3u8Resolver.parseVideoConfig(html);
 		if (videoNode == null) {
 			throw new LibreException("dplayer config not found, url: " + detailUrl);
 		}
 
-		String m3u8Url = getNodeText(videoNode, "/url");
+		String m3u8Url = heiliaoM3u8Resolver.getNodeText(videoNode, "/url");
 		if (StringUtil.isBlank(m3u8Url)) {
 			throw new LibreException("m3u8 url not found, url: " + detailUrl);
 		}
 
-		String imageUrl = getNodeText(videoNode, "/pic");
+		String imageUrl = heiliaoM3u8Resolver.getNodeText(videoNode, "/pic");
 		Long videoId = parseVideoId(detailPath);
 
 		VideoHeiliaoMapping mapping = VideoHeiliaoMapping.INSTANCE;
@@ -161,30 +153,6 @@ public class VideoHeiliaoSpiderProcessor extends AbstractVideoProcessor<VideoHei
 		cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(IMAGE_AES_KEY, "AES"),
 				new IvParameterSpec(IMAGE_AES_IV));
 		return cipher.doFinal(encrypted);
-	}
-
-	/**
-	 * 从 HTML 中提取 DPlayer config JSON 并返回 video 节点
-	 */
-	private JsonNode parseVideoConfig(String html) {
-		Matcher matcher = CONFIG_PATTERN.matcher(html);
-		if (!matcher.find()) {
-			return null;
-		}
-		try {
-			JsonNode root = OBJECT_MAPPER.readTree(matcher.group(1));
-			JsonNode videoNode = root.get("video");
-			return (videoNode != null && !videoNode.isMissingNode()) ? videoNode : null;
-		}
-		catch (Exception e) {
-			log.error("解析 DPlayer config JSON 失败", e);
-			return null;
-		}
-	}
-
-	private String getNodeText(JsonNode parent, String path) {
-		JsonNode node = parent.at(path);
-		return (node != null && !node.isMissingNode()) ? node.asText() : null;
 	}
 
 	/**
