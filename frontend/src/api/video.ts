@@ -12,7 +12,7 @@ export const videoApi = {
     query?: VideoQuery
   ): Promise<PageResponse<Video>> => {
     const params = {
-      current,
+      current: current + 1,
       size,
       ...query,
     }
