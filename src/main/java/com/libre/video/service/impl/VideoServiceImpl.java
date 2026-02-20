@@ -51,13 +51,17 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -294,6 +298,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		return watchPath;
 	}
 
+	private static final Pattern KEY_URI_PATTERN = Pattern.compile("URI=\"(https?://[^\"]+)\"");
+
 	private String watchHeiliao(Video video) throws IOException {
 		Long videoId = video.getId();
 		String freshM3u8Url = heiliaoM3u8Resolver.resolveM3u8Url(video.getUrl());
@@ -311,6 +317,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			throw new LibreException("m3u8 content is blank after download, videoId: " + videoId);
 		}
 
+		// 将 CDN 绝对 URL 改写为后端代理地址，解决浏览器 CORS 拦截
+		m3u8Content = rewriteToProxy(m3u8Content);
+
 		String videoTempDir = m3u8Download.getVideoTempDir(videoId);
 		Path tempPathDir = Paths.get(videoTempDir);
 		if (!Files.exists(tempPathDir)) {
@@ -320,6 +329,43 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		String m3u8FilePath = videoTempDir + File.separator + videoId + SystemConstants.MU38_SUFFIX;
 		Files.writeString(Path.of(m3u8FilePath), m3u8Content);
 		return videoId + File.separator + videoId + SystemConstants.MU38_SUFFIX;
+	}
+
+	/**
+	 * 将 m3u8 内容中的 CDN 绝对 URL（.ts 分片和 #EXT-X-KEY URI）改写为后端代理地址。
+	 */
+	private String rewriteToProxy(String m3u8Content) {
+		String[] lines = m3u8Content.split("\\R");
+		StringBuilder sb = new StringBuilder();
+		for (String line : lines) {
+			String trimmed = line.trim();
+			if (!trimmed.startsWith("#") && trimmed.startsWith("http")) {
+				// .ts 分片行
+				sb.append(toProxyUrl(trimmed));
+			}
+			else if (trimmed.startsWith("#EXT-X-KEY") && trimmed.contains("URI=\"")) {
+				// #EXT-X-KEY 行中的 crypt.key URI
+				Matcher matcher = KEY_URI_PATTERN.matcher(trimmed);
+				if (matcher.find()) {
+					String original = matcher.group(1);
+					sb.append(trimmed.replace(original, toProxyUrl(original)));
+				}
+				else {
+					sb.append(line);
+				}
+			}
+			else {
+				sb.append(line);
+			}
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
+
+	private String toProxyUrl(String cdnUrl) {
+		String encoded = Base64.getUrlEncoder().withoutPadding()
+			.encodeToString(cdnUrl.getBytes(StandardCharsets.UTF_8));
+		return "/api/video/ts-proxy?url=" + encoded;
 	}
 
 	private static String getRequestBaseUrl(String realUrl) {
