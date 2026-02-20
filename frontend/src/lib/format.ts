@@ -35,6 +35,7 @@ const VIDEO_WEBSITE_MAP: Record<number, string> = {
   2: '九色',
   3: 'BaAV',
   4: '黑料网',
+  5: '肉视频',
 }
 
 /**

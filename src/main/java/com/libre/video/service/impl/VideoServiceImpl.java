@@ -19,6 +19,7 @@ import com.libre.video.core.download.VideoEncoder;
 import com.libre.video.core.enums.RequestTypeEnum;
 import com.libre.video.core.event.VideoUploadEvent;
 import com.libre.video.core.spider.HeiliaoM3u8Resolver;
+import com.libre.video.core.spider.RouM3u8Resolver;
 import com.libre.video.core.spider.VideoSpiderJobBuilder;
 import com.libre.video.mapper.VideoEsRepository;
 import com.libre.video.mapper.VideoMapper;
@@ -77,6 +78,8 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 	private final M3u8Download m3u8Download;
 
 	private final HeiliaoM3u8Resolver heiliaoM3u8Resolver;
+
+	private final RouM3u8Resolver rouM3u8Resolver;
 
 	private final VideoProperties properties;
 
@@ -254,6 +257,10 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 			return watchHeiliao(video);
 		}
 
+		if (RequestTypeEnum.REQUEST_ROU.getType() == video.getVideoWebsite()) {
+			return watchRou(video);
+		}
+
 		String realUrl = video.getRealUrl();
 		if (StringUtil.isBlank(realUrl)) {
 			throw new LibreException("realUrl is blank, realUrl: " + realUrl);
@@ -296,6 +303,37 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 		}
 		FileUtils.writeLines(new File(m3u8FilePath), m3u8Lines);
 		return watchPath;
+	}
+
+	private String watchRou(Video video) throws IOException {
+		Long videoId = video.getId();
+		String freshM3u8Url = rouM3u8Resolver.resolveM3u8Url(video.getUrl());
+		video.setRealUrl(freshM3u8Url);
+
+		try {
+			m3u8Download.downloadAndReadM3u8File(video);
+		}
+		catch (Exception e) {
+			throw new LibreException(e);
+		}
+
+		String m3u8Content = video.getM3u8Content();
+		if (StringUtil.isBlank(m3u8Content)) {
+			throw new LibreException("m3u8 content is blank after download, videoId: " + videoId);
+		}
+
+		// 将 CDN 绝对 URL 改写为后端代理地址，解决浏览器 CORS 拦截
+		m3u8Content = rewriteToProxy(m3u8Content);
+
+		String videoTempDir = m3u8Download.getVideoTempDir(videoId);
+		Path tempPathDir = Paths.get(videoTempDir);
+		if (!Files.exists(tempPathDir)) {
+			Files.createDirectories(tempPathDir);
+		}
+
+		String m3u8FilePath = videoTempDir + File.separator + videoId + SystemConstants.MU38_SUFFIX;
+		Files.writeString(Path.of(m3u8FilePath), m3u8Content);
+		return videoId + File.separator + videoId + SystemConstants.MU38_SUFFIX;
 	}
 
 	private static final Pattern KEY_URI_PATTERN = Pattern.compile("URI=\"(https?://[^\"]+)\"");

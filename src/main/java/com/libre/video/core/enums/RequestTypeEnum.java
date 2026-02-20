@@ -25,7 +25,12 @@ public enum RequestTypeEnum {
 	/**
 	 * 黑料网
 	 */
-	REQUEST_HEILIAO(4, "https://heiliao.com");
+	REQUEST_HEILIAO(4, "https://heiliao.com"),
+
+	/**
+	 * 肉视频
+	 */
+	REQUEST_ROU(5, "https://rou.video");
 
 	private final int type;
 

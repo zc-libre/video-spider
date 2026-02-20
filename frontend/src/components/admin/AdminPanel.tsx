@@ -12,6 +12,7 @@ const SPIDER_SOURCES = [
   { type: 2, label: '九色', color: 'bg-[#FF9F0A]' },
   { type: 3, label: 'baav', color: 'bg-[#5E5CE6]' },
   { type: 4, label: '黑料网', color: 'bg-[#BF5AF2]' },
+  { type: 5, label: '肉视频', color: 'bg-[#FF6482]' },
 ] as const
 
 type ActionKey = `spider-${number}` | 'sync' | 'shutdown'
